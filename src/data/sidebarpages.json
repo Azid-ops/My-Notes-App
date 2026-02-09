@@ -1,0 +1,16 @@
+[
+  {
+    "section": "Walkthroughs",
+    "items": [
+      { "id": "cold-box", "title": "ColddBox: Easy", "slug": "cold-box" },
+      { "id": "web-vulns", "title": "LinPEAS", "slug": "web-vulns" }
+    ]
+  },
+  {
+    "section": "Notes",
+    "items": [
+      { "id": "note-1", "title": "Tool A", "slug": "tool-a" },
+      { "id": "note-2", "title": "Tool B", "slug": "tool-b" }
+    ]
+  }
+]
