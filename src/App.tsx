@@ -1,9 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/sidebar";
 import Home from "./pages/home";
-import NotePage from "./pages/NotePage";
+import NotePageWrapper from "./pages/NotePageWrapper";
 
-// App.tsx
 export default function App() {
   return (
     <Router>
@@ -12,7 +11,7 @@ export default function App() {
         <main className="flex-1 bg-gray-50 dark:bg-gray-900">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/notes/:slug" element={<NotePage />} />
+            <Route path="/notes/:slug" element={<NotePageWrapper />} />
           </Routes>
         </main>
       </div>

@@ -2,15 +2,14 @@
   {
     "section": "Walkthroughs",
     "items": [
-      { "id": "cold-box", "title": "ColddBox: Easy", "slug": "cold-box" },
-      { "id": "web-vulns", "title": "LinPEAS", "slug": "web-vulns" }
+      { "id": "cold-box", "title": "ColdBox: Easy", "slug": "cold-box", "category": "walkthroughs" },
+      { "id": "pyrat", "title": "Pyrat", "slug": "pyrat", "category": "walkthroughs" }
     ]
   },
   {
     "section": "Notes",
     "items": [
-      { "id": "note-1", "title": "Tool A", "slug": "tool-a" },
-      { "id": "note-2", "title": "Tool B", "slug": "tool-b" }
+      { "id": "reverse-shells", "title": "Reverse Shells", "slug": "reverse-shells", "category": "notes" }
     ]
   }
 ]

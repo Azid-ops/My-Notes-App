@@ -26,11 +26,20 @@ export default function Sidebar() {
     Notes: <FiFileText />
   };
 
+  // Group items alphabetically
+  const getAlphabeticalGroups = (items: typeof pagesData[0]["items"]) => {
+    const groups: Record<string, typeof items> = {};
+    items.forEach((item) => {
+      const firstLetter = item.title[0].toUpperCase();
+      if (!groups[firstLetter]) groups[firstLetter] = [];
+      groups[firstLetter].push(item);
+    });
+    return groups;
+  };
+
   return (
     <aside
-      className={`${
-        collapsed ? "w-20" : "w-64"
-      } bg-gray-900 text-white h-screen p-4 flex flex-col transition-all duration-300 shadow-xl`}
+      className={`${collapsed ? "w-20" : "w-64"} bg-gray-900 text-white h-screen p-4 flex flex-col transition-all duration-300 shadow-xl`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -48,71 +57,88 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Sections */}
-      {/* Sections */}
-<nav className="flex flex-col gap-2 flex-1 overflow-auto">
-  {/* Home button */}
-  <Link
-    to="/"
-    className={`flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-200
-      ${
-        location.pathname === "/"
-          ? "bg-blue-600 text-white font-medium shadow-md"
-          : "text-gray-200 hover:bg-gray-700 hover:text-white"
-      }`}
-  >
-    {!collapsed && <FiHome className="mr-2" />} {/* You can import FiHome from react-icons/fi */}
-    {!collapsed && "Home"}
-  </Link>
+      {/* Navigation */}
+      <nav className="flex flex-col gap-2 flex-1 overflow-auto pr-1">
+        {/* Home */}
+        <Link
+          to="/"
+          className={`flex items-center px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-200
+            ${location.pathname === "/" ? "bg-blue-600 text-white font-medium shadow-md" : "text-gray-200 hover:bg-gray-700 hover:text-white"}`}
+        >
+          {!collapsed && <FiHome className="mr-2" />}
+          {!collapsed && "Home"}
+        </Link>
 
-  {pagesData.map((section) => (
-    <div key={section.section} className="mb-2">
-      {/* Section header */}
-      <button
-        onClick={() => toggleSection(section.section)}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200
-          ${
-            expandedSections[section.section]
-              ? "bg-gray-800 text-white"
-              : "text-gray-300 hover:bg-gray-700 hover:text-white"
-          }`}
-      >
-        <div className="flex items-center gap-2">
-          {sectionIcons[section.section]}
-          {!collapsed && section.section}
-        </div>
-        {!collapsed && (
-          <span className="text-gray-400">
-            {expandedSections[section.section] ? <FiChevronDown /> : <FiChevronRight />}
-          </span>
-        )}
-      </button>
+        {/* Sections */}
+        {pagesData.map((section) => (
+          <div key={section.section} className="mb-2">
+            {/* Section Header */}
+            <button
+              onClick={() => toggleSection(section.section)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200
+                ${expandedSections[section.section] ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"}`}
+            >
+              <div className="flex items-center gap-2">
+                {sectionIcons[section.section]}
+                {!collapsed && section.section}
+              </div>
+              {!collapsed && (
+                <span className="text-gray-400">
+                  {expandedSections[section.section] ? <FiChevronDown /> : <FiChevronRight />}
+                </span>
+              )}
+            </button>
 
-      {/* Section items */}
-      {expandedSections[section.section] &&
-        section.items.map((item) => {
-          const isActive = location.pathname === `/notes/${item.slug}`;
-          return (
-            <div key={item.id} className="flex flex-col">
-              <Link
-                to={`/notes/${item.slug}`}
-                className={`flex items-center px-6 py-1 text-sm rounded-md transition-colors duration-200
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white font-medium shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
-              >
-                {!collapsed && <FiCircle className="mr-2 text-xs" />}
-                {!collapsed && item.title}
-              </Link>
-            </div>
-          );
-        })}
-    </div>
-  ))}
-</nav>
-
+            {/* Section Items */}
+            {expandedSections[section.section] && (
+              <div>
+                {/* Alphabetically grouped for Walkthroughs and Notes */}
+                {["Walkthroughs", "Notes"].includes(section.section) ? (
+                  Object.entries(getAlphabeticalGroups(section.items))
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([letter, items]) => (
+                      <div key={letter} className="mb-2">
+                        {!collapsed && (
+                          <div className="px-6 py-1 text-xs font-bold text-gray-400 uppercase">{letter}</div>
+                        )}
+                        {items.map((item) => {
+                          const isActive = location.pathname === `/notes/${item.slug}`;
+                          return (
+                            <Link
+                              key={item.id}
+                              to={`/notes/${item.slug}`}
+                              className={`flex items-center px-8 py-1 text-sm rounded-md transition-colors duration-200
+                                ${isActive ? "bg-blue-600 text-white font-medium shadow-md" : "text-gray-300 hover:bg-gray-700 hover:text-white"}`}
+                            >
+                              {!collapsed && <FiCircle className="mr-2 text-xs" />}
+                              {!collapsed && item.title}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ))
+                ) : (
+                  // Regular list for other sections
+                  section.items.map((item) => {
+                    const isActive = location.pathname === `/notes/${item.slug}`;
+                    return (
+                      <Link
+                        key={item.id}
+                        to={`/notes/${item.slug}`}
+                        className={`flex items-center px-6 py-1 text-sm rounded-md transition-colors duration-200
+                          ${isActive ? "bg-blue-600 text-white font-medium shadow-md" : "text-gray-300 hover:bg-gray-700 hover:text-white"}`}
+                      >
+                        {!collapsed && <FiCircle className="mr-2 text-xs" />}
+                        {!collapsed && item.title}
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
 
       {/* Footer */}
       {!collapsed && (

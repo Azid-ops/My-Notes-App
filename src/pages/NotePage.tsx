@@ -1,8 +1,6 @@
-import { useParams } from "react-router-dom";
 import pages from "../data/pages.json";
-import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useState, useEffect } from "react";
+import { FaYoutube } from "react-icons/fa"; // make sure to install react-icons
 
 interface Block {
   id: string;
@@ -11,37 +9,59 @@ interface Block {
   code?: string;
   src?: string;
   alt?: string;
-  goodbyeMessage?: string;
+  url?: string; // for YouTube block
 }
 
-export default function NotePage() {
-  const { slug } = useParams();
-  const page = pages.find((p) => p.slug === slug);
+interface NotePageProps {
+  slug: string;
+}
 
-  if (!page)
-    return (
-      <p className="text-center text-gray-500 mt-20 text-lg">
-        Page not found
-      </p>
-    );
+export default function NotePage({ slug }: NotePageProps) {
+  const [page, setPage] = useState<any | null>(null);
+
+  useEffect(() => {
+    setPage(null);
+    const found = pages.find((p) => p.slug === slug);
+    setPage(found || null);
+    window.scrollTo(0, 0);
+  }, [slug]);
+
+  if (!page) {
+    return <p className="text-center text-gray-500 mt-20 text-lg">Loading...</p>;
+  }
 
   const blocks: Block[] = Array.isArray(page.blocks) ? page.blocks : [];
 
+  // Get YouTube link from page or first "youtube" block
+  const youtubeFromBlock = blocks.find((b) => b.type === "youtube")?.url;
+  const youtubeUrl = page.youtubeUrl || youtubeFromBlock;
+
   return (
     <div className="w-full max-w-7xl py-10 mx-auto px-4 md:px-6">
-      {/* Title */}
-      <h1 className="text-4xl md:text-5xl font-bold mb-8 text-gray-900 dark:text-gray-100 border-b border-gray-300 pb-4">
-        {page.title}
-      </h1>
+      {/* Title with YouTube Icon */}
+      <div className="flex items-center justify-between mb-8 border-b border-gray-300 pb-4">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100">
+          {page.title}
+        </h1>
 
-      {/* Scrollable Content */}
-      {blocks.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-lg">
-          No content available for this page.
-        </p>
-      ) : (
-        <div className="space-y-8 max-h-[80vh] overflow-y-auto pr-4">
-          {blocks.map((block) => {
+        {page.category === "walkthrough" && youtubeUrl && (
+          <a
+            href={youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-red-600 hover:text-red-700 transition-colors"
+            title="Watch walkthrough video"
+          >
+            <FaYoutube className="text-4xl md:text-5xl" />
+          </a>
+        )}
+      </div>
+
+      <div className="space-y-8 max-h-[80vh] overflow-y-auto pr-4">
+        {blocks.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400 text-lg">No content available.</p>
+        ) : (
+          blocks.map((block) => {
             switch (block.type) {
               case "section_heading":
                 return (
@@ -52,59 +72,48 @@ export default function NotePage() {
                     {block.text}
                   </h2>
                 );
-
               case "paragraph":
                 return (
-                  <div
+                  <p
                     key={block.id}
-                    className="prose dark:prose-invert max-w-none"
+                    className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200"
                   >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {block.text || ""}
-                    </ReactMarkdown>
-                  </div>
+                    {block.text}
+                  </p>
                 );
-
               case "code_block":
                 if (!block.code) return null;
                 return <CodeBlock key={block.id} code={block.code} />;
-
               case "image":
                 if (!block.src) return null;
-                return (
-                  <ImageWithLoader
-                    key={block.id}
-                    src={block.src}
-                    alt={block.alt ?? "image"}
-                  />
-                );
-
+                return <ImageWithLoader key={block.id} src={block.src} alt={block.alt ?? ""} />;
               default:
                 return null;
             }
-          })}
+          })
+        )}
 
-          {/* Beautiful Goodbye Section — INSIDE scroller */}
-          {page.goodbyeMessage && (
-            <div className="mt-14 flex justify-center">
-              <div className="max-w-2xl w-full text-center rounded-2xl p-6 md:p-8 shadow-lg bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-blue-200 dark:border-gray-700">
-                <div className="text-3xl mb-3">🚀</div>
-                <p className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-                  {page.goodbyeMessage}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  End of notes — go build something awesome.
-                </p>
-              </div>
+        {page.goodbyeMessage && (
+          <div className="mt-8 flex justify-center">
+            <div className="max-w-2xl w-full text-center rounded-2xl p-6 md:p-8 shadow-lg bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-blue-200 dark:border-gray-700">
+              <div className="text-3xl mb-3">🚀</div>
+              <p className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+                {page.goodbyeMessage}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                End of notes — go build something awesome.
+              </p>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// New CodeBlock component with Copy button
+// ----------------------
+// CodeBlock component
+// ----------------------
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -129,28 +138,25 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
-// Image component with lazy loading, max height, loader, and error handling
+// ----------------------
+// ImageWithLoader component
+// ----------------------
 function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
-  const [status, setStatus] = useState<"loading" | "loaded" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
 
   return (
     <div className="my-6 flex">
-      {/* Box wraps the image and loader */}
       <div className="relative bg-gray-100 dark:bg-gray-800 p-3 rounded-xl shadow max-w-[600px] w-full">
         {status === "loading" && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-500"></div>
           </div>
         )}
-
         {status === "error" && (
           <div className="absolute inset-0 flex items-center justify-center text-red-500 font-semibold">
             Error loading image
           </div>
         )}
-
         <img
           src={src}
           alt={alt}
