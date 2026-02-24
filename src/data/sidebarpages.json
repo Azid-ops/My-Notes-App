@@ -9,7 +9,35 @@
   {
     "section": "Notes",
     "items": [
-      { "id": "reverse-shells", "title": "Reverse Shells", "slug": "reverse-shells", "category": "notes" }
+      { "id": "reverse-shells", "title": "Reverse Shells", "slug": "reverse-shells", "category": "notes" },
+      {
+        "id": "sqli",
+        "title": "SQLInjection",
+        "slug": "sqli",
+        "category": "notes",
+        "children": [
+          {
+            "id": "error-based-sqli",
+            "title": "ERROR BASED",
+            "slug": "error-based-sqli",
+            "category": "notes",
+            "children": [
+              {
+                "id": "mysql-error-based",
+                "title": "MYSQL",
+                "slug": "mysql-error-based",
+                "category": "notes"
+              },
+              {
+                "id": "mariadb-error-based",
+                "title": "MariaDB",
+                "slug": "mariadb-error-based",
+                "category": "notes"
+              }
+            ]
+          }
+        ]
+      }
     ]
   }
 ]

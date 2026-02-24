@@ -101,7 +101,7 @@ export default function NotePage({ slug }: NotePageProps) {
                 {page.goodbyeMessage}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                End of notes — go build something awesome.
+                End of notes, go build something awesome.
               </p>
             </div>
           </div>
