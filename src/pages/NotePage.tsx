@@ -44,13 +44,13 @@ export default function NotePage({ slug }: NotePageProps) {
           {page.title}
         </h1>
 
-        {page.category === "walkthrough" && youtubeUrl && (
+        {youtubeUrl && (
           <a
             href={youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-red-600 hover:text-red-700 transition-colors"
-            title="Watch walkthrough video"
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors group"
+            title="Watch on YouTube"
           >
             <FaYoutube className="text-4xl md:text-5xl" />
           </a>
