@@ -3,7 +3,8 @@
     "section": "Walkthroughs",
     "items": [
       { "id": "cold-box", "title": "ColdBox: Easy", "slug": "cold-box", "category": "walkthroughs" },
-      { "id": "pyrat", "title": "Pyrat", "slug": "pyrat", "category": "walkthroughs" }
+      { "id": "pyrat", "title": "Pyrat", "slug": "pyrat", "category": "walkthroughs" },
+      { "id": "anon-force", "title": "Anonforce", "slug": "anon-force", "category": "walkthroughs" }
     ]
   },
   {
@@ -37,7 +38,8 @@
             ]
           }
         ]
-      }
+      },
+      { "id": "pgp", "title": "PGP or GPG", "slug": "pgp", "category": "notes" }
     ]
   }
 ]

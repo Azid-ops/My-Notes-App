@@ -558,6 +558,147 @@
   },
   {
     "id": 3,
+    "slug": "anon-force",
+    "title": "Anonforce",
+    "category": "walkthrough",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Initial Access"
+      },
+      {
+        "type": "paragraph",
+        "id": "nmap-intro",
+        "text": "We start by scanning the target with Nmap."
+      },
+      {
+        "type": "code_block",
+        "id": "nmap-command",
+        "language": "bash",
+        "code": "nmap -p- -T4 -A -v 10.112.158.30"
+      },
+      {
+        "type": "image",
+        "id": "nmap-scan-screenshot",
+        "src": "/assets/walkthroughs/anon-force/nmap.png",
+        "alt": "Nmap scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "As we can see, we found two ports: `ftp` and `ssh`. Since `ssh` requires credentials, we will leave it for now and focus on `ftp`."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "From the image we can see that notread and tmp are NSE writeable, keep that in mind."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Writeable means we are able to write to those files"
+      },
+      {
+        "type": "section_heading",
+        "id": "further-enumeration",
+        "text": "Further Enumeration"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-enumeration",
+        "text": "Then we will go to ftp and try to explore.."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "ftp 10.112.158.30 21"
+      },
+      {
+        "type": "image",
+        "id": "nc-scan-screenshot",
+        "src": "/assets/walkthroughs/anon-force/ftp.png",
+        "alt": "Nc scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "From nmap result we got our first flag by downloading and viewing user.txt"
+      },
+      {
+        "type": "section_heading",
+        "id": "reverse-shell",
+        "text": "Privilege Escalation"
+      },
+      {
+        "type": "paragraph",
+        "id": "reverse-shell",
+        "text": "After looking for some time i didn't get anyting intresting then i decided t go to notread directory which we got from nmap result "
+      },
+      {
+        "type": "image",
+        "id": "shell-scan-screenshot",
+        "src": "/assets/walkthroughs/anon-force/pgp.png",
+        "alt": "Shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "For detail understanding of pgp or gpg kindly go to gpg notes or gpg notes."
+      },
+      {
+        "type": "paragraph",
+        "id": "ssh-access",
+        "text": "Now we need to decrypt these 2 files which we got, we would decrypt them with below commands."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "gpg2john private.asc > gpg.hash"
+      },
+      {
+        "type": "paragraph",
+        "id": "ssh-access",
+        "text": "First we know that private.asc contains private key which we need to decrypt backup file, but that file is also password protected so we are just extracting it passphrase."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "john gpg.hash --wordlist=/usr/share/wordlists/rockyou.txt"
+      },
+      {
+        "type": "paragraph",
+        "id": "ssh-access",
+        "text": "This will give us the passphrase and we can enter this passphrase while decrypting, system will ask for that passphrase when decrypting."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "gpg --import private.asc"
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "gpg --decrypt backup.pgp"
+      },
+      {
+        "type": "paragraph",
+        "id": "ssh-access",
+        "text": "First we load private key from .asc file and we decypted using that private key and we got the user and it's ssh password, by decrypting that password we got root shell and from there we got the root password."
+      }
+    ],
+    "goodbyeMessage":"Good luck, and happy hacking 🚀",
+    "youtubeUrl":"https://youtu.be/pN1WefcyaAI"
+  },
+
+
+  {
+    "id": 3,
     "slug": "mysql-error-based",
     "title": "ERROR BASED SQLI - MYSQL",
     "category": "notes",
@@ -817,6 +958,80 @@
       }
     ],
     "youtubeUrl":"https://youtu.be/agSq415rFEs",
+    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+  },
+  {
+    "id": 3,
+    "slug": "pgp",
+    "title": "PGP DECRYPTION",
+    "category": "notes",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is PGP?"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "PGP is use to decrypt and ecrypt a file"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "Encrytption: For encrypton developer generate a private and a public key, with public key it can encrypt any file and pass that key to others so that they can encrypt as well. A public key is like a padlock."
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "Decryption: For decryption we need the same private key which developer created and he might stored that is some ascii file, so this private key is a key for that padlock."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is a ASCII file?"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "Well developer can hide an private key in an ascii file, and he could protect that ascii file as well, so in order to see pgp file we need to have private key which we can get from ascii."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Below are some commands to decrypt the pgp file"
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "gpg2john private.asc > gpg.hash"
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "john gpg.hash --wordlist=/usr/share/wordlists/rockyou.txt"
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "gpg --import private.asc"
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "gpg --decrypt backup.pgp"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "For a practical understanding of gpg or gpg kindly look at Anonforce walkthrough."
+      }
+    ],
+    "youtubeUrl":"https://youtu.be/pN1WefcyaAI",
     "goodbyeMessage":"Good luck, and happy hacking 🚀"
   }
 ]

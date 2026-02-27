@@ -143,31 +143,51 @@ function CodeBlock({ code }: { code: string }) {
 // ----------------------
 function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
+  const [isOpen, setIsOpen] = useState(false); // new state for modal
 
   return (
-    <div className="my-6 flex">
-      <div className="relative bg-gray-100 dark:bg-gray-800 p-3 rounded-xl shadow max-w-[600px] w-full">
-        {status === "loading" && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-500"></div>
-          </div>
-        )}
-        {status === "error" && (
-          <div className="absolute inset-0 flex items-center justify-center text-red-500 font-semibold">
-            Error loading image
-          </div>
-        )}
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          onLoad={() => setStatus("loaded")}
-          onError={() => setStatus("error")}
-          className={`rounded-lg w-full object-contain transition-opacity duration-500 ${
-            status === "loaded" ? "opacity-100" : "opacity-0"
-          }`}
-        />
+    <>
+      <div className="my-6 flex">
+        <div
+          className="relative bg-gray-100 dark:bg-gray-800 p-3 rounded-xl shadow max-w-[600px] w-full cursor-pointer"
+          onClick={() => status === "loaded" && setIsOpen(true)}
+        >
+          {status === "loading" && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-500"></div>
+            </div>
+          )}
+          {status === "error" && (
+            <div className="absolute inset-0 flex items-center justify-center text-red-500 font-semibold">
+              Error loading image
+            </div>
+          )}
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            onLoad={() => setStatus("loaded")}
+            onError={() => setStatus("error")}
+            className={`rounded-lg w-full object-contain transition-opacity duration-500 ${
+              status === "loaded" ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        </div>
       </div>
-    </div>
+
+      {/* Modal overlay */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 cursor-zoom-out"
+        >
+          <img
+            src={src}
+            alt={alt}
+            className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-lg"
+          />
+        </div>
+      )}
+    </>
   );
 }
