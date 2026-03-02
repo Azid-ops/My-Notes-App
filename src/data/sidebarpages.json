@@ -4,34 +4,33 @@
     "items": [
       { "id": "cold-box", "title": "ColdBox: Easy", "slug": "cold-box", "category": "walkthroughs" },
       { "id": "pyrat", "title": "Pyrat", "slug": "pyrat", "category": "walkthroughs" },
-      { "id": "anon-force", "title": "Anonforce", "slug": "anon-force", "category": "walkthroughs" }
+      { "id": "anon-force", "title": "Anon Force", "slug": "anon-force", "category": "walkthroughs" }
     ]
   },
   {
     "section": "Notes",
     "items": [
-      { "id": "reverse-shells", "title": "Reverse Shells", "slug": "reverse-shells", "category": "notes" },
       {
         "id": "sqli",
-        "title": "SQLInjection",
+        "title": "SQL Injection",
         "slug": "sqli",
         "category": "notes",
         "children": [
           {
             "id": "error-based-sqli",
-            "title": "ERROR BASED",
+            "title": "Error-Based SQL Injection",
             "slug": "error-based-sqli",
             "category": "notes",
             "children": [
               {
                 "id": "mysql-error-based",
-                "title": "MYSQL",
+                "title": "MySQL",
                 "slug": "mysql-error-based",
                 "category": "notes"
               },
               {
                 "id": "postgres-error-based",
-                "title": "Postgres",
+                "title": "PostgreSQL",
                 "slug": "postgres-error-based",
                 "category": "notes"
               }
@@ -40,7 +39,45 @@
         ]
       },
       { "id": "pgp", "title": "PGP or GPG", "slug": "pgp", "category": "notes" },
-      { "id": "suid", "title": "SUID Binary", "slug": "suid", "category": "notes" }
+      { "id": "suid", "title": "SUID Binary", "slug": "suid", "category": "notes" },
+      {
+        "id": "overall-lfi",
+        "title": "LFI",
+        "slug": "overall-lfilfi",
+        "category": "notes",
+        "children": [
+          {
+            "id": "lfi",
+            "title": "Basic LFI",
+            "slug": "lfi",
+            "category": "notes"
+          },
+          {
+            "id": "filter-chain-generator",
+            "title": "Filter Chain Generator",
+            "slug": "filter-chain-generator",
+            "category": "notes"
+          },
+          {
+            "id": "filter",
+            "title": "Filter",
+            "slug": "filter",
+            "category": "notes"
+          },
+          {
+            "id": "filter-input",
+            "title": "Input LFI Wrapper",
+            "slug": "filter-input",
+            "category": "notes"
+          },
+          {
+            "id": "all-filters",
+            "title": "All Filters",
+            "slug": "all-filters",
+            "category": "notes"
+          }
+        ]
+      }
     ]
   }
 ]

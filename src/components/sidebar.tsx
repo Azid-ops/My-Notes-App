@@ -106,7 +106,7 @@ const renderItem = (item: SidebarItemType, level = 0) => {
 };
   return (
     <aside
-      className={`${collapsed ? "w-20" : "w-64"} bg-gray-900 text-white h-screen p-4 flex flex-col transition-all duration-300 shadow-xl`}
+      className={`${collapsed ? "w-20" : "w-82"} bg-gray-900 text-white h-screen p-4 flex flex-col transition-all duration-300 shadow-xl`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">

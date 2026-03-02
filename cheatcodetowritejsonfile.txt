@@ -1,0 +1,106 @@
+Got it! Here’s a **clean JSON cheat sheet** for all your block types with examples and descriptions:
+
+---
+
+## **1. Paragraph Block**
+
+**Type:** `"paragraph"`
+**Purpose:** Normal explanatory text.
+
+```json
+{
+  "type": "paragraph",
+  "id": "intro",
+  "text": "This is a normal explanation text."
+}
+```
+
+---
+
+## **2. Code Block**
+
+**Type:** `"code_block"`
+**Purpose:** Displays a code snippet.
+
+```json
+{
+  "type": "code_block",
+  "id": "example",
+  "code": "ls -la"
+}
+```
+
+---
+
+## **3. Image Block**
+
+**Type:** `"image"`
+**Purpose:** Displays an image with alt text.
+
+```json
+{
+  "type": "image",
+  "id": "diagram",
+  "src": "/images/example.png",
+  "alt": "Example diagram"
+}
+```
+
+---
+
+## **4. Output Block**
+
+**Type:** `"output_block"`
+**Purpose:** Shows command output or console output.
+
+```json
+{
+  "type": "output_block",
+  "id": "check-root",
+  "language": "bash",
+  "code": "root:x:0:0:root:/root:/bin/bash"
+}
+```
+
+---
+
+## **5. Explanation Block**
+
+**Type:** `"explanation"`
+**Purpose:** Bullet-point style explanations with optional title.
+
+```json
+{
+  "type": "explanation",
+  "id": "lfi-tip",
+  "title": "Important Notes",
+  "items": [
+    "Parameter should be accessible",
+    "No sanitization",
+    "Web server must have read permission"
+  ]
+}
+```
+
+---
+
+## **6. Order Block**
+
+**Type:** `"order_block"`
+**Purpose:** Step-by-step actions with highlighted keywords using `<highlight>` tags.
+
+```json
+{
+  "type": "order_block",
+  "id": "lfi-step-1",
+  "text": "Next lets go and try to get a file using <highlight>LFI</highlight>, here is the <highlight>URL</highlight>."
+}
+```
+
+---
+
+This JSON cheat sheet shows **all your block types** with examples you can copy directly into your `pages.json`.
+
+If you want, I can also make a **single master example page** combining all these blocks so you can see how it will look in your UI.
+
+Do you want me to do that?

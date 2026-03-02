@@ -1,0 +1,111 @@
+[
+  {
+    "type": "section_heading",
+    "id": "initial-access",
+    "text": "What is LFI?"
+  },
+  {
+    "type": "paragraph",
+    "id": "lfi-definition",
+    "text": "LFI stands for <highlight>Local File Inclusion</highlight>. It is a vulnerability that allows an attacker to include and read files from the local server through a vulnerable parameter."
+  },
+  {
+    "type": "paragraph",
+    "id": "lfi-definition",
+    "text": "When exploiting LFI, the file is accessed by the web server process, typically running as <highlight>www-data</highlight>. This means you can only read files that the web server user (<highlight>www-data</highlight>) has permission to access."
+  },
+  {
+    "type": "section_heading",
+    "id": "initial-access",
+    "text": "How to Get Files Using LFI?"
+  },
+  {
+    "type": "explanation",
+    "id": "lfi-conditions",
+    "title": "Conditions Required for LFI",
+    "items": [
+      "The application must use a parameter to load or include a file.",
+      "The parameter must not properly sanitize or validate user input.",
+      "The web server must have permission to read the targeted file."
+    ]
+  },
+  {
+    "type": "order_block",
+    "id": "lfi-step-1",
+    "text": "Now let's attempt to read a file using LFI. Below is the URL that allows us to access a file on the server."
+  },
+  {
+    "type": "code_block",
+    "id": "checking-command",
+    "language": "bash",
+    "code": "http://VictimIP/secret-script.php?file=../../../../etc/passwd"
+  },
+  {
+    "type": "explanation",
+    "id": "pgp-definition",
+    "title": "Breaking Down the URL",
+    "items": [
+      "The vulnerable file here is <highlight>secret-script.php</highlight>.",
+      "This file accepts a parameter that is used to include other files.",
+      "Because it does not properly validate input, we can exploit it to read files that the <highlight>web server</highlight> has access to."
+    ]
+  },
+  {
+    "type": "order_block",
+    "id": "lfi-step-2",
+    "text": "If the exploit is successful, you will receive output similar to the following. You may also try reading <highlight>/etc/hosts</highlight> if the web server has permission to access it."
+  },
+  {
+    "type": "output_block",
+    "id": "checking-command",
+    "language": "bash",
+    "code": "root:x:0:0:root:/root:/bin/bash ..."
+  },
+  {
+    "type": "order_block",
+    "id": "lfi-step-3",
+    "text": "Now we will try to read the source code of the same file instead of executing it."
+  },
+  {
+    "type": "code_block",
+    "id": "checking-command",
+    "language": "bash",
+    "code": "curl -s 'http://10.10.184.98/secret-script.php?file=php://filter/convert.base64-encode/resource=secret-script.php' | base64 -d"
+  },
+  {
+    "type": "explanation",
+    "id": "pgp-definition",
+    "title": "Breaking Down the Command",
+    "items": [
+      "We use the <highlight>php://filter</highlight> wrapper to encode the file in <highlight>base64</highlight>.",
+      "We cannot retrieve the raw PHP source directly because it would execute on the server instead of being displayed.",
+      "After retrieving the base64-encoded content, we decode it locally to view the actual source code safely."
+    ]
+  },
+  {
+    "type": "order_block",
+    "id": "initial-access",
+    "text": "Let's examine the retrieved source code."
+  },
+  {
+    "type": "output_block",
+    "id": "checking-command",
+    "language": "bash",
+    "code": "<?php\n  //echo \"Hello World\";\n  if(isset($_GET['file'])) {\n    $file = $_GET['file'];\n    include($file);\n  }\n?>"
+  },
+  {
+    "type": "explanation",
+    "id": "pgp-definition",
+    "title": "Analyzing the Source Code",
+    "items": [
+      "The script checks for the parameter using <highlight>if(isset($_GET['file']))</highlight>.",
+      "There is no input validation or sanitization applied to the user-controlled parameter.",
+      "The function <highlight>include($file);</highlight> directly includes the user-supplied value, which makes this highly vulnerable to LFI."
+    ]
+  },
+  {
+    "type": "order_block",
+    "id": "initial-access",
+    "text": "Basic LFI is done here, if you really want to learn about how can we use filter wrapper then take a look at <highlight>Filter chain generator</highlight> which is using filter wrapper."
+  }
+]

