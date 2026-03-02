@@ -71,9 +71,9 @@
             "category": "notes"
           },
           {
-            "id": "all-filters",
-            "title": "All Filters",
-            "slug": "all-filters",
+            "id": "data-filter",
+            "title": "Data Filter",
+            "slug": "data-filter",
             "category": "notes"
           }
         ]
