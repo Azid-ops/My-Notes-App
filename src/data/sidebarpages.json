@@ -87,6 +87,18 @@
             "title": "Phar Wrapper",
             "slug": "phar-wrapper",
             "category": "notes"
+          },
+          {
+            "id": "log-poisoning",
+            "title": "Log Poisoning",
+            "slug": "log-poisoning",
+            "category": "notes"
+          },
+          {
+            "id": "session-poisoning",
+            "title": "Session Poisoning",
+            "slug": "session-poisoning",
+            "category": "notes"
           }
         ]
       }

