@@ -1,0 +1,117 @@
+[
+    {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+    },
+    {
+        "type": "section_heading",
+        "id": "expect-wrapper-lfi",
+        "text": "Expect Wrapper - LFI"
+    },
+    {
+        "type": "explanation",
+        "id": "expect-wrapper-intro",
+        "title": "expect://",
+        "items": [
+            "The <highlight>expect://</highlight> wrapper allows execution of system commands directly from PHP.",
+            "It does NOT require PHP tags like <highlight><?php ?>.</highlight>",
+            "It works only if the <highlight>PECL Expect extension</highlight> is installed and enabled.",
+            "If the wrapper is available, <highlight>include()</highlight> will execute OS commands.",
+            "This wrapper is rarely enabled in real-world production environments."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "expect-execution-flow",
+        "text": "Execution Flow"
+    },
+    {
+        "type": "explanation",
+        "id": "expect-execution-chain",
+        "title": "How Command Execution Works",
+        "items": [
+            "The application calls <highlight>include($_GET['file']);</highlight>",
+            "The <highlight>expect://</highlight> wrapper interprets the value as a system command.",
+            "The command executes on the operating system.",
+            "The output of the command is returned as stream content.",
+            "<highlight>include()</highlight> outputs the command result to the browser."
+        ]
+    },
+    {
+        "type": "order_block",
+        "id": "expect-step-1",
+        "text": "Basic command execution test."
+    },
+    {
+        "type": "code_block",
+        "id": "expect-basic-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=expect://whoami\""
+    },
+    {
+        "type": "output_block",
+        "id": "expect-basic-output",
+        "code": "www-data"
+    },
+    {
+        "type": "section_heading",
+        "id": "expect-wrapper-check",
+        "text": "Checking Wrapper Availability"
+    },
+    {
+        "type": "code_block",
+        "id": "expect-check-cli",
+        "code": "php -r \"print_r(stream_get_wrappers());\""
+    },
+    {
+        "type": "order_block",
+        "id": "expect-check-note",
+        "text": "If 'expect' appears in the output, the wrapper is enabled."
+    },
+    {
+        "type": "section_heading",
+        "id": "expect-installation",
+        "text": "Lab Installation (Rarely Works on PHP 8+)"
+    },
+    {
+        "type": "code_block",
+        "id": "expect-install-dev-tools",
+        "code": "sudo apt install php-dev php-pear"
+    },
+    {
+        "type": "code_block",
+        "id": "expect-install-pecl",
+        "code": "sudo pecl install expect"
+    },
+    {
+        "type": "explanation",
+        "id": "expect-install-note",
+        "title": "Important Notes",
+        "items": [
+            "The expect extension is not installed by default.",
+            "It often fails to compile on modern PHP versions.",
+            "Most production servers do NOT enable this wrapper.",
+            "It is mainly seen in CTF environments."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "expect-practical-value",
+        "text": "Practical Value"
+    },
+    {
+        "type": "explanation",
+        "id": "expect-practical-analysis",
+        "title": "Real-World Relevance",
+        "items": [
+            "Impact: Immediate Remote Code Execution (RCE).",
+            "Difficulty: Very low if enabled.",
+            "Probability in production: Extremely low.",
+            "Not worth focusing heavily on for real-world bug bounty training."
+        ]
+    }
+]

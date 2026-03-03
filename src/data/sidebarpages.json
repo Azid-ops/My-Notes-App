@@ -72,8 +72,20 @@
           },
           {
             "id": "data-filter",
-            "title": "Data Filter",
+            "title": "Data Wrapper",
             "slug": "data-filter",
+            "category": "notes"
+          },
+          {
+            "id": "expect-wrapper",
+            "title": "Expect Wrapper",
+            "slug": "expect-wrapper",
+            "category": "notes"
+          },
+          {
+            "id": "phar-wrapper",
+            "title": "Phar Wrapper",
+            "slug": "phar-wrapper",
             "category": "notes"
           }
         ]

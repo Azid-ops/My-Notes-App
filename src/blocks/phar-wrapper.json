@@ -1,0 +1,115 @@
+[
+    {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+    },
+    {
+        "type": "section_heading",
+        "id": "phar-wrapper-lfi",
+        "text": "PHAR Wrapper - LFI"
+    },
+    {
+        "type": "explanation",
+        "id": "phar-wrapper-intro",
+        "title": "phar://",
+        "items": [
+            "The <highlight>phar://</highlight> wrapper allows access to PHP Archive (PHAR) files.",
+            "PHAR files can contain <highlight>serialized metadata</highlight>.",
+            "When accessed through certain file functions, PHP automatically performs <highlight>deserialization</highlight>.",
+            "If a vulnerable class contains <highlight>__wakeup()</highlight> or <highlight>__destruct()</highlight>, this can lead to <highlight>Remote Code Execution (RCE)</highlight>.",
+            "This wrapper is highly relevant in real-world applications with file upload functionality."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "phar-execution-flow",
+        "text": "Execution Flow"
+    },
+    {
+        "type": "explanation",
+        "id": "phar-execution-chain",
+        "title": "How Deserialization Leads to RCE",
+        "items": [
+            "The application allows <highlight>file upload</highlight> (e.g., image files).",
+            "An attacker creates a malicious <highlight>PHAR archive</highlight> disguised as an image (e.g., file.jpg).",
+            "The PHAR contains malicious <highlight>serialized object metadata</highlight>.",
+            "The application later calls <highlight>include($_GET['file']);</highlight> or another file function.",
+            "When accessed via <highlight>phar://</highlight>, PHP automatically deserializes the metadata.",
+            "If a gadget chain exists, <highlight>__destruct()</highlight> or <highlight>__wakeup()</highlight> executes attacker-controlled code."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "phar-basic-test",
+        "text": "Basic PHAR Access Test"
+    },
+    {
+        "type": "order_block",
+        "id": "phar-step-1",
+        "text": "Assume a file named image.jpg was uploaded."
+    },
+    {
+        "type": "code_block",
+        "id": "phar-basic-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=phar://uploads/image.jpg\""
+    },
+    {
+        "type": "order_block",
+        "id": "phar-step-2",
+        "text": "If the file is a crafted PHAR, deserialization may trigger automatically."
+    },
+    {
+        "type": "section_heading",
+        "id": "phar-requirements",
+        "text": "Requirements for Exploitation"
+    },
+    {
+        "type": "explanation",
+        "id": "phar-conditions",
+        "title": "Conditions Needed",
+        "items": [
+            "The server must allow <highlight>file uploads</highlight>.",
+            "The application must use a vulnerable file operation (include, require, file_exists, etc.).",
+            "A <highlight>deserialization gadget chain</highlight> must exist in the application.",
+            "The PHAR file must be reachable via the filesystem path."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "phar-why-dangerous",
+        "text": "Why phar:// Is Dangerous"
+    },
+    {
+        "type": "explanation",
+        "id": "phar-danger-analysis",
+        "title": "Real-World Relevance",
+        "items": [
+            "Used in real-world <highlight>WordPress</highlight> and <highlight>Laravel</highlight> vulnerabilities.",
+            "Works even when direct PHP code injection is blocked.",
+            "Does not require <?php ?> in the request.",
+            "Can bypass certain file extension restrictions.",
+            "Frequently appears in modern CVEs involving file handling."
+        ]
+    },
+    {
+        "type": "section_heading",
+        "id": "phar-practical-value",
+        "text": "Practical Value"
+    },
+    {
+        "type": "explanation",
+        "id": "phar-practical-analysis",
+        "title": "Impact Assessment",
+        "items": [
+            "Impact: High (Potential RCE via deserialization).",
+            "Difficulty: Medium to High (Requires gadget chain knowledge).",
+            "Probability in production: Moderate (file uploads are common).",
+            "High value wrapper for serious security research."
+        ]
+    }
+]

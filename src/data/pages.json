@@ -2057,5 +2057,265 @@
         "text": "Always URL-encode Base64 payloads before sending them via GET parameters. Reliable exploitation requires controlling every encoding layer."
       }
     ]
+  },
+  {
+    "id": 8,
+    "slug": "expect-wrapper",
+    "title": "Expect Wrapper - LFI",
+    "category": "notes",
+    "blocksFile": "./blocks/expect-wrapper.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "expect-wrapper-lfi",
+        "text": "Expect Wrapper - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "expect-wrapper-intro",
+        "title": "expect://",
+        "items": [
+          "The <highlight>expect://</highlight> wrapper allows execution of system commands directly from PHP.",
+          "It does NOT require PHP tags like <highlight><?php ?>.</highlight>",
+          "It works only if the <highlight>PECL Expect extension</highlight> is installed and enabled.",
+          "If the wrapper is available, <highlight>include()</highlight> will execute OS commands.",
+          "This wrapper is rarely enabled in real-world production environments."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "expect-execution-flow",
+        "text": "Execution Flow"
+      },
+      {
+        "type": "explanation",
+        "id": "expect-execution-chain",
+        "title": "How Command Execution Works",
+        "items": [
+          "The application calls <highlight>include($_GET['file']);</highlight>",
+          "The <highlight>expect://</highlight> wrapper interprets the value as a system command.",
+          "The command executes on the operating system.",
+          "The output of the command is returned as stream content.",
+          "<highlight>include()</highlight> outputs the command result to the browser."
+        ]
+      },
+      {
+        "type": "order_block",
+        "id": "expect-step-1",
+        "text": "Basic command execution test."
+      },
+      {
+        "type": "code_block",
+        "id": "expect-basic-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=expect://whoami\""
+      },
+      {
+        "type": "output_block",
+        "id": "expect-basic-output",
+        "code": "www-data"
+      },
+      {
+        "type": "section_heading",
+        "id": "expect-wrapper-check",
+        "text": "Checking Wrapper Availability"
+      },
+      {
+        "type": "code_block",
+        "id": "expect-check-cli",
+        "code": "php -r \"print_r(stream_get_wrappers());\""
+      },
+      {
+        "type": "order_block",
+        "id": "expect-check-note",
+        "text": "If 'expect' appears in the output, the wrapper is enabled."
+      },
+      {
+        "type": "section_heading",
+        "id": "expect-installation",
+        "text": "Lab Installation (Rarely Works on PHP 8+)"
+      },
+      {
+        "type": "code_block",
+        "id": "expect-install-dev-tools",
+        "code": "sudo apt install php-dev php-pear"
+      },
+      {
+        "type": "code_block",
+        "id": "expect-install-pecl",
+        "code": "sudo pecl install expect"
+      },
+      {
+        "type": "explanation",
+        "id": "expect-install-note",
+        "title": "Important Notes",
+        "items": [
+          "The expect extension is not installed by default.",
+          "It often fails to compile on modern PHP versions.",
+          "Most production servers do NOT enable this wrapper.",
+          "It is mainly seen in CTF environments."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "expect-practical-value",
+        "text": "Practical Value"
+      },
+      {
+        "type": "explanation",
+        "id": "expect-practical-analysis",
+        "title": "Real-World Relevance",
+        "items": [
+          "Impact: Immediate Remote Code Execution (RCE).",
+          "Difficulty: Very low if enabled.",
+          "Probability in production: Extremely low.",
+          "Not worth focusing heavily on for real-world bug bounty training."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "slug": "phar-wrapper",
+    "title": "Phar Wrapper - LFI",
+    "category": "notes",
+    "blocksFile": "./blocks/phar-wrapper.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-lfi-lab",
+        "type": "download",
+        "title": "LFI Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "lfi-input-lab.zip",
+        "url": "/downloads/lfi-input-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "phar-wrapper-lfi",
+        "text": "PHAR Wrapper - LFI"
+      },
+      {
+        "type": "explanation",
+        "id": "phar-wrapper-intro",
+        "title": "phar://",
+        "items": [
+          "The <highlight>phar://</highlight> wrapper allows access to PHP Archive (PHAR) files.",
+          "PHAR files can contain <highlight>serialized metadata</highlight>.",
+          "When accessed through certain file functions, PHP automatically performs <highlight>deserialization</highlight>.",
+          "If a vulnerable class contains <highlight>__wakeup()</highlight> or <highlight>__destruct()</highlight>, this can lead to <highlight>Remote Code Execution (RCE)</highlight>.",
+          "This wrapper is highly relevant in real-world applications with file upload functionality."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "phar-execution-flow",
+        "text": "Execution Flow"
+      },
+      {
+        "type": "explanation",
+        "id": "phar-execution-chain",
+        "title": "How Deserialization Leads to RCE",
+        "items": [
+          "The application allows <highlight>file upload</highlight> (e.g., image files).",
+          "An attacker creates a malicious <highlight>PHAR archive</highlight> disguised as an image (e.g., file.jpg).",
+          "The PHAR contains malicious <highlight>serialized object metadata</highlight>.",
+          "The application later calls <highlight>include($_GET['file']);</highlight> or another file function.",
+          "When accessed via <highlight>phar://</highlight>, PHP automatically deserializes the metadata.",
+          "If a gadget chain exists, <highlight>__destruct()</highlight> or <highlight>__wakeup()</highlight> executes attacker-controlled code."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "phar-basic-test",
+        "text": "Basic PHAR Access Test"
+      },
+      {
+        "type": "order_block",
+        "id": "phar-step-1",
+        "text": "Assume a file named image.jpg was uploaded."
+      },
+      {
+        "type": "code_block",
+        "id": "phar-basic-request",
+        "code": "curl \"http://127.0.0.1:4000/secret-script.php?file=phar://uploads/image.jpg\""
+      },
+      {
+        "type": "order_block",
+        "id": "phar-step-2",
+        "text": "If the file is a crafted PHAR, deserialization may trigger automatically."
+      },
+      {
+        "type": "section_heading",
+        "id": "phar-requirements",
+        "text": "Requirements for Exploitation"
+      },
+      {
+        "type": "explanation",
+        "id": "phar-conditions",
+        "title": "Conditions Needed",
+        "items": [
+          "The server must allow <highlight>file uploads</highlight>.",
+          "The application must use a vulnerable file operation (include, require, file_exists, etc.).",
+          "A <highlight>deserialization gadget chain</highlight> must exist in the application.",
+          "The PHAR file must be reachable via the filesystem path."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "phar-why-dangerous",
+        "text": "Why phar:// Is Dangerous"
+      },
+      {
+        "type": "explanation",
+        "id": "phar-danger-analysis",
+        "title": "Real-World Relevance",
+        "items": [
+          "Used in real-world <highlight>WordPress</highlight> and <highlight>Laravel</highlight> vulnerabilities.",
+          "Works even when direct PHP code injection is blocked.",
+          "Does not require <?php ?> in the request.",
+          "Can bypass certain file extension restrictions.",
+          "Frequently appears in modern CVEs involving file handling."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "phar-practical-value",
+        "text": "Practical Value"
+      },
+      {
+        "type": "explanation",
+        "id": "phar-practical-analysis",
+        "title": "Impact Assessment",
+        "items": [
+          "Impact: High (Potential RCE via deserialization).",
+          "Difficulty: Medium to High (Requires gadget chain knowledge).",
+          "Probability in production: Moderate (file uploads are common).",
+          "High value wrapper for serious security research."
+        ]
+      }
+    ]
   }
 ]
