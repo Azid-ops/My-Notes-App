@@ -101,6 +101,20 @@
             "category": "notes"
           }
         ]
+      },
+            {
+        "id": "xxe",
+        "title": "XXE",
+        "slug": "xxe",
+        "category": "notes",
+        "children": [
+          {
+            "id": "reflected-xxe",
+            "title": "Reflected",
+            "slug": "reflected-xxe",
+            "category": "notes"
+          }
+        ]
       }
     ]
   }

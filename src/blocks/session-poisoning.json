@@ -1,0 +1,11 @@
+[
+  {
+    "id": "download-lfi-lab",
+    "type": "download",
+    "title": "LFI Practice Lab",
+    "text": "Download the vulnerable PHP lab and payload collection.",
+    "fileName": "lfi-input-lab.zip",
+    "url": "/downloads/lfi-input-lab.zip",
+    "size": "4kb"
+  }
+]
