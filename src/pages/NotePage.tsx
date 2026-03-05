@@ -2,6 +2,7 @@ import pages from "../data/pages.json";
 import { useState, useEffect } from "react";
 import { FaBook, FaFolder, FaYoutube } from "react-icons/fa"; // make sure to install react-icons
 import { LabFlags } from "./labFlag";
+import { Link } from "react-router-dom";
 
 interface Block {
   id: string;
@@ -85,77 +86,93 @@ export default function NotePage({ slug }: NotePageProps) {
         )}
       </div>
 
-      {page.prerequisites && page.prerequisites.length > 0 && (
-        <div className="mb-8 relative">
-          <h3 className="text-2xl font-bold mb-4 text-purple-700 dark:text-purple-400 flex items-center gap-2">
-            <FaBook className="text-purple-500 dark:text-purple-300 text-3xl" />
-            Prerequisites
-            {/* Info icon */}
-            <div className="relative group ml-2">
-              <div className="w-5 h-5 flex items-center justify-center rounded-full bg-purple-500 dark:bg-purple-700 text-white text-xs font-bold cursor-pointer">
-                i
-              </div>
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 p-2 bg-gray-800 text-white text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                Topics you should complete before starting this note.
-              </div>
-            </div>
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {page.prerequisites.map((item, i) => (
-              <a
-                key={i}
-                href={item.slug ? `/notes/${item.slug}` : item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 p-4 bg-purple-50 dark:bg-gray-800 border border-purple-200 dark:border-gray-700 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 hover:bg-purple-100 dark:hover:bg-gray-700 group"
-              >
-                <span className="flex-shrink-0 text-purple-600 dark:text-purple-300 group-hover:text-purple-800 transition-colors font-bold text-lg">
-                  📘
-                </span>
-                <span className="font-medium text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
-                  {item.title}
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {page.courseMaterials && page.courseMaterials.length > 0 && (
-        <div className="mb-8 relative">
-          <h3 className="text-2xl font-bold mb-4 text-green-700 dark:text-green-400 flex items-center gap-2">
-            <FaFolder className="text-green-500 dark:text-green-300 text-3xl" />
-            Course Material
-            {/* Info icon */}
-            <div className="relative group ml-2">
-              <div className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 dark:bg-green-700 text-white text-xs font-bold cursor-pointer">
-                i
-              </div>
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 p-2 bg-gray-800 text-white text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                External and internal resources referenced in this note, such as documents, rooms, or repositories.
-              </div>
-            </div>
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {page.courseMaterials.map((item, i) => (
-              <a
-                key={i}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 p-4 bg-green-50 dark:bg-gray-800 border border-green-200 dark:border-gray-700 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 hover:bg-green-100 dark:hover:bg-gray-700 group"
-              >
-                <span className="flex-shrink-0 text-green-600 dark:text-green-300 group-hover:text-green-800 transition-colors font-bold text-lg">
-                  📗
-                </span>
-                <span className="font-medium text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
-                  {item.title}
-                </span>
-              </a>
-            ))}
-          </div>
+{page.prerequisites && page.prerequisites.length > 0 && (
+  <div className="mb-8 relative">
+    <h3 className="text-2xl font-bold mb-4 text-purple-700 dark:text-purple-400 flex items-center gap-2">
+      <FaBook className="text-purple-500 dark:text-purple-300 text-3xl" />
+      Prerequisites
+      {/* Info icon */}
+      <div className="relative group ml-2">
+        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-purple-500 dark:bg-purple-700 text-white text-xs font-bold cursor-pointer">
+          i
         </div>
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 p-2 bg-gray-800 text-white text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+          Topics you should complete before starting this note.
+        </div>
+      </div>
+    </h3>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {page.prerequisites.map((item, i) =>
+        item.slug ? (
+          <Link
+            key={i}
+            to={`/notes/${item.slug}`}
+            className="flex items-center gap-2 p-4 bg-purple-50 dark:bg-gray-800 border border-purple-200 dark:border-gray-700 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 hover:bg-purple-100 dark:hover:bg-gray-700 group"
+          >
+            <span className="flex-shrink-0 text-purple-600 dark:text-purple-300 group-hover:text-purple-800 transition-colors font-bold text-lg">
+              📘
+            </span>
+            <span className="font-medium text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
+              {item.title}
+            </span>
+          </Link>
+        ) : (
+          <a
+            key={i}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 p-4 bg-purple-50 dark:bg-gray-800 border border-purple-200 dark:border-gray-700 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 hover:bg-purple-100 dark:hover:bg-gray-700 group"
+          >
+            <span className="flex-shrink-0 text-purple-600 dark:text-purple-300 group-hover:text-purple-800 transition-colors font-bold text-lg">
+              📘
+            </span>
+            <span className="font-medium text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
+              {item.title}
+            </span>
+          </a>
+        )
       )}
+    </div>
+  </div>
+)}
+
+{page.courseMaterials && page.courseMaterials.length > 0 && (
+  <div className="mb-8 relative">
+    <h3 className="text-2xl font-bold mb-4 text-green-700 dark:text-green-400 flex items-center gap-2">
+      <FaFolder className="text-green-500 dark:text-green-300 text-3xl" />
+      Course Material
+      {/* Info icon */}
+      <div className="relative group ml-2">
+        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 dark:bg-green-700 text-white text-xs font-bold cursor-pointer">
+          i
+        </div>
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 p-2 bg-gray-800 text-white text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+          External and internal resources referenced in this note, such as documents, rooms, or repositories.
+        </div>
+      </div>
+    </h3>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {page.courseMaterials.map((item, i) => (
+        <a
+          key={i}
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 p-4 bg-green-50 dark:bg-gray-800 border border-green-200 dark:border-gray-700 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 hover:bg-green-100 dark:hover:bg-gray-700 group"
+        >
+          <span className="flex-shrink-0 text-green-600 dark:text-green-300 group-hover:text-green-800 transition-colors font-bold text-lg">
+            📗
+          </span>
+          <span className="font-medium text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
+            {item.title}
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
 
       
       <div className="space-y-8 pr-4">
