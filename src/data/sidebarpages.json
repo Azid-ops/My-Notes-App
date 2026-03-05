@@ -102,7 +102,7 @@
           }
         ]
       },
-            {
+      {
         "id": "xxe",
         "title": "XXE",
         "slug": "xxe",
@@ -112,6 +112,30 @@
             "id": "reflected-xxe",
             "title": "Reflected",
             "slug": "reflected-xxe",
+            "category": "notes"
+          },
+          {
+            "id": "blind-xxe",
+            "title": "Blind",
+            "slug": "blind-xxe",
+            "category": "notes"
+          },
+          {
+            "id": "billion-laughs",
+            "title": "Billion Laughs",
+            "slug": "billion-laughs",
+            "category": "notes"
+          },
+          {
+            "id": "xInclude",
+            "title": "XInclude",
+            "slug": "xInclude",
+            "category": "notes"
+          },
+          {
+            "id": "lab1",
+            "title": "LAB 1",
+            "slug": "lab1",
             "category": "notes"
           }
         ]

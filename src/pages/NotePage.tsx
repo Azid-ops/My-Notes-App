@@ -1,6 +1,7 @@
 import pages from "../data/pages.json";
 import { useState, useEffect } from "react";
 import { FaBook, FaFolder, FaYoutube } from "react-icons/fa"; // make sure to install react-icons
+import { LabFlags } from "./labFlag";
 
 interface Block {
   id: string;
@@ -26,10 +27,17 @@ interface Page {
     slug?: string;
     url?: string;
   }[];
+  questions?: {
+    id: number;
+    answer: string;
+    topic: string;
+  }[];
   courseMaterials?: {
     title: string;
     url: string;
   }[];
+  isLab?:any;
+  numberOfQuestions?:any;
   blocks: Block[];
 }
 
@@ -219,44 +227,49 @@ export default function NotePage({ slug }: NotePageProps) {
                 if (!block.src) return null;
                 return <ImageWithLoader key={block.id} src={block.src} alt={block.alt ?? ""} />;
 
-                case "explanation":
-                  if (!block.items) return null;
-                  return (
-                    <div
-                      key={block.id}
-                      className="bg-blue-50 dark:bg-gray-800 border-l-4 border-blue-500 p-5 rounded-lg shadow-sm"
-                    >
-                      {block.title && (
-                        <h3 className="text-lg font-semibold mb-3 text-blue-700 dark:text-blue-400">
-                          {block.title}
-                        </h3>
-                      )}
-                      <ul className="list-disc pl-5 space-y-2 text-gray-800 dark:text-gray-200">
-                        {block.items.map((item, i) => (
-                          <li key={i}>
-                            {item.split(/(<highlight>.*?<\/highlight>)/g).map((part, j) =>
-                              part.startsWith("<highlight>") ? (
-                                <span
-                                  key={j}
-                                  className="bg-teal-300 dark:bg-teal-700 text-teal-900 dark:text-teal-100 px-1 rounded font-semibold"
-                                >
-                                  {part.replace(/<\/?highlight>/g, "")}
-                                </span>
-                              ) : (
-                                <span key={j}>{part}</span>
-                              )
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
+              case "explanation":
+                
+                if (!block.items) return null;
+                return (
+                  <div
+                    key={block.id}
+                    className="bg-blue-50 dark:bg-gray-800 border-l-4 border-blue-500 p-5 rounded-lg shadow-sm"
+                  >
+                    {block.title && (
+                      <h3 className="text-lg font-semibold mb-3 text-blue-700 dark:text-blue-400">
+                        {block.title}
+                      </h3>
+                    )}
+                    <ul className="list-disc pl-5 space-y-2 text-gray-800 dark:text-gray-200">
+                      {block.items.map((item, i) => (
+                        <li key={i}>
+                          {item.split(/(<highlight>.*?<\/highlight>)/g).map((part, j) =>
+                            part.startsWith("<highlight>") ? (
+                              <span
+                                key={j}
+                                className="bg-teal-300 dark:bg-teal-700 text-teal-900 dark:text-teal-100 px-1 rounded font-semibold"
+                              >
+                                {part.replace(/<\/?highlight>/g, "")}
+                              </span>
+                            ) : (
+                              <span key={j}>{part}</span>
+                            )
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              
               default:
                 return null;
             }
           })
         )}
 
+        {page.isLab && page.questions && (
+          <LabFlags questions={page.questions} />
+        )}
         {page.goodbyeMessage && (
           <div className="mt-8 flex justify-center">
             <div className="max-w-2xl w-full text-center rounded-2xl p-6 md:p-8 shadow-lg bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-blue-200 dark:border-gray-700">

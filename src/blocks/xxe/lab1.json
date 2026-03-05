@@ -1,0 +1,178 @@
+[
+   {
+    "id": "download-xxe-challenge",
+    "type": "download",
+    "title": "XXE Challenge",
+    "text": "Download the vulnerable PHP lab and payload collection.",
+    "fileName": "xxe-challenge",
+    "url": "/downloads/xxe-challenge.zip",
+    "size": "4kb"
+  },
+  {
+    "type": "section_heading",
+    "id": "lab-overview",
+    "text": "XXE Full Exploitation Lab – Reflection, XInclude & Blind"
+  },
+
+  {
+    "type": "order_block",
+    "id": "lab-description",
+    "text": "This lab simulates a vulnerable XML processing service built with PHP and libxml. The application accepts XML input and parses it server-side. Your objective is to fully assess XML parsing behavior and determine whether the application is vulnerable to reflected XXE, XInclude injection, and blind (OOB) XXE."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "engagement-rules",
+    "text": "Engagement Rules"
+  },
+
+  {
+    "type": "explanation",
+    "id": "rules-list",
+    "title": "Operational Constraints",
+    "items": [
+      "Do NOT inspect or modify backend source code.",
+      "Do NOT access server files directly.",
+      "Only interact through HTTP requests.",
+      "Only submit XML payloads.",
+      "You may run your own listener for OOB testing.",
+      "Document proof for each vulnerability class."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "target-info",
+    "text": "Target Endpoint"
+  },
+
+  {
+    "type": "code_block",
+    "id": "endpoint",
+    "language": "bash",
+    "code": "POST http://localhost:9001/app.php\nContent-Type: application/xml"
+  },
+
+  {
+    "type": "order_block",
+    "id": "behavior",
+    "text": "If the XML structure is valid, the application returns processed node values. If parsing fails, it returns HTTP 400. Some parsed content may be reflected in the response."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "starting-xml",
+    "text": "Starting XML"
+  },
+
+  {
+    "type": "output_block",
+    "id": "starting-xml-example",
+    "language": "xml",
+    "code": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n    <username>name</username>\n    <email>a@a.com</email>\n</user>"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "phase-1",
+    "text": "Phase 1: XML Parsing Baseline"
+  },
+
+  {
+    "type": "order_block",
+    "id": "phase-1-task",
+    "text": "Submit valid and malformed XML to confirm parsing behavior. Determine which elements are reflected and how strict the structural validation is."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "phase-2",
+    "text": "Phase 2: Internal Entity Expansion (Reflected XXE)"
+  },
+
+  {
+    "type": "order_block",
+    "id": "phase-2-task",
+    "text": "Introduce a DTD with a custom internal entity. Reference the entity inside a reflected node. If the entity value appears in the response, document the vulnerability and assess impact."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "phase-3",
+    "text": "Phase 3: External Entity Resolution"
+  },
+
+  {
+    "type": "order_block",
+    "id": "phase-3-task",
+    "text": "Attempt to reference a local file using a SYSTEM entity. Determine whether file contents are reflected. Confirm whether external entity resolution is enabled."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "phase-4",
+    "text": "Phase 4: XInclude Injection"
+  },
+
+  {
+    "type": "order_block",
+    "id": "phase-4-task",
+    "text": "Attempt to inject XInclude elements within accepted XML structure. Determine whether the parser processes XInclude directives. If successful, assess whether local file inclusion is possible via XInclude."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "phase-5",
+    "text": "Phase 5: Blind XXE (Out-of-Band)"
+  },
+
+  {
+    "type": "order_block",
+    "id": "phase-5-task",
+    "text": "Assume reflection is disabled. Configure a local HTTP listener and attempt to trigger an outbound request via external DTD loading. Confirm blind XXE through observable callbacks."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "phase-6",
+    "text": "Phase 6: File Exfiltration via OOB"
+  },
+
+  {
+    "type": "order_block",
+    "id": "phase-6-task",
+    "text": "Chain external DTD loading with file retrieval and outbound exfiltration. Extract the contents of runtime/secrets.dat using blind techniques. Provide decoded proof of exfiltrated data."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "analysis",
+    "text": "Technical Analysis Requirements"
+  },
+
+  {
+    "type": "explanation",
+    "id": "analysis-points",
+    "title": "You Must Explain",
+    "items": [
+      "Why entity expansion occurs.",
+      "How external DTD loading works in libxml.",
+      "Why XInclude may bypass DTD restrictions.",
+      "Why parameter entities are required for blind chaining.",
+      "What parser configuration is likely enabled.",
+      "How this vulnerability should be properly mitigated."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "final-objective",
+    "text": "Final Objective"
+  },
+
+  {
+    "type": "order_block",
+    "id": "final-goal",
+    "text": "Demonstrate full-spectrum XXE exploitation: reflected, XInclude-based, and blind OOB exfiltration. Provide technical reasoning, proof of exploitation, and mitigation strategy."
+  }
+]
