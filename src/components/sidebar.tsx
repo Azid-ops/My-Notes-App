@@ -55,7 +55,7 @@ export default function Sidebar() {
 
 const renderItem = (item: SidebarItemType, level = 0) => {
   const hasChildren = !!item.children?.length;
-  const isExpanded = expandedItems[item.id] ?? true;
+  const isExpanded = expandedItems[item.id] ?? false;
   const isActive = location.pathname === `/notes/${item.slug}`;
 
   return (
