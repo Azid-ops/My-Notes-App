@@ -1,0 +1,457 @@
+If you want to **actually master SQL Injection** instead of doing random payloads, you need to cover it in a **structured progression**. Most people only learn the first 3–4 topics and then get stuck when a real target behaves differently.
+
+Below is the **complete SQL Injection topic map** from beginner → advanced.
+
+---
+
+# SQL Injection – Complete Topic List
+
+## 1. SQL Injection Fundamentals
+
+You can’t exploit SQLi if you don’t understand how SQL queries work.
+
+Topics:
+
+* How databases work (MySQL, PostgreSQL, MSSQL)
+* Basic SQL queries (`SELECT`, `INSERT`, `UPDATE`, `DELETE`)
+* How web apps build SQL queries
+* What SQL Injection actually is
+* How user input breaks queries
+
+Example vulnerable query:
+
+```
+SELECT * FROM users WHERE username = '$username' AND password = '$password';
+```
+
+Payload:
+
+```
+' OR 1=1 --
+```
+
+Result → authentication bypass.
+
+---
+
+# 2. Detecting SQL Injection
+
+Before exploitation you must **confirm SQLi exists**.
+
+Methods:
+
+* Error-based detection
+* Boolean-based testing
+* Time delay testing
+* Using `'` to break queries
+* Using comments `--` `#` `/* */`
+
+Things to test:
+
+```
+'
+"
+'
+--
+' OR 1=1--
+```
+
+---
+
+# 3. Authentication Bypass
+
+One of the **most common SQLi bugs**.
+
+Example login bypass:
+
+```
+admin' --
+```
+
+or
+
+```
+' OR '1'='1
+```
+
+Concepts:
+
+* comment truncation
+* bypassing password checks
+
+---
+
+# 4. Union-Based SQL Injection
+
+Very important for **data extraction**.
+
+Concepts:
+
+* `UNION SELECT`
+* matching column counts
+* identifying visible columns
+* extracting database data
+
+Example:
+
+```
+' UNION SELECT null,null,null --
+```
+
+Then extract data:
+
+```
+' UNION SELECT username,password FROM users --
+```
+
+---
+
+# 5. Error-Based SQL Injection
+
+Some databases return **useful error messages**.
+
+You exploit errors to reveal data.
+
+Examples:
+
+* MySQL `extractvalue()`
+* `updatexml()`
+
+Example payload:
+
+```
+' AND extractvalue(1,concat(0x7e,(SELECT database()),0x7e))--
+```
+
+---
+
+# 6. Blind SQL Injection
+
+When the server **does NOT show results**.
+
+You extract data by observing **true/false behavior**.
+
+Example:
+
+```
+' AND 1=1 --
+' AND 1=2 --
+```
+
+Difference in response = SQLi confirmed.
+
+---
+
+# 7. Boolean-Based Blind SQLi
+
+Extract data **character by character**.
+
+Example:
+
+```
+' AND SUBSTRING(database(),1,1)='a' --
+```
+
+You brute force database name letter by letter.
+
+---
+
+# 8. Time-Based Blind SQLi
+
+Used when **no output difference exists**.
+
+You cause **delays**.
+
+Example:
+
+```
+' AND SLEEP(5) --
+```
+
+or
+
+```
+' IF(1=1,SLEEP(5),0) --
+```
+
+Server delay = injection confirmed.
+
+---
+
+# 9. Database Enumeration
+
+Once SQLi works, you enumerate everything.
+
+Find:
+
+* database names
+* tables
+* columns
+* users
+* passwords
+
+Examples:
+
+Find databases:
+
+```
+SELECT schema_name FROM information_schema.schemata
+```
+
+Find tables:
+
+```
+SELECT table_name FROM information_schema.tables
+```
+
+---
+
+# 10. Extracting Sensitive Data
+
+Goal of SQLi.
+
+Examples:
+
+* user credentials
+* API keys
+* tokens
+* admin accounts
+
+Example:
+
+```
+' UNION SELECT username,password FROM users --
+```
+
+---
+
+# 11. SQL Injection in Different Contexts
+
+SQLi isn't just in login forms.
+
+Places:
+
+* search boxes
+* filters
+* URL parameters
+* cookies
+* headers
+* JSON APIs
+* GraphQL queries
+
+Example:
+
+```
+GET /product?id=1
+```
+
+Payload:
+
+```
+?id=1' UNION SELECT ...
+```
+
+---
+
+# 12. Second Order SQL Injection
+
+Advanced but real.
+
+Injection happens **later** after data is stored.
+
+Example:
+
+1. Malicious username stored
+2. Later used in query
+3. SQLi triggers
+
+---
+
+# 13. SQL Injection WAF Bypass
+
+Real targets often have WAF.
+
+You must bypass filters.
+
+Examples:
+
+Encoding:
+
+```
+%27
+```
+
+Inline comments:
+
+```
+UN/**/ION
+```
+
+Case bypass:
+
+```
+UnIoN SeLeCt
+```
+
+---
+
+# 14. SQL Injection Automation
+
+Tools make exploitation faster.
+
+Tools:
+
+* **sqlmap**
+* Burp Intruder
+* Burp Repeater
+
+Example:
+
+```
+sqlmap -u "http://site.com?id=1" --dbs
+```
+
+---
+
+# 15. Out-of-Band SQL Injection (OAST)
+
+Very advanced.
+
+Used when:
+
+* no output
+* no timing
+* blind injection
+
+Data exfiltration through:
+
+* DNS
+* HTTP requests
+
+---
+
+# 16. SQL Injection in Modern Apps
+
+Where SQLi appears today:
+
+* REST APIs
+* GraphQL
+* JSON body requests
+* mobile APIs
+* microservices
+
+---
+
+# 17. Database Specific SQLi
+
+Each DB has different payloads.
+
+You should know:
+
+### MySQL
+
+* `sleep()`
+* `extractvalue()`
+
+### PostgreSQL
+
+* `pg_sleep()`
+
+### MSSQL
+
+* `WAITFOR DELAY`
+
+### Oracle
+
+* `dbms_pipe.receive_message`
+
+---
+
+# 18. SQL Injection to RCE
+
+In some cases SQLi leads to **remote code execution**.
+
+Examples:
+
+* MSSQL `xp_cmdshell`
+* MySQL file write
+* PostgreSQL command execution
+
+---
+
+# 19. SQL Injection in ORM
+
+Developers think ORM = safe.
+
+Wrong.
+
+Examples:
+
+* raw queries
+* unsafe filters
+* string concatenation
+
+Common in:
+
+* Sequelize
+* TypeORM
+* Hibernate
+
+---
+
+# 20. Bug Bounty SQLi Hunting
+
+Real hunting strategy:
+
+Look for:
+
+* search endpoints
+* filters
+* sorting parameters
+* pagination
+* report exports
+* APIs
+
+---
+
+# Brutally Honest Advice
+
+Most beginners:
+
+* learn **login bypass**
+* run **sqlmap**
+* think they know SQLi
+
+Then they fail on real targets.
+
+Real bug hunters master:
+
+* **blind SQLi**
+* **WAF bypass**
+* **API SQLi**
+* **manual enumeration**
+
+---
+
+# What we should do next
+
+The correct order for learning:
+
+1. **SQL basics**
+2. **Detecting SQLi**
+3. **Login bypass**
+4. **Union-based SQLi**
+5. **Error-based SQLi**
+6. **Blind SQLi**
+7. **Time-based SQLi**
+8. **Enumeration**
+9. **Automation (sqlmap)**
+
+---
+
+If you want, next I can also show you:
+
+**“The 10 SQL Injection payloads every bug hunter must memorize.”**
+
+Those payloads are used in **80% of real SQLi discoveries.**
+

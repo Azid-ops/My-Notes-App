@@ -1,0 +1,243 @@
+[
+  {
+    "type": "section_heading",
+    "id": "enum4linux-intro",
+    "text": "Enum4linux SMB Enumeration Tool"
+  },
+  {
+    "type": "order_block",
+    "id": "enum4linux-definition",
+    "text": "<highlight>enum4linux</highlight> is a Linux enumeration tool used to extract information from systems running <highlight>SMB / NetBIOS services</highlight> such as Windows machines or Linux systems using <highlight>Samba</highlight>. It automates multiple enumeration techniques to discover usernames, shares, groups, password policies, and system details."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "when-enum4linux-works",
+    "text": "When Enum4linux Works"
+  },
+  {
+    "type": "order_block",
+    "id": "enum4linux-requirements",
+    "text": "Enum4linux works when the target system exposes <highlight>SMB services</highlight> on ports <highlight>139</highlight> or <highlight>445</highlight>. If SMB is not accessible, the tool cannot retrieve information from the target."
+  },
+  {
+    "type": "code_block",
+    "id": "check-smb-ports",
+    "language": "bash",
+    "code": "nmap -p 139,445 10.112.178.21"
+  },
+  {
+    "type": "order_block",
+    "id": "check-smb-analysis",
+    "text": "Before using enum4linux, verify that SMB services are running on the target. Without these ports open, SMB enumeration will fail."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "enum4linux-basic-usage",
+    "text": "Basic Enum4linux Command"
+  },
+  {
+    "type": "code_block",
+    "id": "enum4linux-command",
+    "language": "bash",
+    "code": "enum4linux -a 10.112.178.21"
+  },
+  {
+    "type": "order_block",
+    "id": "enum4linux-command-analysis",
+    "text": "The <highlight>-a</highlight> flag runs all enumeration modules including share discovery, user enumeration, password policy extraction, and NetBIOS information gathering."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "target-information",
+    "text": "Target Information"
+  },
+  {
+    "type": "output_block",
+    "id": "target-info-output",
+    "language": "bash",
+    "code": "Target ........... 10.112.178.21\nRID Range ........ 500-550,1000-1050"
+  },
+  {
+    "type": "order_block",
+    "id": "target-info-analysis",
+    "text": "Enum4linux identifies the target IP and defines a <highlight>RID range</highlight> which will later be used to enumerate users through <highlight>RID cycling</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "domain-workgroup",
+    "text": "Enumerating Domain or Workgroup"
+  },
+  {
+    "type": "output_block",
+    "id": "domain-output",
+    "language": "bash",
+    "code": "[+] Got domain/workgroup name: WORKGROUP"
+  },
+  {
+    "type": "order_block",
+    "id": "domain-analysis",
+    "text": "The target system belongs to a <highlight>WORKGROUP</highlight> rather than a centralized Windows domain. This indicates a standalone system rather than an enterprise Active Directory environment."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "netbios-enumeration",
+    "text": "NetBIOS Enumeration"
+  },
+  {
+    "type": "output_block",
+    "id": "netbios-output",
+    "language": "bash",
+    "code": "BASIC2 <00> Workstation Service\nBASIC2 <20> File Server Service\nWORKGROUP <00> Domain/Workgroup Name"
+  },
+  {
+    "type": "order_block",
+    "id": "netbios-analysis",
+    "text": "NetBIOS enumeration reveals the <highlight>hostname</highlight> and confirms that the system is running SMB file services."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "null-session-check",
+    "text": "Null Session Authentication"
+  },
+  {
+    "type": "output_block",
+    "id": "null-session-output",
+    "language": "bash",
+    "code": "[+] Server 10.112.178.21 allows sessions using username '', password ''"
+  },
+  {
+    "type": "order_block",
+    "id": "null-session-analysis",
+    "text": "The server allows <highlight>null sessions</highlight>, meaning an attacker can interact with SMB services without authentication. This is a common misconfiguration that exposes sensitive information."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "os-information",
+    "text": "Operating System Discovery"
+  },
+  {
+    "type": "output_block",
+    "id": "os-output",
+    "language": "bash",
+    "code": "Samba Server 4.15.13-Ubuntu"
+  },
+  {
+    "type": "order_block",
+    "id": "os-analysis",
+    "text": "Enum4linux reveals that the machine is running <highlight>Samba on Ubuntu</highlight>, meaning it is a Linux system providing SMB services."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "share-enumeration",
+    "text": "SMB Share Enumeration"
+  },
+  {
+    "type": "output_block",
+    "id": "share-output",
+    "language": "bash",
+    "code": "Sharename       Type\nAnonymous       Disk\nIPC$            IPC"
+  },
+  {
+    "type": "order_block",
+    "id": "share-analysis",
+    "text": "Enum4linux discovered a share named <highlight>Anonymous</highlight>. Because null sessions are allowed, this share can likely be accessed without credentials."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "share-access",
+    "text": "Accessing the Anonymous Share"
+  },
+  {
+    "type": "code_block",
+    "id": "smbclient-command",
+    "language": "bash",
+    "code": "smbclient //10.112.178.21/Anonymous -N"
+  },
+  {
+    "type": "order_block",
+    "id": "share-access-analysis",
+    "text": "Using <highlight>smbclient</highlight> allows connecting to the discovered share. The <highlight>-N</highlight> flag specifies no password for anonymous access."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "password-policy",
+    "text": "Password Policy Enumeration"
+  },
+  {
+    "type": "output_block",
+    "id": "password-policy-output",
+    "language": "bash",
+    "code": "Minimum password length: 5\nPassword Complexity: Disabled"
+  },
+  {
+    "type": "order_block",
+    "id": "password-policy-analysis",
+    "text": "The password policy is weak. A minimum length of <highlight>5 characters</highlight> and disabled complexity indicates that weak passwords may exist."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "rid-cycling",
+    "text": "User Enumeration via RID Cycling"
+  },
+  {
+    "type": "output_block",
+    "id": "rid-users-output",
+    "language": "bash",
+    "code": "Unix User\\kay\nUnix User\\jan\nUnix User\\ubuntu"
+  },
+  {
+    "type": "order_block",
+    "id": "rid-users-analysis",
+    "text": "Enum4linux performed <highlight>RID cycling</highlight> to discover local system users. These usernames can be used in further attacks such as SSH login attempts or password brute forcing."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "next-attack-path",
+    "text": "Using Discovered Users for Attacks"
+  },
+  {
+    "type": "code_block",
+    "id": "ssh-bruteforce-command",
+    "language": "bash",
+    "code": "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://10.112.178.21"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-bruteforce-analysis",
+    "text": "The discovered usernames can be used to attempt <highlight>SSH password brute force attacks</highlight> if the SSH service is running on the target."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "enum4linux-summary",
+    "text": "Summary of Enumeration"
+  },
+  {
+    "type": "explanation",
+    "id": "enum4linux-steps",
+    "title": "Information Gathered Using Enum4linux",
+    "items": [
+      "Confirmed SMB service availability",
+      "Discovered workgroup name",
+      "Enumerated NetBIOS hostname",
+      "Confirmed null session access",
+      "Identified Samba running on Ubuntu",
+      "Enumerated accessible SMB shares",
+      "Extracted password policy configuration",
+      "Discovered system users through RID cycling",
+      "Identified possible attack paths such as SMB share access or SSH brute forcing"
+    ]
+  }
+]

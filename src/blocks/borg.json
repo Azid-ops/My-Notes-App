@@ -1,0 +1,127 @@
+[
+  {
+    "type": "section_heading",
+    "id": "borg-intro",
+    "text": "Borg Backup Extraction"
+  },
+  {
+    "type": "order_block",
+    "id": "borg-definition",
+    "text": "<highlight>BorgBackup (borg)</highlight> is a deduplicating backup tool used to create compressed and encrypted backups. System administrators commonly use it to store snapshots of directories. If an attacker finds a borg archive and its passphrase, they can extract sensitive files from the backup."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "discovering-borg-archive",
+    "text": "Discovering the Borg Archive"
+  },
+  {
+    "type": "code_block",
+    "id": "navigate-archive",
+    "language": "bash",
+    "code": "cd /home/field/dev\nls"
+  },
+  {
+    "type": "output_block",
+    "id": "archive-files",
+    "language": "bash",
+    "code": "final_archive"
+  },
+  {
+    "type": "order_block",
+    "id": "archive-analysis",
+    "text": "A borg repository named <highlight>final_archive</highlight> was discovered in the developer directory. This indicates that backups were created using Borg."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "listing-backup-content",
+    "text": "Listing Backup Snapshots"
+  },
+  {
+    "type": "code_block",
+    "id": "borg-list-command",
+    "language": "bash",
+    "code": "borg list final_archive"
+  },
+  {
+    "type": "output_block",
+    "id": "borg-list-output",
+    "language": "bash",
+    "code": "music_archive Tue, 2020-12-29 19:00:38"
+  },
+  {
+    "type": "order_block",
+    "id": "borg-list-analysis",
+    "text": "The borg repository contains a snapshot named <highlight>music_archive</highlight>. Snapshots are backups of directories taken at specific times."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "extracting-backup",
+    "text": "Extracting the Backup"
+  },
+  {
+    "type": "code_block",
+    "id": "borg-extract-command",
+    "language": "bash",
+    "code": "borg extract final_archive::music_archive"
+  },
+  {
+    "type": "order_block",
+    "id": "borg-extract-analysis",
+    "text": "Using <highlight>borg extract</highlight>, the contents of the backup snapshot were restored into the current directory."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "checking-extracted-files",
+    "text": "Viewing Extracted Files"
+  },
+  {
+    "type": "code_block",
+    "id": "list-extracted-files",
+    "language": "bash",
+    "code": "ls -la"
+  },
+  {
+    "type": "order_block",
+    "id": "files-analysis",
+    "text": "After extraction, files from the backup were restored. These files may contain credentials, configuration files, or sensitive data useful for privilege escalation."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "why-borg-is-dangerous",
+    "text": "Why Borg Backups Are Valuable for Attackers"
+  },
+  {
+    "type": "explanation",
+    "id": "borg-importance",
+    "title": "Security Impact",
+    "items": [
+      "Backup archives often contain full copies of user directories.",
+      "They may include SSH keys, passwords, configuration files, or source code.",
+      "If attackers obtain the borg passphrase, they can restore the entire backup.",
+      "Developers frequently store backups in insecure directories."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "borg-summary",
+    "text": "Summary of Borg Backup Attack"
+  },
+  {
+    "type": "explanation",
+    "id": "borg-steps",
+    "title": "Steps Performed",
+    "items": [
+      "Discovered a borg repository in the developer directory",
+      "Listed available backup snapshots using borg list",
+      "Found the snapshot named music_archive",
+      "Extracted the backup using borg extract",
+      "Recovered files from the backup for further enumeration"
+    ]
+  }
+]

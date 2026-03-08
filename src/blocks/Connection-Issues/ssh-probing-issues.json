@@ -1,0 +1,211 @@
+[
+  {
+    "type": "section_heading",
+    "id": "ssh-issue-intro",
+    "text": "SSH Connection Issues (Probes / Hanging / Slow Login)"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-definition",
+    "text": "SSH connection problems may occur when connecting to remote systems using SSH. Common symptoms include connection hanging, delayed login, or warnings related to cryptographic algorithms."
+  },
+  {
+    "type": "section_heading",
+    "id": "ssh-warning",
+    "text": "Example SSH Warning"
+  },
+  {
+    "type": "output_block",
+    "id": "ssh-warning-output",
+    "language": "bash",
+    "code": "** WARNING: connection is not using a post-quantum key exchange algorithm.\n** This session may be vulnerable to \"store now, decrypt later\" attacks."
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-warning-analysis",
+    "text": "This warning appears when the SSH server does not support modern post‑quantum key exchange algorithms. The connection still works but the encryption may not be future‑proof."
+  },
+  {
+    "type": "section_heading",
+    "id": "ssh-hanging",
+    "text": "Issue: SSH Connection Hanging"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-hanging-explain",
+    "text": "Sometimes SSH connections freeze or take a long time before showing the password prompt or shell. This often happens due to DNS resolution problems, network delays, firewall filtering, or incompatible SSH settings."
+  },
+  {
+    "type": "section_heading",
+    "id": "debug-ssh",
+    "text": "Debugging SSH Connection"
+  },
+  {
+    "type": "code_block",
+    "id": "ssh-debug-command",
+    "language": "bash",
+    "code": "ssh -vvv user@target_ip"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-debug-analysis",
+    "text": "The -vvv option enables verbose debugging output which helps identify where the SSH connection is failing or slowing down."
+  },
+  {
+    "type": "section_heading",
+    "id": "dns-fix",
+    "text": "Fix: Disable DNS Lookup"
+  },
+  {
+    "type": "code_block",
+    "id": "dns-fix-command",
+    "language": "bash",
+    "code": "ssh -o \"UseDNS=no\" user@target_ip"
+  },
+  {
+    "type": "order_block",
+    "id": "dns-fix-analysis",
+    "text": "Disabling DNS lookup can resolve slow SSH logins when the server attempts reverse DNS resolution."
+  },
+  {
+    "type": "section_heading",
+    "id": "ssh-key-permission",
+    "text": "Fix: Correct SSH Key Permissions"
+  },
+  {
+    "type": "code_block",
+    "id": "ssh-key-permission-command",
+    "language": "bash",
+    "code": "chmod 600 id_rsa"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-key-permission-analysis",
+    "text": "SSH requires private keys to have strict permissions. Incorrect permissions may prevent authentication."
+  },
+  {
+    "type": "section-heading",
+    "id": "ssh-network-check",
+    "text": "Check Network Connectivity"
+  },
+  {
+    "type": "code_block",
+    "id": "ping-command",
+    "language": "bash",
+    "code": "ping target_ip"
+  },
+  {
+    "type": "code_block",
+    "id": "port-check-command",
+    "language": "bash",
+    "code": "nc -zv target_ip 22"
+  },
+  {
+    "type": "order_block",
+    "id": "network-analysis",
+    "text": "Checking network connectivity confirms that the SSH service is reachable and that port 22 is open."
+  },
+  {
+    "type": "section_heading",
+    "id": "ssh-timeout-fix",
+    "text": "Fix: Increase SSH Timeout"
+  },
+  {
+    "type": "code_block",
+    "id": "timeout-command",
+    "language": "bash",
+    "code": "ssh -o ConnectTimeout=10 user@target_ip"
+  },
+  {
+    "type": "order_block",
+    "id": "timeout-analysis",
+    "text": "Increasing the connection timeout may help when connecting to slow or unstable systems."
+  },
+  {
+    "type": "section_heading",
+    "id": "tmux-intro",
+    "text": "Using tmux with SSH"
+  },
+  {
+    "type": "order_block",
+    "id": "tmux-definition",
+    "text": "tmux is a terminal multiplexer that allows multiple terminal sessions to run inside a single window. It is commonly used in penetration testing to maintain persistent shells and split terminal windows."
+  },
+  {
+    "type": "section_heading",
+    "id": "tmux-workflow",
+    "text": "Persistent tmux SSH Workflow"
+  },
+  {
+    "type": "text_block",
+    "id": "tmux-step-1",
+    "text": "1. Connect via SSH: ssh -i id_rsa john@target_ip"
+  },
+  {
+    "type": "text_block",
+    "id": "tmux-step-2",
+    "text": "2. Start tmux: tmux new -s lab"
+  },
+  {
+    "type": "text_block",
+    "id": "tmux-step-3",
+    "text": "3. Run commands inside tmux. SSH hanging won’t terminate your work."
+  },
+  {
+    "type": "text_block",
+    "id": "tmux-step-4",
+    "text": "4. Detach: Press Ctrl+b then d"
+  },
+  {
+    "type": "text_block",
+    "id": "tmux-step-5",
+    "text": "5. Reattach later: tmux attach -t lab"
+  },
+  {
+    "type": "text_block",
+    "id": "tmux-step-6",
+    "text": "6. Nested SSH inside tmux: use ssh -t user@target_ip to force a TTY allocation"
+  },
+  {
+    "type": "section_heading",
+    "id": "tmux-commands",
+    "text": "tmux Commands for SSH Sessions"
+  },
+  {
+    "type": "code_block",
+    "id": "tmux-commands-list",
+    "language": "bash",
+    "code": "# Start a new tmux session named 'lab'\ntmux new -s lab\n\n# Detach from the session (keep it running)\n# Press Ctrl+b then d\n\n# List active tmux sessions\ntmux ls\n\n# Reattach to a session\ntmux attach -t lab\n\n# Kill a session\ntmux kill-session -t lab"
+  },
+  {
+    "type": "order_block",
+    "id": "tmux-commands-explain",
+    "text": "These are the basic tmux commands for managing persistent SSH sessions. Use them to start, detach, reattach, list, and kill tmux sessions to prevent SSH hangs from interrupting your work."
+  },
+  {
+    "type": "section_heading",
+    "id": "ssh-tmux-issue",
+    "text": "Issue: SSH Inside tmux Requires TTY"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-tmux-issue-explain",
+    "text": "When SSH is executed inside a tmux session, the remote system may not receive a proper pseudo-terminal (TTY). This can cause SSH sessions to hang, interactive commands to fail, or shells to behave incorrectly."
+  },
+  {
+    "type": "code_block",
+    "id": "ssh-tmux-command",
+    "language": "bash",
+    "code": "ssh -t user@target_ip"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-tmux-analysis",
+    "text": "The -t option forces SSH to allocate a pseudo-terminal (TTY). This resolves issues when running SSH inside tmux or when remote commands require an interactive terminal."
+  },
+  {
+    "type": "section_heading",
+    "id": "ssh-summary",
+    "text": "SSH Troubleshooting Checklist"
+  }
+]

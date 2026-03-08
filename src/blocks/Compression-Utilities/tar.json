@@ -1,0 +1,151 @@
+[
+  {
+    "type": "section_heading",
+    "id": "tar-intro",
+    "text": "TAR Archiving Utility"
+  },
+  {
+    "type": "order_block",
+    "id": "tar-definition",
+    "text": "<highlight>tar</highlight> (tape archive) is a Linux utility used to combine multiple files and directories into a single archive file. It is commonly used for <highlight>backup, transfer, and packaging</highlight> of files on Linux systems."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-create",
+    "text": "Creating a tar Archive"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-create-command",
+    "language": "bash",
+    "code": "tar -cvf archive.tar folder1 file1"
+  },
+  {
+    "type": "order_block",
+    "id": "tar-create-analysis",
+    "text": "The command creates an archive named <highlight>archive.tar</highlight> containing the specified files and directories."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-list",
+    "text": "Listing Archive Contents"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-list-command",
+    "language": "bash",
+    "code": "tar -tvf archive.tar"
+  },
+  {
+    "type": "order_block",
+    "id": "tar-list-analysis",
+    "text": "The <highlight>-t</highlight> flag lists all files stored inside the archive without extracting them."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-extract",
+    "text": "Extracting Files from Archive"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-extract-command",
+    "language": "bash",
+    "code": "tar -xvf archive.tar"
+  },
+  {
+    "type": "order_block",
+    "id": "tar-extract-analysis",
+    "text": "This extracts all files from <highlight>archive.tar</highlight> into the current directory."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-compression",
+    "text": "Creating Compressed tar Archives"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-gzip-command",
+    "language": "bash",
+    "code": "tar -czvf archive.tar.gz folder1"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-bzip-command",
+    "language": "bash",
+    "code": "tar -cjvf archive.tar.bz2 folder1"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-xz-command",
+    "language": "bash",
+    "code": "tar -cJvf archive.tar.xz folder1"
+  },
+  {
+    "type": "order_block",
+    "id": "tar-compression-analysis",
+    "text": "tar archives can be compressed using different algorithms such as <highlight>gzip, bzip2, and xz</highlight> to reduce file size."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-extract-compressed",
+    "text": "Extracting Compressed tar Archives"
+  },
+  {
+    "type": "code_block",
+    "id": "extract-gzip-command",
+    "language": "bash",
+    "code": "tar -xzvf archive.tar.gz"
+  },
+  {
+    "type": "code_block",
+    "id": "extract-bzip-command",
+    "language": "bash",
+    "code": "tar -xjvf archive.tar.bz2"
+  },
+  {
+    "type": "code_block",
+    "id": "extract-xz-command",
+    "language": "bash",
+    "code": "tar -xJvf archive.tar.xz"
+  },
+  {
+    "type": "order_block",
+    "id": "tar-extract-compressed-analysis",
+    "text": "The extraction command must include the matching compression flag used during archive creation."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-common-flags",
+    "text": "Common tar Flags"
+  },
+  {
+    "type": "code_block",
+    "id": "tar-flags-table",
+    "language": "text",
+    "code": "Flag   Purpose\n-----------------------------\n-c     Create archive\n-x     Extract archive\n-t     List archive contents\n-v     Verbose output\n-f     Specify archive file\n-z     Use gzip compression\n-j     Use bzip2 compression\n-J     Use xz compression"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "tar-summary",
+    "text": "Summary"
+  },
+  {
+    "type": "explanation",
+    "id": "tar-summary-steps",
+    "title": "Typical tar Workflow",
+    "items": [
+      "Collect files or directories to archive",
+      "Create tar archive using tar -cvf",
+      "Optionally compress archive with gzip, bzip2, or xz",
+      "Transfer or store the archive",
+      "Extract files later using tar -xvf"
+    ]
+  }
+]

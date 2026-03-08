@@ -17,24 +17,28 @@
         "category": "notes",
         "children": [
           {
-            "id": "error-based-sqli",
-            "title": "Error-Based SQL Injection",
-            "slug": "error-based-sqli",
-            "category": "notes",
-            "children": [
-              {
-                "id": "mysql-error-based",
-                "title": "MySQL",
-                "slug": "mysql-error-based",
-                "category": "notes"
-              },
-              {
-                "id": "postgres-error-based",
-                "title": "PostgreSQL",
-                "slug": "postgres-error-based",
-                "category": "notes"
-              }
-            ]
+            "id": "basic-sql-injection",
+            "title": "Basic SQL Injection",
+            "slug": "basic-sql-injection",
+            "category": "notes"
+          },
+          {
+            "id": "union-sql-injection",
+            "title": "Union SQL Injection",
+            "slug": "union-sql-injection",
+            "category": "notes"
+          },
+          {
+            "id": "mysql-error-based",
+            "title": "MySQL",
+            "slug": "mysql-error-based",
+            "category": "notes"
+          },
+          {
+            "id": "postgres-error-based",
+            "title": "PostgreSQL",
+            "slug": "postgres-error-based",
+            "category": "notes"
           }
         ]
       },
@@ -138,6 +142,55 @@
             "slug": "lab1",
             "category": "notes"
           }
+        ]
+      },
+      { "id": "images-cheatsheet", "title": "Images Cheatsheet", "slug": "images-cheatsheet", "category": "notes" },
+      {
+        "id": "prevESC",
+        "title": "PrevESC",
+        "slug": "prevESC",
+        "category": "notes",
+        "children": [
+          { "id": "privESC-cheatsheet", "title": "PRIVESC Cheatsheet", "slug": "privESC-cheatsheet", "category": "notes" },
+          { "id": "privESC-nano", "title": "PRIVESC Nano - PwnKit", "slug": "privESC-nano", "category": "notes" }
+        ]
+      },
+      { "id": "borg", "title": "Borg", "slug": "borg", "category": "notes" },
+      { "id": "enum4linux", "title": "Enum4linux", "slug": "enum4linux", "category": "notes" },
+      {
+        "id": "binaries-exploitation",
+        "title": "Binaries Exploitation",
+        "slug": "binaries-exploitation",
+        "category": "notes",
+        "children": [
+          { "id": "pkexec-binary", "title": "PKEXEC Binary", "slug": "pkexec-binary", "category": "notes" }
+        ]
+      },
+      {
+        "id": "connection-issues",
+        "title": "Connection Issues",
+        "slug": "connection-issues",
+        "category": "notes",
+        "children": [
+          { "id": "ssh-probing-issue", "title": "SSH Probing issue", "slug": "ssh-probing-issue", "category": "notes" }
+        ]
+      },
+      {
+        "id": "compression-utilities",
+        "title": "Compression Utilities",
+        "slug": "compression-utilities",
+        "category": "notes",
+        "children": [
+          { "id": "tar", "title": "TAR", "slug": "tar", "category": "notes" }
+        ]
+      },
+      {
+        "id": "pentesting-tools",
+        "title": "Pentesting Tools",
+        "slug": "pentesting-tools",
+        "category": "notes",
+        "children": [
+          { "id": "ssh2john", "title": "ssh2john", "slug": "ssh2john", "category": "notes" }
         ]
       }
     ]
