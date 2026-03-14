@@ -12,6 +12,7 @@
     "watch-pages": "nodemon --watch src/blocks --ext json --exec \"node src/scripts/buildPages.cjs\""
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@tippyjs/react": "^4.2.6",
     "axios": "^1.13.6",
     "openai": "^6.25.0",

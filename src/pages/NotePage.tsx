@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { FaBook, FaFolder, FaYoutube } from "react-icons/fa"; // make sure to install react-icons
 import { LabFlags } from "./labFlag";
 import { Link } from "react-router-dom";
+import ScriptBlock from "./ScriptBlock";
+import PageComponent from "./pageComponent";
 
 interface Block {
   id: string;
@@ -16,6 +18,8 @@ interface Block {
   title?: string,
   fileName?: string;
   size?:any;
+  file?: string;
+  language?:string;
 }
 
 interface Page {
@@ -39,7 +43,11 @@ interface Page {
   }[];
   isLab?:any;
   numberOfQuestions?:any;
-  blocks: Block[];
+  scriptFile?: string;
+  language?: string;
+  category?: string;
+  blocks?: Block[];
+  explanationFile?:string;
 }
 
 interface NotePageProps {
@@ -181,9 +189,14 @@ export default function NotePage({ slug }: NotePageProps) {
         </div>
       )}
 
+      {/* Replace your old ScriptBlock call with this: */}
+      {page.scriptFile && (
+        <PageComponent page={page} />
+      )}
+
       
       <div className="space-y-8 pr-4">
-        {blocks.length === 0 ? (
+        {blocks.length === 0 && !page.explanationFile? (
           <p className="text-gray-500 dark:text-gray-400 text-lg">No content available.</p>
         ) : (
           blocks.map((block) => {
@@ -244,9 +257,21 @@ export default function NotePage({ slug }: NotePageProps) {
                     </p>
                   </div>
                 );
+              
+              case "script_block":
+                if (!block.file) return null;
+                return (
+                  <ScriptBlock
+                    key={block.id}
+                    file={block.file}
+                    language={block.language}
+                  />
+                );
+
               case "output_block":
                 if (!block.code) return null;
                 return <OutputBlock key={block.id} code={block.code} language="bash" />;
+
               case "image":
                 if (!block.src) return null;
                 return <ImageWithLoader key={block.id} src={block.src} alt={block.alt ?? ""} />;
@@ -311,6 +336,7 @@ export default function NotePage({ slug }: NotePageProps) {
     </div>
   );
 }
+
 
 // ----------------------
 // CodeBlock component

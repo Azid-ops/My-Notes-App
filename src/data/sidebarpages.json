@@ -156,14 +156,14 @@
         ]
       },
       { "id": "borg", "title": "Borg", "slug": "borg", "category": "notes" },
-      { "id": "enum4linux", "title": "Enum4linux", "slug": "enum4linux", "category": "notes" },
       {
         "id": "binaries-exploitation",
         "title": "Binaries Exploitation",
         "slug": "binaries-exploitation",
         "category": "notes",
         "children": [
-          { "id": "pkexec-binary", "title": "PKEXEC Binary", "slug": "pkexec-binary", "category": "notes" }
+          { "id": "pkexec-binary", "title": "PKEXEC", "slug": "pkexec-binary", "category": "notes" },
+          { "id": "pwm", "title": "PWM", "slug": "pwm", "category": "notes" }
         ]
       },
       {
@@ -190,7 +190,98 @@
         "slug": "pentesting-tools",
         "category": "notes",
         "children": [
-          { "id": "ssh2john", "title": "ssh2john", "slug": "ssh2john", "category": "notes" }
+          { "id": "ssh2john", "title": "ssh2john", "slug": "ssh2john", "category": "notes" },
+          { "id": "creds-fuff", "title": "Creds Fuff", "slug": "creds-fuff", "category": "notes" },
+          { "id": "enum4linux", "title": "Enum4linux", "slug": "enum4linux", "category": "notes" }
+        ]
+      },
+      {
+        "id": "file-upload-bypass",
+        "title": "File Upload Bypass",
+        "slug": "file-upload-bypass",
+        "category": "notes",
+        "children": [
+          { "id": "gif8", "title": "GIF8", "slug": "gif8", "category": "notes" }
+        ]
+      },
+      {
+        "id": "privesc-exploits",
+        "title": "PrivEsc Exploits",
+        "slug": "privesc-exploits",
+        "category": "notes",
+        "children": [
+          { "id": "mysql", "title": "MYSQL", "slug": "mysql", "category": "notes" },
+          { "id": "shadow", "title": "Shadow", "slug": "shadow", "category": "notes" },
+          { "id": "passwd", "title": "Passwd", "slug": "passwd", "category": "notes" },
+          { "id": "apparmor", "title": "App-Armor", "slug": "apparmor", "category": "notes" },
+          { "id": "strings", "title": "Strings", "slug": "strings", "category": "notes" },
+          {
+            "id": "parent-sudo",
+            "title": "Sudo",
+            "slug": "parent-sudo",
+            "category": "notes",
+            "children": [
+              { "id": "sudo-l", "title": "Sudo", "slug": "sudo-l", "category": "notes" },
+              { "id": "ld-preload", "title": "LD_PRELOAD", "slug": "ld-preload", "category": "notes" },
+              { "id": "ld-library-path", "title": "LD_LIBRARY_PATH", "slug": "ld-library-path", "category": "notes" },
+              { "id": "look", "title": "Look", "slug": "look", "category": "notes" }
+            ]
+          },
+          {
+            "id": "parent-cron-script",
+            "title": "Cron-Job",
+            "slug": "parent-cron-script",
+            "category": "notes",
+            "children": [
+              { "id": "basic-cronjob", "title": "Basic CronJob", "slug": "basic-cronjob", "category": "notes" },
+              { "id": "wildcard-cronjob", "title": "WildCard CronJob", "slug": "wildcard-cronjob", "category": "notes" }
+            ]
+          },
+          {
+            "id": "suid/sgid",
+            "title": "SUID / SGID",
+            "slug": "suid/sgid",
+            "category": "notes",
+            "children": [
+              { "id": "known-exploit", "title": "Known Exploits", "slug": "known-exploit", "category": "notes" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "scripts",
+        "title": "Scripts",
+        "slug": "scripts",
+        "category": "notes",
+        "children": [
+            {
+              "id": "mysql-script",
+              "title": "MYSQL",
+              "slug": "mysql-script",
+              "category": "notes",
+              "children": [
+                { "id": "exploit-script", "title": "UDF", "slug": "exploit-script", "category": "notes" }
+              ]
+          },
+          {
+              "id": "parent-sudo-script",
+              "title": "SUDO",
+              "slug": "parent-sudo-script",
+              "category": "notes",
+              "children": [
+                { "id": "ld-preload-script", "title": "LD_PRELOAD", "slug": "ld-preload-script", "category": "notes" },
+                { "id": "ld_library_path_script", "title": "LD LIBRARY PATH", "slug": "ld_library_path_script", "category": "notes" }
+              ]
+          },
+          {
+            "id": "cve",
+            "title": "CVE",
+            "slug": "cve",
+            "category": "notes",
+            "children": [
+              { "id": "cve-2016-1531", "title": "CVE-2016-1531", "slug": "cve-2016-1531", "category": "notes" }
+            ]
+         }
         ]
       }
     ]

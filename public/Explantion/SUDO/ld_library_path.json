@@ -1,0 +1,44 @@
+[
+  {
+    "name": "constructor attribute",
+    "desc": "Function executed automatically when the library loads",
+    "detail": "The `__attribute__((constructor))` tells the compiler that this function must run automatically when the shared library is loaded into memory. In privilege escalation scenarios, this is extremely useful because the attacker does not need to call the function explicitly. When a vulnerable program loads the malicious shared library, the function executes immediately, allowing arbitrary commands to run.",
+    "color": "bg-purple-500",
+    "icon": "CodeBracketIcon"
+  },
+  {
+    "name": "hijack()",
+    "desc": "Malicious function triggered on library load",
+    "detail": "This function contains the payload that runs when the shared object is loaded. Because of the constructor attribute, it executes before the program’s normal execution flow begins. Attackers use this to run commands with the privileges of the program that loads the library, which in sudo misconfigurations often means root.",
+    "color": "bg-red-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "unsetenv()",
+    "desc": "Removes environment variables",
+    "detail": "The call `unsetenv(\"LD_LIBRARY_PATH\")` removes the LD_LIBRARY_PATH variable from the environment. This prevents recursive loading or interference after the malicious library executes. It also helps avoid detection or crashes caused by repeated library loading.",
+    "color": "bg-yellow-400",
+    "icon": "CubeIcon"
+  },
+  {
+    "name": "setresuid(0,0,0)",
+    "desc": "Sets real, effective and saved UID to root",
+    "detail": "This function changes the user IDs of the current process. By setting all three values to 0, the process gains full root privileges. If the vulnerable program is executed through sudo or another privileged context, this ensures the shell spawned later runs with root permissions.",
+    "color": "bg-blue-500",
+    "icon": "CubeIcon"
+  },
+  {
+    "name": "system()",
+    "desc": "Executes a shell command",
+    "detail": "`system(\"/bin/bash -p\")` launches a bash shell while preserving elevated privileges. The `-p` flag prevents bash from dropping privileges when executed from a SUID or privileged process. This results in a persistent root shell for the attacker.",
+    "color": "bg-pink-500",
+    "icon": "CodeBracketIcon"
+  },
+  {
+    "name": "LD_LIBRARY_PATH Exploit",
+    "desc": "Library search path hijacking technique",
+    "detail": "LD_LIBRARY_PATH controls where Linux searches for shared libraries before default system paths. If a privileged program runs with this variable preserved (for example through a misconfigured sudo rule), an attacker can place a malicious shared library in a directory listed in LD_LIBRARY_PATH. When the program starts, it loads the attacker's library first, executing the malicious constructor code and leading to privilege escalation.",
+    "color": "bg-green-500",
+    "icon": "ArrowPathIcon"
+  }
+]

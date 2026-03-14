@@ -1,0 +1,44 @@
+[
+  {
+    "name": "_init()",
+    "desc": "Constructor function executed when the shared library loads",
+    "detail": "The `_init()` function runs automatically when the shared object is loaded by the dynamic loader. In privilege escalation scenarios such as LD_PRELOAD or LD_LIBRARY_PATH abuse, this function is triggered before the actual program starts. Attackers place malicious code here so it executes immediately with the privileges of the target program (often root when used with sudo).",
+    "color": "bg-purple-500",
+    "icon": "CodeBracketIcon"
+  },
+  {
+    "name": "unsetenv(\"LD_PRELOAD\")",
+    "desc": "Removes the LD_PRELOAD environment variable",
+    "detail": "This line removes the `LD_PRELOAD` variable from the environment. Some programs refuse to start or behave unexpectedly if LD_PRELOAD remains set. Removing it helps prevent recursion or detection after the malicious library has already been loaded, ensuring the exploit runs smoothly.",
+    "color": "bg-blue-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "setresuid(0,0,0)",
+    "desc": "Sets real, effective, and saved user IDs to root",
+    "detail": "`setresuid(0,0,0)` changes the process UID values to `0`, which corresponds to the root user in Linux. This ensures the process gains full root privileges. In privilege escalation exploits, this step guarantees that the spawned shell runs with elevated permissions instead of the current user’s privileges.",
+    "color": "bg-red-500",
+    "icon": "CubeIcon"
+  },
+  {
+    "name": "system(\"/bin/bash -p\")",
+    "desc": "Spawns a privileged bash shell",
+    "detail": "The `system()` function executes a command using the system shell. Here it runs `/bin/bash -p`, where the `-p` flag preserves the effective user ID and prevents bash from dropping privileges. This ensures the attacker receives a persistent root shell once the exploit triggers.",
+    "color": "bg-pink-500",
+    "icon": "CodeBracketIcon"
+  },
+  {
+    "name": "Shared Library Exploit",
+    "desc": "Malicious .so used for privilege escalation",
+    "detail": "This code is compiled into a shared object (`.so`) and injected into a program using environment variables like `LD_PRELOAD` or `LD_LIBRARY_PATH`. When a sudo-executed program loads the library, `_init()` executes automatically and spawns a root shell, resulting in full privilege escalation.",
+    "color": "bg-green-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "LD_PRELOAD Abuse",
+    "desc": "Technique to force a program to load attacker-controlled libraries",
+    "detail": "LD_PRELOAD allows specifying shared libraries that the dynamic loader loads before any others. If sudo is configured with `env_keep+=LD_PRELOAD`, an attacker can supply a malicious library containing code like this. The loader executes `_init()` immediately, granting code execution with the privileges of the sudo command.",
+    "color": "bg-yellow-400",
+    "icon": "CubeIcon"
+  }
+]
