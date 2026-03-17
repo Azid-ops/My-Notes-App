@@ -23,22 +23,52 @@
             "category": "notes"
           },
           {
-            "id": "union-sql-injection",
-            "title": "Union SQL Injection",
-            "slug": "union-sql-injection",
-            "category": "notes"
+            "id": "mysql-attacks",
+            "title": "MYSQL Attacks",
+            "slug": "mysql-attacks",
+            "category": "notes",
+            "children": [
+              {
+                "id": "union-sql-injection",
+                "title": "Union SQL Injection",
+                "slug": "union-sql-injection",
+                "category": "notes"
+              },
+              {
+                "id": "mysql-error-based",
+                "title": "ERROR Based SQL Injection",
+                "slug": "mysql-error-based",
+                "category": "notes"
+              }
+            ]
           },
           {
-            "id": "mysql-error-based",
-            "title": "MySQL",
-            "slug": "mysql-error-based",
-            "category": "notes"
+            "id": "postgres-attacks",
+            "title": "Postgres Attacks",
+            "slug": "postgres-attacks",
+            "category": "notes",
+            "children": [
+              {
+                "id": "postgres-error-based",
+                "title": "ERROR Based PostgreSQL",
+                "slug": "postgres-error-based",
+                "category": "notes"
+              }
+            ]
           },
           {
-            "id": "postgres-error-based",
-            "title": "PostgreSQL",
-            "slug": "postgres-error-based",
-            "category": "notes"
+            "id": "sql-lite-attacks",
+            "title": "SQL-LITE Attacks",
+            "slug": "sql-lite-attacks",
+            "category": "notes",
+            "children": [
+              {
+                "id": "sql-lite-union",
+                "title": "UNION SQL-LITE",
+                "slug": "sql-lite-union",
+                "category": "notes"
+              }
+            ]
           }
         ]
       },
@@ -144,6 +174,26 @@
           }
         ]
       },
+      {
+        "id": "xss",
+        "title": "XXS",
+        "slug": "xxs",
+        "category": "notes",
+        "children": [
+          {
+            "id": "stored-xss",
+            "title": "Stored XSS",
+            "slug": "stored-xss",
+            "category": "notes"
+          },
+          {
+            "id": "blind-xss",
+            "title": "Blind XSS",
+            "slug": "blind-xss",
+            "category": "notes"
+          }
+        ]
+      },
       { "id": "images-cheatsheet", "title": "Images Cheatsheet", "slug": "images-cheatsheet", "category": "notes" },
       {
         "id": "prevESC",
@@ -163,9 +213,11 @@
         "category": "notes",
         "children": [
           { "id": "pkexec-binary", "title": "PKEXEC", "slug": "pkexec-binary", "category": "notes" },
-          { "id": "pwm", "title": "PWM", "slug": "pwm", "category": "notes" }
+          { "id": "pwm", "title": "PWM", "slug": "pwm", "category": "notes" },
+          { "id": "getcap", "title": "GetCap", "slug": "getcap", "category": "notes" }
         ]
       },
+      { "id": "manual-binary-analysis", "title": "Manual Binary Analysis", "slug": "manual-binary-analysis", "category": "notes" },
       {
         "id": "connection-issues",
         "title": "Connection Issues",
@@ -215,6 +267,8 @@
           { "id": "passwd", "title": "Passwd", "slug": "passwd", "category": "notes" },
           { "id": "apparmor", "title": "App-Armor", "slug": "apparmor", "category": "notes" },
           { "id": "strings", "title": "Strings", "slug": "strings", "category": "notes" },
+          { "id": "tar-wildcard", "title": "Tar Wildcard", "slug": "tar-wildcard", "category": "notes" },
+          { "id": "timer", "title": "Timer Exploit", "slug": "timer", "category": "notes" },
           {
             "id": "parent-sudo",
             "title": "Sudo",

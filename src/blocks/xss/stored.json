@@ -1,0 +1,68 @@
+[
+  {
+    "type": "section_heading",
+    "id": "stored-xss-definition",
+    "text": "Understanding Stored (Persistent) XSS"
+  },
+  {
+    "type": "order_block",
+    "id": "stored-xss-core-concept",
+    "text": "<highlight>Stored XSS</highlight> is the most dangerous type of XSS. The malicious script is permanently stored on the target server (e.g., in a database). When a victim navigates to the affected page, the browser retrieves the script and executes it automatically."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "stored-xss-flow",
+    "text": "The Attack Lifecycle"
+  },
+  {
+    "type": "explanation",
+    "id": "stored-xss-steps",
+    "title": "Execution Stages",
+    "items": [
+      "**Injection:** The attacker finds an input field (comments, profile bio, message board) that saves to a database.",
+      "**Storage:** The server fails to sanitize the input and saves the raw JavaScript string.",
+      "**Execution:** Every user who loads that page pulls the script from the database and runs it in their own browser context.",
+      "**Impact:** Can be used for mass cookie theft, redirecting all visitors to a phishing site, or defacing the website."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "stored-xss-examples",
+    "text": "Common Attack Vectors"
+  },
+  {
+    "type": "code_block",
+    "id": "stored-xss-payloads",
+    "language": "javascript",
+    "code": "\n<script>alert('XSS by Azid');</script>\n\n\n<script>document.body.innerHTML = '<h1>Hacked by Azid</h1>';</script>\n\n\n<script>window.location.href='http://malicious-site.com';</script>"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "stored-xss-comparison",
+    "text": "Why it is NOT Reflected XSS"
+  },
+  {
+    "type": "order_block",
+    "id": "stored-xss-vs-reflected",
+    "text": "Unlike Reflected XSS, which requires a victim to click a <highlight>malicious link</highlight>, Stored XSS is passive. The victim only needs to browse the legitimate website normally to be compromised. It is 'Stored' because the payload lives in the web application's data."
+  },
+  
+  {
+    "type": "section_heading",
+    "id": "stored-xss-prevention",
+    "text": "Developer Best Practices"
+  },
+  {
+    "type": "explanation",
+    "id": "stored-xss-defense",
+    "title": "How to Stop Persistent Scripts",
+    "items": [
+      "**Input Validation:** Only allow expected characters (e.g., alphanumeric only for usernames).",
+      "**Output Encoding:** Convert characters like < to &lt; so the browser treats them as text, not code.",
+      "**Content Security Policy (CSP):** Restrict which scripts can run and where they can load from."
+    ]
+  }
+]

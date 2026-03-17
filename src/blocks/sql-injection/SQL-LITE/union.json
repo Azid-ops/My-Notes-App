@@ -1,0 +1,128 @@
+[
+  {
+    "type": "section_heading",
+    "id": "union-sqli-intro",
+    "text": "What is UNION-Based SQL Injection?"
+  },
+  {
+    "type": "order_block",
+    "id": "union-sqli-definition",
+    "text": "UNION-based SQL Injection is a technique where an attacker uses the SQL <highlight>UNION</highlight> operator to combine results from the original query with a malicious query. This allows attackers to retrieve data from other tables in the database."
+  },
+  {
+    "type": "section_heading",
+    "id": "union-column-discovery",
+    "text": "Discovering Column Count Using ORDER BY"
+  },
+  {
+    "type": "code_block",
+    "id": "union-orderby-payloads",
+    "language": "text",
+    "code": "?id=1 ORDER BY 1--\n?id=1 ORDER BY 2--\n?id=1 ORDER BY 3--"
+  },
+  {
+    "type": "order_block",
+    "id": "union-orderby-analysis",
+    "text": "Attackers increase the column number until the database throws an error. The highest valid number indicates how many columns the original query returns. The <highlight>--</highlight> (or <highlight>#</highlight>) is used to comment out the rest of the original query."
+  },
+  {
+    "type": "section_heading",
+    "id": "sqlite-union-basics",
+    "text": "SQLite UNION-Based Injection Basics"
+  },
+  {
+    "type": "order_block",
+    "id": "sqlite-union-definition",
+    "text": "SQLite UNION injection leverages the <highlight>UNION</highlight> operator to bypass original query results and display data from the <highlight>sqlite_master</highlight> table. This is essential for SQLite environments where traditional <highlight>information_schema</highlight> does not exist."
+  },
+  {
+    "type": "section_heading",
+    "id": "sqlite-metadata-extraction",
+    "text": "Extracting SQLite Version and DB Info"
+  },
+  {
+    "type": "code_block",
+    "id": "sqlite-version-db-payloads",
+    "language": "text",
+    "code": "UNION SELECT 1,sqlite_version(),3--\nUNION SELECT 1,file,3 FROM pragma_database_list--"
+  },
+  {
+    "type": "order_block",
+    "id": "sqlite-metadata-analysis",
+    "text": "The <highlight>sqlite_version()</highlight> function returns the library version. <highlight>pragma_database_list</highlight> reveals the absolute path of the database file on the server, which can help map the internal directory structure."
+  },
+  {
+    "type": "section_heading",
+    "id": "sqlite-table-enumeration",
+    "text": "Enumerating Tables via sqlite_master"
+  },
+  {
+    "type": "code_block",
+    "id": "sqlite-tables-payload",
+    "language": "text",
+    "code": "UNION SELECT 1,name,3 FROM sqlite_master WHERE type='table'--"
+  },
+  {
+    "type": "order_block",
+    "id": "sqlite-tables-analysis",
+    "text": "In SQLite, the <highlight>sqlite_master</highlight> table contains the database schema. Filtering by <highlight>type='table'</highlight> allows us to find the names of all user-created tables."
+  },
+  {
+    "type": "section_heading",
+    "id": "sqlite-column-enumeration",
+    "text": "Enumerating Columns (The 'SQL' Column)"
+  },
+  {
+    "type": "code_block",
+    "id": "sqlite-columns-payload",
+    "language": "text",
+    "code": "UNION SELECT 1,sql,3 FROM sqlite_master WHERE type='table' AND name='users'--"
+  },
+  {
+    "type": "order_block",
+    "id": "sqlite-columns-analysis",
+    "text": "Unlike MySQL, SQLite stores the original <highlight>CREATE TABLE</highlight> statement in the <highlight>sql</highlight> column. Reading this reveals the column names needed to dump data."
+  },
+  {
+    "type": "section_heading",
+    "id": "sqlite-concatenation",
+    "text": "String Concatenation and Multi-Row Dumps"
+  },
+  {
+    "type": "order_block",
+    "id": "sqlite-concat-explanation",
+    "text": "If the application only displays one result field, use <highlight>||</highlight> (pipe operator) for concatenation or <highlight>GROUP_CONCAT()</highlight> to pull all rows into a single string."
+  },
+  {
+    "type": "code_block",
+    "id": "sqlite-concat-payloads",
+    "language": "text",
+    "code": "UNION SELECT 1,username || ':' || password,3 FROM users--\nUNION SELECT 1,GROUP_CONCAT(username),3 FROM users--"
+  },
+  {
+    "type": "section_heading",
+    "id": "union-important-rules",
+    "text": "Important Rules for UNION SQL Injection"
+  },
+  {
+    "type": "explanation",
+    "id": "union-rules-list",
+    "title": "Requirements for UNION Injection",
+    "items": [
+      "The number of columns in the UNION query must match the original query",
+      "Data types in the columns must be compatible with the original columns",
+      "The original query should be made to return 'nothing' (e.g., id=-1) so only the injected data shows",
+      "At least one column from the original query must be visible on the webpage"
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "union-conclusion",
+    "text": "Conclusion"
+  },
+  {
+    "type": "order_block",
+    "id": "union-summary",
+    "text": "UNION-based SQL Injection is a powerful method for data extraction. In <highlight>SQLite</highlight>, the reliance on <highlight>sqlite_master</highlight> and the <highlight>||</highlight> operator are the key differences from MySQL. Mastering these shifts allows for successful enumeration across different database engines."
+  }
+]

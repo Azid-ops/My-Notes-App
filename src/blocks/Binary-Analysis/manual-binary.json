@@ -1,0 +1,62 @@
+[
+  {
+    "type": "section_heading",
+    "id": "binary-grep-intro",
+    "text": "Manual Binary Analysis (Strings Workaround)"
+  },
+  {
+    "type": "order_block",
+    "id": "binary-grep-definition",
+    "text": "When the <highlight>strings</highlight> utility is missing on a target, you can use <highlight>grep</highlight> to extract human-readable text from compiled binaries. This is essential for finding hardcoded paths, hidden commands, or credentials."
+  },
+  {
+    "type": "section_heading",
+    "id": "grep-binary-logic",
+    "text": "The Binary Grep Command"
+  },
+  {
+    "type": "code_block",
+    "id": "grep-binary-command",
+    "language": "bash",
+    "code": "cat <binary_name> | grep -aE '[[:print:]]{4,}'"
+  },
+  {
+    "type": "explanation",
+    "id": "grep-flags-breakdown",
+    "title": "Flag Breakdown",
+    "items": [
+      "-a : Tells grep to treat the binary file as text (Avoids 'Binary file matches' error).",
+      "-E : Enables Extended Regular Expressions.",
+      "'[[:print:]]{4,}' : Matches any sequence of printable characters that is 4 or more characters long."
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "vulnerability-identification",
+    "text": "Analyzing the Output"
+  },
+  {
+    "type": "order_block",
+    "id": "path-analysis",
+    "text": "Look for system calls. If you see <highlight>/bin/echo</highlight> (Absolute Path), it is secure. If you see just <highlight>date</highlight> (Relative Path), it is vulnerable to $PATH Hijacking."
+  },
+  {
+    "type": "section_heading",
+    "id": "manual-analysis-summary",
+    "text": "Summary of Attack Path"
+  },
+  {
+    "type": "explanation",
+    "id": "binary-analysis-steps",
+    "title": "Steps Performed",
+    "items": [
+      "Identify SUID binaries using find / -perm -4000",
+      "Attempt to run strings on the binary to find system calls",
+      "Use the cat + grep workaround if strings is not installed",
+      "Search for commands called without absolute paths (e.g., date, ls, cat)",
+      "Create a malicious script with the same name in /tmp",
+      "Export /tmp to the beginning of the $PATH variable",
+      "Execute the SUID binary to trigger the hijack and gain root"
+    ]
+  }
+]

