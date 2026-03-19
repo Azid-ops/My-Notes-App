@@ -1,0 +1,139 @@
+[
+  {
+    "type": "section_heading",
+    "id": "win-user-recon",
+    "text": "User Identity and Privilege Enumeration"
+  },
+  {
+    "type": "order_block",
+    "id": "win-whoami-desc",
+    "text": "The <highlight>whoami</highlight> command identifies the current logged-in user. Adding the <highlight>/priv</highlight> flag is the most critical step in Windows privilege escalation as it reveals hidden system 'superpowers' assigned to the account."
+  },
+  {
+    "type": "code_block",
+    "id": "win-whoami-cmd",
+    "language": "cmd",
+    "code": "whoami /priv"
+  },
+  {
+    "type": "output_block",
+    "id": "win-whoami-out",
+    "language": "text",
+    "code": "PRIVILEGES INFORMATION\n----------------------\nPrivilege Name                Description                          State\n============================= ==================================== ========\nSeChangeNotifyPrivilege       Bypass traverse checking             Enabled\nSeImpersonatePrivilege        Impersonate a client...              Enabled"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "win-file-navigation",
+    "text": "File System Navigation and Listing"
+  },
+  {
+    "type": "order_block",
+    "id": "win-dir-desc",
+    "text": "The <highlight>dir</highlight> command lists files and directories. Using the <highlight>/a</highlight> flag ensures that hidden and system files are visible, similar to <highlight>ls -la</highlight> in Linux."
+  },
+  {
+    "type": "code_block",
+    "id": "win-dir-cmd",
+    "language": "cmd",
+    "code": "dir /a c:\\inetpub\\wwwroot\\"
+  },
+  {
+    "type": "output_block",
+    "id": "win-dir-out",
+    "language": "text",
+    "code": "Directory of c:\\inetpub\\wwwroot\n\n03/19/2026  06:00 AM    <DIR>          .\n03/19/2026  06:00 AM    <DIR>          ..\n07/25/2020  08:15 AM    <DIR>          nt4wrksv"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "win-net-info",
+    "text": "Network Configuration and Interfaces"
+  },
+  {
+    "type": "order_block",
+    "id": "win-ipconfig-desc",
+    "text": "To view IP addresses, subnet masks, and gateway information, use <highlight>ipconfig</highlight>. The <highlight>/all</highlight> flag provides detailed info like DNS servers and MAC addresses."
+  },
+  {
+    "type": "code_block",
+    "id": "win-ipconfig-cmd",
+    "language": "cmd",
+    "code": "ipconfig /all"
+  },
+  {
+    "type": "output_block",
+    "id": "win-ipconfig-out",
+    "language": "text",
+    "code": "Ethernet adapter Ethernet:\n   Description . . . . . . . . . . . : Red Hat VirtIO Ethernet Adapter\n   IPv4 Address. . . . . . . . . . . : 10.10.198.54(Preferred)"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "win-user-listing",
+    "text": "Local User and Group Enumeration"
+  },
+  {
+    "type": "order_block",
+    "id": "win-netuser-desc",
+    "text": "The <highlight>net user</highlight> command displays all local accounts. Checking a specific username reveals their group memberships (like <highlight>Administrators</highlight>) and when they last changed their password."
+  },
+  {
+    "type": "code_block",
+    "id": "win-netuser-cmd",
+    "language": "cmd",
+    "code": "net user Bob"
+  },
+  {
+    "type": "output_block",
+    "id": "win-netuser-out",
+    "language": "text",
+    "code": "User name                    Bob\nAccount active               Yes\nLocal Group Memberships      *Users\nGlobal Group memberships     *None"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "win-content-reading",
+    "text": "Reading File Contents"
+  },
+  {
+    "type": "order_block",
+    "id": "win-type-desc",
+    "text": "In Windows CMD, <highlight>type</highlight> is used to display the contents of a text file directly in the terminal, equivalent to the Linux <highlight>cat</highlight> command."
+  },
+  {
+    "type": "code_block",
+    "id": "win-type-cmd",
+    "language": "cmd",
+    "code": "type C:\\Users\\Bob\\Desktop\\user.txt"
+  },
+  {
+    "type": "output_block",
+    "id": "win-type-out",
+    "language": "text",
+    "code": "THM{fdk4ka34vk346ksxfr21tg789ktf45}"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "win-search-files",
+    "text": "Searching for Sensitive Files"
+  },
+  {
+    "type": "order_block",
+    "id": "win-where-desc",
+    "text": "The <highlight>where /R</highlight> command is used to recursively search for a file from a specific starting directory. This is useful for finding hidden flags or configuration files."
+  },
+  {
+    "type": "code_block",
+    "id": "win-where-cmd",
+    "language": "cmd",
+    "code": "where /R c:\\Users\\ root.txt"
+  },
+  {
+    "type": "output_block",
+    "id": "win-where-out",
+    "language": "text",
+    "code": "c:\\Users\\Administrator\\Desktop\\root.txt"
+  }
+]

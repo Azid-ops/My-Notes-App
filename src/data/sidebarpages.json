@@ -303,6 +303,25 @@
         ]
       },
       {
+        "id": "smb",
+        "title": "SeImpersonatePrivilege",
+        "slug": "smb",
+        "category": "notes",
+        "children": [
+          { "id": "basic-smb", "title": "Basic SMB", "slug": "basic-smb", "category": "notes" },
+          { "id": "seimpersonate", "title": "SeImpersonatePrivilege", "slug": "seimpersonate", "category": "notes" }
+        ]
+      },
+      {
+        "id": "commands",
+        "title": "Commands",
+        "slug": "commands",
+        "category": "notes",
+        "children": [
+          { "id": "windows", "title": "Window Commands", "slug": "windows", "category": "notes" }
+        ]
+      },
+      {
         "id": "scripts",
         "title": "Scripts",
         "slug": "scripts",

