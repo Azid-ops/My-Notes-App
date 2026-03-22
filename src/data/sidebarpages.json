@@ -195,6 +195,7 @@
         ]
       },
       { "id": "images-cheatsheet", "title": "Images Cheatsheet", "slug": "images-cheatsheet", "category": "notes" },
+      { "id": "nfs", "title": "NFS", "slug": "nfs", "category": "notes" },
       {
         "id": "prevESC",
         "title": "PrevESC",
@@ -304,7 +305,7 @@
       },
       {
         "id": "smb",
-        "title": "SeImpersonatePrivilege",
+        "title": "SMB",
         "slug": "smb",
         "category": "notes",
         "children": [
@@ -319,6 +320,16 @@
         "category": "notes",
         "children": [
           { "id": "windows", "title": "Window Commands", "slug": "windows", "category": "notes" }
+        ]
+      },
+      {
+        "id": "ad",
+        "title": "Active Directory",
+        "slug": "add",
+        "category": "notes",
+        "children": [
+          { "id": "ad-basics", "title": "AD Basics - Theory", "slug": "ad-basics", "category": "notes" },
+          { "id": "kerb-exp", "title": "Kerberos Exploitation", "slug": "kerb-exp", "category": "notes" }
         ]
       },
       {

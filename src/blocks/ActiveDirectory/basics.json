@@ -1,0 +1,92 @@
+[
+  {
+    "type": "section_heading",
+    "id": "ad-intro-centralization",
+    "text": "The Necessity of Active Directory (AD) in Enterprise Networks"
+  },
+  {
+    "type": "order_block",
+    "id": "ad-scalability-logic",
+    "text": "In a small network of 5 computers, manual configuration is feasible. However, in a corporate environment with <highlight>100+ computers and 300+ users</highlight>, managing individual local accounts is impossible. <highlight>Active Directory (AD)</highlight> solves this by providing a centralized repository for all network data."
+  },
+  {
+    "type": "order_block",
+    "id": "dc-auth-mechanism",
+    "text": "The <highlight>Domain Controller (DC)</highlight> serves as the brain of the network. When a user enters credentials on any workstation, the machine does not check its own local database; it sends an <highlight>Authentication Request</highlight> to the DC, which verifies the user against the AD database."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "ad-objects-and-containers",
+    "text": "AD Objects and Logical Organization"
+  },
+  {
+    "type": "order_block",
+    "id": "object-types-detailed",
+    "text": "Every entity in AD is an <highlight>Object</highlight>. This includes <highlight>Users</highlight> (identities), <highlight>Computers</highlight> (workstations/servers), and <highlight>Printers</highlight>. Managing these individually is inefficient, leading to the use of <highlight>Groups</highlight> for bulk permission assignment."
+  },
+  {
+    "type": "order_block",
+    "id": "ou-container-logic",
+    "text": "An <highlight>Organizational Unit (OU)</highlight> is a logical container (folder) used to categorize objects. While Groups are used for <highlight>Permissions</highlight> (e.g., 'who can access this file'), OUs are primarily used for <highlight>Management and Policy Application</highlight> (e.g., 'all computers in the HR_OU must have USBs disabled')."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "gpo-enforcement",
+    "text": "Group Policy Objects (GPO) and Remote Administration"
+  },
+  {
+    "type": "order_block",
+    "id": "gpo-rulebook-analogy",
+    "text": "A <highlight>Group Policy Object (GPO)</highlight> is a virtual rulebook. Administrators create a GPO to define specific settings—such as password complexity requirements, software installation, or desktop wallpapers—and <highlight>link</highlight> them to an OU."
+  },
+  {
+    "type": "order_block",
+    "id": "gpo-vs-groups-conflict",
+    "text": "A common misconception is linking GPOs to Groups. In AD, <highlight>GPOs must be linked to OUs</highlight>. If a user is a member of multiple groups but resides in the 'IT_Dept_OU', only the GPOs linked to that OU (and its parent containers) will govern their system environment."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "ad-hierarchy-forests",
+    "text": "Trees, Forests, and Trust Relationships"
+  },
+  {
+    "type": "order_block",
+    "id": "hierarchy-definitions",
+    "text": "A <highlight>Tree</highlight> is a set of domains sharing a contiguous DNS namespace. A <highlight>Forest</highlight> is the top-level container, acting as the security boundary for the entire organization. Multiple Forests can interact through <highlight>Trusts</highlight>."
+  },
+  {
+    "type": "order_block",
+    "id": "trust-types-security",
+    "text": "<highlight>One-Way Trust</highlight> allows one domain to trust another's users without reciprocal access. <highlight>Two-Way Trust</highlight> allows mutual resource sharing. <highlight>Transitive Trusts</highlight> create a chain of trust (If A trusts B and B trusts C, A trusts C), whereas <highlight>Non-Transitive Trusts</highlight> restrict access strictly to the two participating domains."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "ad-security-and-exploitation",
+    "text": "Service Accounts and the Path to Domain Admin"
+  },
+  {
+    "type": "order_block",
+    "id": "service-account-vulnerability",
+    "text": "<highlight>Service Accounts</highlight> are often high-value targets because they run critical applications (SQL, IIS). To ensure 24/7 uptime, administrators rarely rotate their passwords, which are often <highlight>weak or default</highlight>, making them susceptible to Kerberoasting attacks."
+  },
+  {
+    "type": "order_block",
+    "id": "ntds-extraction-path",
+    "text": "The ultimate goal in AD hacking is <highlight>Domain Admin</highlight>. Attackers often seek intermediate privileges like <highlight>Backup Operator</highlight>. This role allows the bypass of security descriptors to copy the <highlight>ntds.dit</highlight> file from the DC, which contains hashes for all domain users, including the Domain Admin."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "ad-reconnaissance-tools",
+    "text": "Enumeration and Path Analysis"
+  },
+  {
+    "type": "order_block",
+    "id": "recon-logic-bloodhound",
+    "text": "Enumeration involves mapping users, computers, and permissions. Tools like <highlight>BloodHound</highlight> use graph theory to find 'hidden' paths to Admin status, such as a user having <highlight>GenericWrite</highlight> permissions over a more privileged object, allowing for an immediate password reset or takeover."
+  }
+]

