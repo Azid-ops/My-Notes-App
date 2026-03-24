@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { 
   FiTrash2, FiPlus, FiX, FiActivity, FiSearch, FiTerminal, 
   FiClock, FiGlobe, FiShield, FiAlertTriangle, FiCopy, FiZap, FiFlag, FiServer,
-  FiCheck, FiPlayCircle, FiRotateCcw, FiAward, FiTrendingUp, FiLock
+  FiCheck, FiPlayCircle, FiRotateCcw, FiAward, FiLock
 } from "react-icons/fi";
 
 interface Tab {
