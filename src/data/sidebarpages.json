@@ -329,7 +329,10 @@
         "category": "notes",
         "children": [
           { "id": "ad-basics", "title": "AD Basics - Theory", "slug": "ad-basics", "category": "notes" },
-          { "id": "kerb-exp", "title": "Kerberos Exploitation", "slug": "kerb-exp", "category": "notes" }
+          { "id": "kerb-exp", "title": "Kerberos Exploitation", "slug": "kerb-exp", "category": "notes" },
+          { "id": "redis", "title": "Redis Exploitation", "slug": "redis", "category": "notes" },
+          { "id": "winrm", "title": "Winrm", "slug": "winrm", "category": "notes" },
+          { "id": "god-potato", "title": "GodPotato", "slug": "god-potato", "category": "notes" }
         ]
       },
       {
@@ -355,6 +358,15 @@
               "children": [
                 { "id": "ld-preload-script", "title": "LD_PRELOAD", "slug": "ld-preload-script", "category": "notes" },
                 { "id": "ld_library_path_script", "title": "LD LIBRARY PATH", "slug": "ld_library_path_script", "category": "notes" }
+              ]
+          },
+          {
+              "id": "revshell-scripts",
+              "title": "Reverse Shell Scripts",
+              "slug": "revshell-scripts",
+              "category": "notes",
+              "children": [
+                { "id": "powershell-exp", "title": "Powershell", "slug": "powershell-exp", "category": "notes" }
               ]
           },
           {

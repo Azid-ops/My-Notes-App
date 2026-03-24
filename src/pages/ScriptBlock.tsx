@@ -12,16 +12,24 @@ function ScriptBlock({ file, language }: { file: string; language?: string }) {
     setLoading(true);
     setError(null);
 
+    // Path check karne ke liye console log karein
+    console.log("Fetching from:", file);
+
     fetch(file)
       .then((res) => {
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        if (!res.ok) throw new Error(`File not found: ${res.status}`);
         return res.text();
       })
       .then((text) => {
-        setCode(text);
+        if (!text || text.trim() === "") {
+             setCode("# No code found in file.");
+        } else {
+             setCode(text);
+        }
         setLoading(false);
       })
       .catch((err) => {
+        console.error("Fetch Error:", err);
         setError(err.message);
         setCode("Failed to load script.");
         setLoading(false);

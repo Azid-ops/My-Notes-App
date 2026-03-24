@@ -1,0 +1,44 @@
+[
+  {
+    "name": "TCPClient Object",
+    "desc": "Initiates a network connection to the attacker",
+    "detail": "The command `New-Object System.Net.Sockets.TCPClient` creates a raw socket connection. In this exploit, it acts as the communication bridge between the victim Windows machine and your Kali Linux listener. Using native .NET objects helps in bypassing basic script environment restrictions.",
+    "color": "bg-blue-500",
+    "icon": "CubeIcon"
+  },
+  {
+    "name": "GetStream()",
+    "desc": "Accesses the network data flow",
+    "detail": "The `$client.GetStream()` method opens the bidirectional pipe for data transfer. It allows the script to read raw bytes sent from your Netcat listener and write back the output of executed commands. Without this stream, the shell would have no way to 'talk' back to you.",
+    "color": "bg-purple-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "Byte Array Buffer",
+    "desc": "Temporary memory for incoming data",
+    "detail": "The line `[byte[]]$bytes = 0..65535|%{0}` allocates a 64KB buffer in memory. This buffer is essential for storing the raw data packets arriving from the network before they are processed and converted into executable PowerShell commands.",
+    "color": "bg-yellow-400",
+    "icon": "CubeIcon"
+  },
+  {
+    "name": "while loop",
+    "desc": "Maintains persistent interactive session",
+    "detail": "This loop continuously monitors the network stream for new input. As long as the connection is active ($i != 0), the shell remains persistent. This allows you to run multiple commands one after another without the connection dropping immediately.",
+    "color": "bg-green-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "Invoke-Expression (IEX)",
+    "desc": "Executes received strings as code",
+    "detail": "The `iex $data` (Invoke-Expression) is the engine of the reverse shell. it takes the text string received over the network and executes it as a live PowerShell command. The `2>&1` suffix is crucial as it redirects error messages to the output stream, so you can see 'Command Not Found' or permission errors on your Kali terminal.",
+    "color": "bg-red-500",
+    "icon": "CodeBracketIcon"
+  },
+  {
+    "name": "Stream Write & Flush",
+    "desc": "Sends execution results back to Kali",
+    "detail": "After a command is executed, `$stream.Write` sends the output back through the TCP pipe. The `$stream.Flush()` command ensures the buffer is emptied and data is sent immediately, providing that 'real-time' feel in your interactive Netcat session.",
+    "color": "bg-pink-500",
+    "icon": "CodeBracketIcon"
+  }
+]

