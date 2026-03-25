@@ -219,6 +219,7 @@
         ]
       },
       { "id": "manual-binary-analysis", "title": "Manual Binary Analysis", "slug": "manual-binary-analysis", "category": "notes" },
+      { "id": "sar2", "title": "Sar2", "slug": "sar2", "category": "notes" },
       {
         "id": "connection-issues",
         "title": "Connection Issues",
@@ -270,6 +271,7 @@
           { "id": "strings", "title": "Strings", "slug": "strings", "category": "notes" },
           { "id": "tar-wildcard", "title": "Tar Wildcard", "slug": "tar-wildcard", "category": "notes" },
           { "id": "timer", "title": "Timer Exploit", "slug": "timer", "category": "notes" },
+          { "id": "find", "title": "Find", "slug": "find", "category": "notes" },
           {
             "id": "parent-sudo",
             "title": "Sudo",
@@ -301,6 +303,16 @@
               { "id": "known-exploit", "title": "Known Exploits", "slug": "known-exploit", "category": "notes" }
             ]
           }
+        ]
+      },
+      {
+        "id": "decoding",
+        "title": "Decoding",
+        "slug": "decoding",
+        "category": "notes",
+        "children": [
+          { "id": "triple-layer", "title": "Triple Layer", "slug": "triple-layer", "category": "notes" },
+          { "id": "rot2", "title": "ROT-2", "slug": "rot2", "category": "notes" }
         ]
       },
       {

@@ -1,0 +1,69 @@
+[
+  {
+    "type": "section_heading",
+    "id": "rot2-id-guide",
+    "text": "Special Technique: Identifying and Breaking ROT-2 Obfuscation"
+  },
+  {
+    "type": "order_block",
+    "id": "identification-logic",
+    "text": "Cybersecurity mein jab koi string <highlight>Base64</highlight> jaisi dikhay par decode na ho, toh aksar us par <highlight>Caesar Cipher (ROT)</highlight> apply kiya gaya hota hai. ROT-2 ka matlab hai ke alphabet ko 2 positions aagay shift kiya gaya hai (A banta hai C, B banta hai D)."
+  },
+  {
+    "type": "section_heading",
+    "id": "pattern-recognition",
+    "text": "Step 1: How to Spot ROT-2 (Pattern Matching)"
+  },
+  {
+    "type": "order_block",
+    "id": "prefix-analysis",
+    "text": "Standard Base64 prefixes ko target string se compare karein. Agar difference hamesha <highlight>2 letters</highlight> ka hai, toh yeh confirm ROT-2 hai."
+  },
+  {
+    "type": "explanation",
+    "id": "prefix-table",
+    "title": "Common ROT-2 Detection Patterns",
+    "items": [
+      "Target: 'VjJ' ---> Standard: 'V2h' (Word: 'Who') [j - h = 2]",
+      "Target: 'SVRv' ---> Standard: 'QWRt' (Word: 'Admin') [S - Q = 2]",
+      "Target: 'jTVV' ---> Standard: 'aHR0' (Word: 'http') [j - h = 2]"
+    ]
+  },
+  {
+    "type": "section_heading",
+    "id": "deciphering-method",
+    "text": "Step 2: Reversing the Shift using 'tr'"
+  },
+  {
+    "type": "order_block",
+    "id": "tr-command-logic",
+    "text": "Alphabet ko 2 positions peeche lane ke liye hum <highlight>tr</highlight> (translate) utility use karte hain. Hum system ko batate hain ke 'c' se start hone wali series ko 'a' se map karein."
+  },
+  {
+    "type": "code_block",
+    "id": "rot2-decoder-cmd",
+    "language": "bash",
+    "code": "# Generic ROT-2 Decoder (Shift -2)\necho \"[TARGET_STRING]\" | tr 'c-za-bC-ZA-B' 'a-zA-Z'"
+  },
+  {
+    "type": "section_heading",
+    "id": "full-chain-example",
+    "text": "Step 3: Real-World Example (Boiler-CTF)"
+  },
+  {
+    "type": "code_block",
+    "id": "boiler-full-decode",
+    "language": "bash",
+    "code": "# Full Chain: ROT-2 Translate then Base64 Decode\necho \"VjJodmNITnBaU0JrWVdsemVRbz0K\" | tr 'c-za-bC-ZA-B' 'a-zA-Z' | base64 -d\n\n# Result: Whoopsie daisy"
+  },
+  {
+    "type": "explanation",
+    "id": "summary-tips",
+    "title": "Pro-Tips for Future Challenges",
+    "items": [
+      "Padding Check: Agar end mein '=' hai toh hamesha Base64 check karein.",
+      "Manual Shift: Agar standard tools fail hon, toh pehle 3 letters ka manual alphabet count check karein.",
+      "Automation: CyberChef mein 'ROT13' recipe use karke 'Amount' ko 2 set karne se bhi yeh solve ho jata hai."
+    ]
+  }
+]

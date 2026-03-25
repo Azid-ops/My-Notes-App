@@ -1,0 +1,54 @@
+[
+  {
+    "type": "section_heading",
+    "id": "triple-layer-decoding",
+    "text": "Phase 0: Triple-Layered Obfuscation (Decimal > Base64 > Plaintext)"
+  },
+  {
+    "type": "order_block",
+    "id": "triple-layer-logic",
+    "text": "We encountered a string of <highlight>Decimal ASCII codes</highlight>. This requires a three-step extraction process: converting decimals to characters, decoding the resulting <highlight>Base64</highlight> string, and finally reading the hidden plaintext message."
+  },
+  {
+    "type": "section_heading",
+    "id": "decimal-conversion",
+    "text": "Step 1: Decimal to ASCII Conversion"
+  },
+  {
+    "type": "order_block",
+    "id": "awk-logic",
+    "text": "The input consists of space-separated decimal values. Using <highlight>awk</highlight> with the <highlight>printf \"%c\"</highlight> function, we iterate through each field to convert the numbers into their corresponding ASCII characters."
+  },
+  {
+    "type": "code_block",
+    "id": "decimal-to-char",
+    "language": "bash",
+    "code": "# Converting Decimal to a Base64 String\necho \"079 084 10...\" | awk '{for(i=1;i<=NF;i++) printf \"%c\", $i}'"
+  },
+  {
+    "type": "section_heading",
+    "id": "base64-final-decode",
+    "text": "Step 2: Decoding the Intermediate Base64"
+  },
+  {
+    "type": "order_block",
+    "id": "chain-logic",
+    "text": "The output from Step 1 is a Base64 string. We pipe this directly into <highlight>base64 -d</highlight> to reveal the final hidden message."
+  },
+  {
+    "type": "code_block",
+    "id": "full-chain-command",
+    "language": "bash",
+    "code": "# The complete decoding pipeline\necho \"079 084 108 105 077 068 089 050 077 071 078 107 079 084 086 104 090 071 086 104 077 122 073 051 089 122 085 048 077 084 103 121 089 109 070 104 078 084 069 049 079 068 081 075\" | awk '{for(i=1;i<=NF;i++) printf \"%c\", $i}' | base64 -d"
+  },
+  {
+    "type": "explanation",
+    "id": "decoding-takeaways",
+    "title": "Analysis of the Technique",
+    "items": [
+      "Decimal Identification: Numbers in the 032-126 range usually represent printable ASCII.",
+      "Pipeline Efficiency: Using pipes (|) allows for rapid testing of different decoding layers.",
+      "Automation: In a real scenario, CyberChef's 'Magic' tool can often automate this entire sequence."
+    ]
+  }
+]
