@@ -1,0 +1,240 @@
+{
+  "title": "Nmap Port & Enumeration Guide",
+  "last_updated": "2026-03-26",
+  "ports": [
+    {
+      "number": 0,
+      "service": "http",
+      "enu": ["Directory Busting (Common.txt)", "Vhost Discovery", "Technology Profiling (WhatWeb)", "Check for API endpoints (/api, /v1)"],
+      "tools": "gobuster, ffuf, nikto, whatweb, curl"
+    },
+    {
+      "number": 0,
+      "service": "ftp",
+      "enu": ["Anonymous Login Check", "Banner Grabbing", "Recursive File Listing"],
+      "tools": "ftp, wget, nmap"
+    },
+    {
+      "number": 0,
+      "service": "ssh",
+      "enu": ["Auth Methods Check", "User Enumeration", "Banner Analysis"],
+      "tools": "ssh, hydra"
+    },
+    {
+      "number": 21,
+      "service": "FTP",
+      "enu": ["Anonymous Login Check", "Banner Grabbing (sV)", "Recursive File Listing"],
+      "tools": "ftp, wget, nmap"
+    },
+    {
+      "number": 22,
+      "service": "SSH",
+      "enu": ["Auth Methods Check", "User Enumeration", "Banner Analysis"],
+      "tools": "ssh, hydra, nmap"
+    },
+    {
+      "number": 23,
+      "service": "Telnet",
+      "enu": ["Credentials Bruting", "Information Disclosure"],
+      "tools": "telnet, nmap"
+    },
+    {
+      "number": 25,
+      "service": "SMTP",
+      "enu": ["User Enumeration (VRFY/EXPN)", "Open Relay Check"],
+      "tools": "telnet, smtp-user-enum"
+    },
+    {
+      "number": 53,
+      "service": "DNS",
+      "enu": ["Zone Transfer (AXFR)", "Subdomain Bruting", "Version Query"],
+      "tools": "dig, nslookup, fierce"
+    },
+    {
+      "number": 80,
+      "service": "HTTP",
+      "enu": ["Directory Busting", "Vhost Discovery", "Technology Profiling"],
+      "tools": "gobuster, ffuf, nikto, whatweb"
+    },
+    {
+      "number": 88,
+      "service": "Kerberos",
+      "enu": ["User Enumeration (Kerbrute)", "AS-REP Roasting", "TGS-REP Roasting"],
+      "tools": "kerbrute, impacket, rubeus"
+    },
+    {
+      "number": 110,
+      "service": "POP3",
+      "enu": ["Banner Grabbing", "Auth Bruting"],
+      "tools": "telnet, nmap"
+    },
+    {
+      "number": 111,
+      "service": "RPCBind",
+      "enu": ["Service Enumeration", "Version Detection"],
+      "tools": "rpcinfo, nmap"
+    },
+    {
+      "number": 135,
+      "service": "MSRPC",
+      "enu": ["Endpoint Mapping Enumeration", "Remote Service Query"],
+      "tools": "rpcdump.py, rpcclient"
+    },
+    {
+      "number": 139,
+      "service": "NetBIOS",
+      "enu": ["Hostname Leakage", "Null Session Check"],
+      "tools": "nbtscan, enum4linux"
+    },
+    {
+      "number": 143,
+      "service": "IMAP",
+      "enu": ["Banner Grabbing", "Auth Bruting"],
+      "tools": "telnet, nmap"
+    },
+    {
+      "number": 161,
+      "service": "SNMP",
+      "enu": ["Community String Bruting", "Process/User Listing", "Interface Info"],
+      "tools": "snmpwalk, onesixtyone, snmp-check"
+    },
+    {
+      "number": 389,
+      "service": "LDAP",
+      "enu": ["Anonymous Bind Check", "Domain Dumping", "Naming Contexts Discovery"],
+      "tools": "ldapsearch, windapsearch, ad-explorer"
+    },
+    {
+      "number": 443,
+      "service": "HTTPS",
+      "enu": ["SSL/TLS Vuln Scan", "Certificate Inspection", "Directory Busting"],
+      "tools": "testssl.sh, nmap, gobuster"
+    },
+    {
+      "number": 445,
+      "service": "SMB",
+      "enu": ["Share Enumeration", "SID/RID Bruting", "Null Session Access"],
+      "tools": "smbclient, rpcclient, crackmapexec"
+    },
+    {
+      "number": 514,
+      "service": "Syslog",
+      "enu": ["Log Analysis", "Information Leakage"],
+      "tools": "nmap, nc"
+    },
+    {
+      "number": 593,
+      "service": "RPC-over-HTTP",
+      "enu": ["DCOM Enumeration", "Endpoint Analysis"],
+      "tools": "rpcclient, nmap-scripts"
+    },
+    {
+      "number": 636,
+      "service": "LDAPS",
+      "enu": ["Certificate Inspection", "LDAP Enumeration over SSL"],
+      "tools": "openssl, ldapsearch"
+    },
+    {
+      "number": 873,
+      "service": "Rsync",
+      "enu": ["Module Enumeration", "File Listing (No Auth)"],
+      "tools": "rsync"
+    },
+    {
+      "number": 993,
+      "service": "IMAPS",
+      "enu": ["Certificate Analysis", "Auth Bruting"],
+      "tools": "openssl, nmap"
+    },
+    {
+      "number": 995,
+      "service": "POP3S",
+      "enu": ["Certificate Analysis", "Auth Bruting"],
+      "tools": "openssl, nmap"
+    },
+    {
+      "number": 1433,
+      "service": "MSSQL",
+      "enu": ["xp_cmdshell Check", "Database Bruting", "Priv Esc"],
+      "tools": "impacket-mssqlclient, nmap"
+    },
+    {
+      "number": 1521,
+      "service": "Oracle",
+      "enu": ["SID Bruting", "Default Credentials", "TNS Listener Scan"],
+      "tools": "odat, nmap"
+    },
+    {
+      "number": 2049,
+      "service": "NFS",
+      "enu": ["Showmount -e", "Export Enumeration", "UID/GID Manipulation"],
+      "tools": "showmount, mount"
+    },
+    {
+      "number": 3268,
+      "service": "Global Catalog",
+      "enu": ["AD Forest Enumeration", "Search LDAP Objects"],
+      "tools": "ldapsearch, windapsearch"
+    },
+    {
+      "number": 3306,
+      "service": "MySQL",
+      "enu": ["Remote Root Login", "Database Dumping", "User Enumeration"],
+      "tools": "mysql, nmap-scripts"
+    },
+    {
+      "number": 3389,
+      "service": "RDP",
+      "enu": ["BlueKeep Check", "Security Settings Info", "Login Screenshot"],
+      "tools": "xfreerdp, nmap"
+    },
+    {
+      "number": 5432,
+      "service": "PostgreSQL",
+      "enu": ["Default Password Check", "Arbitrary File Read", "Command Exec"],
+      "tools": "psql, nmap"
+    },
+    {
+      "number": 5900,
+      "service": "VNC",
+      "enu": ["VNC Password Bruting", "Security Type Check"],
+      "tools": "vncviewer, nmap"
+    },
+    {
+      "number": 5985,
+      "service": "WinRM (HTTP)",
+      "enu": ["Remote Command Exec", "User Enumeration"],
+      "tools": "evil-winrm, crackmapexec"
+    },
+    {
+      "number": 5986,
+      "service": "WinRM (HTTPS)",
+      "enu": ["Secure Remote Access", "Certificate Check"],
+      "tools": "evil-winrm"
+    },
+    {
+      "number": 6379,
+      "service": "Redis",
+      "enu": ["Unauthenticated Access", "RCE via Lua", "Config Dumping"],
+      "tools": "redis-cli"
+    },
+    {
+      "number": 8080,
+      "service": "HTTP-Proxy",
+      "enu": ["Directory Busting", "War File Deployment (Tomcat)"],
+      "tools": "gobuster, msfvenom"
+    },
+    {
+      "number": 9001,
+      "service": "Tor / Supervisor",
+      "enu": ["API Enumeration", "Log Leakage"],
+      "tools": "curl"
+    },
+    {
+      "number": 27017,
+      "service": "MongoDB",
+      "enu": ["Unauth DB Access", "Collection Dumping"],
+      "tools": "mongo"
+    }
+  ]
+}

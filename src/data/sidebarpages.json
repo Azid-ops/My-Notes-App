@@ -196,16 +196,6 @@
       },
       { "id": "images-cheatsheet", "title": "Images Cheatsheet", "slug": "images-cheatsheet", "category": "notes" },
       { "id": "nfs", "title": "NFS", "slug": "nfs", "category": "notes" },
-      {
-        "id": "prevESC",
-        "title": "PrevESC",
-        "slug": "prevESC",
-        "category": "notes",
-        "children": [
-          { "id": "privESC-cheatsheet", "title": "PRIVESC Cheatsheet", "slug": "privESC-cheatsheet", "category": "notes" },
-          { "id": "privESC-nano", "title": "PRIVESC Nano - PwnKit", "slug": "privESC-nano", "category": "notes" }
-        ]
-      },
       { "id": "borg", "title": "Borg", "slug": "borg", "category": "notes" },
       {
         "id": "binaries-exploitation",
@@ -215,7 +205,18 @@
         "children": [
           { "id": "pkexec-binary", "title": "PKEXEC", "slug": "pkexec-binary", "category": "notes" },
           { "id": "pwm", "title": "PWM", "slug": "pwm", "category": "notes" },
-          { "id": "getcap", "title": "GetCap", "slug": "getcap", "category": "notes" }
+          { "id": "find", "title": "Find", "slug": "find", "category": "notes" },
+          { "id": "checker", "title": "Checker", "slug": "checker", "category": "notes" },
+          {
+            "id": "get-cap-all",
+            "title": "GetCap",
+            "slug": "get-cap-all",
+            "category": "notes",
+            "children": [
+              { "id": "getcap", "title": "Get Started", "slug": "getcap", "category": "notes" },
+              { "id": "override", "title": "Cap_dac_override", "slug": "override", "category": "notes" }
+            ]
+          }
         ]
       },
       { "id": "manual-binary-analysis", "title": "Manual Binary Analysis", "slug": "manual-binary-analysis", "category": "notes" },
@@ -246,7 +247,10 @@
         "children": [
           { "id": "ssh2john", "title": "ssh2john", "slug": "ssh2john", "category": "notes" },
           { "id": "creds-fuff", "title": "Creds Fuff", "slug": "creds-fuff", "category": "notes" },
-          { "id": "enum4linux", "title": "Enum4linux", "slug": "enum4linux", "category": "notes" }
+          { "id": "enum4linux", "title": "Enum4linux", "slug": "enum4linux", "category": "notes" },
+          { "id": "wpscan", "title": "Wpscan", "slug": "wpscan", "category": "notes" },
+          { "id": "rpc-client", "title": "RPC Client", "slug": "rpc-client", "category": "notes" },
+          { "id": "crackmapexec", "title": "CrackMapExec", "slug": "crackmapexec", "category": "notes" }
         ]
       },
       {
@@ -264,6 +268,7 @@
         "slug": "privesc-exploits",
         "category": "notes",
         "children": [
+          { "id": "privESC-cheatsheet", "title": "Cheatsheet", "slug": "privESC-cheatsheet", "category": "notes" },
           { "id": "mysql", "title": "MYSQL", "slug": "mysql", "category": "notes" },
           { "id": "shadow", "title": "Shadow", "slug": "shadow", "category": "notes" },
           { "id": "passwd", "title": "Passwd", "slug": "passwd", "category": "notes" },
@@ -271,7 +276,8 @@
           { "id": "strings", "title": "Strings", "slug": "strings", "category": "notes" },
           { "id": "tar-wildcard", "title": "Tar Wildcard", "slug": "tar-wildcard", "category": "notes" },
           { "id": "timer", "title": "Timer Exploit", "slug": "timer", "category": "notes" },
-          { "id": "find", "title": "Find", "slug": "find", "category": "notes" },
+          { "id": "hidden-services", "title": "SS TULNP", "slug": "hidden-services", "category": "notes" },
+          { "id": "docker-group", "title": "Docker Groups", "slug": "docker-group", "category": "notes" },
           {
             "id": "parent-sudo",
             "title": "Sudo",
@@ -373,13 +379,22 @@
               ]
           },
           {
-              "id": "revshell-scripts",
-              "title": "Reverse Shell Scripts",
-              "slug": "revshell-scripts",
-              "category": "notes",
-              "children": [
-                { "id": "powershell-exp", "title": "Powershell", "slug": "powershell-exp", "category": "notes" }
-              ]
+            "id": "revshell-scripts",
+            "title": "Reverse Shell Scripts",
+            "slug": "revshell-scripts",
+            "category": "notes",
+            "children": [
+              { "id": "powershell-exp", "title": "Powershell", "slug": "powershell-exp", "category": "notes" },
+              {
+                "id": "sh-exp",
+                "title": "Sh Scripts",
+                "slug": "sh-exp",
+                "category": "notes",
+                "children": [
+                  { "id": "sh-exp-basic", "title": "SH Basic", "slug": "sh-exp-basic", "category": "notes" }
+                ]
+              }
+            ]
           },
           {
             "id": "cve",

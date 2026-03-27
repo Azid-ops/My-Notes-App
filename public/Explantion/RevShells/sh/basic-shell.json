@@ -1,0 +1,37 @@
+[
+  {
+    "name": "bash -i",
+    "desc": "Spawns an interactive shell session",
+    "detail": "The `-i` flag forces Bash to run in interactive mode. This ensures that the shell provides a prompt and allows for job control, making it behave like a real terminal session rather than just a one-off command execution.",
+    "color": "bg-blue-500",
+    "icon": "CodeBracketIcon"
+  },
+  {
+    "name": ">& (Redirection)",
+    "desc": "Combines and redirects output streams",
+    "detail": "The `>&` operator is a shorthand in Bash that redirects both Standard Output (stdout/1) and Standard Error (stderr/2) to the same destination. This ensures that whether a command succeeds or fails, you see the result on your listener terminal.",
+    "color": "bg-purple-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "/dev/tcp/IP/PORT",
+    "desc": "Native Bash TCP network device",
+    "detail": "This is a special feature of Bash. When Bash is compiled with net-redirections enabled, it treats `/dev/tcp/host/port` as a network socket. It opens a connection to your Kali IP and Port, acting as the communication bridge.",
+    "color": "bg-yellow-400",
+    "icon": "CubeIcon"
+  },
+  {
+    "name": "0>&1",
+    "desc": "Links input to the output stream",
+    "detail": "This takes Standard Input (stdin/0) and redirects it to Standard Output (1), which is already connected to the network socket. This completes the bidirectional loop: commands go in, and results come out.",
+    "color": "bg-green-500",
+    "icon": "ArrowPathIcon"
+  },
+  {
+    "name": "File Descriptors (0, 1, 2)",
+    "desc": "The Linux I/O foundation",
+    "detail": "The shell relies on the three standard Linux streams: 0 (Input), 1 (Output), and 2 (Error). By mapping all three to the /dev/tcp device, the entire terminal experience is 'piped' over the network connection.",
+    "color": "bg-red-500",
+    "icon": "CubeIcon"
+  }
+]
