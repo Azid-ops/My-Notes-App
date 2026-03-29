@@ -207,6 +207,7 @@
           { "id": "pwm", "title": "PWM", "slug": "pwm", "category": "notes" },
           { "id": "find", "title": "Find", "slug": "find", "category": "notes" },
           { "id": "checker", "title": "Checker", "slug": "checker", "category": "notes" },
+          { "id": "exiftool", "title": "ExifTool", "slug": "exiftool", "category": "notes" },
           {
             "id": "get-cap-all",
             "title": "GetCap",
@@ -214,7 +215,8 @@
             "category": "notes",
             "children": [
               { "id": "getcap", "title": "Get Started", "slug": "getcap", "category": "notes" },
-              { "id": "override", "title": "Cap_dac_override", "slug": "override", "category": "notes" }
+              { "id": "override", "title": "Cap_dac_override", "slug": "override", "category": "notes" },
+              { "id": "cap_dac_read_search", "title": "Cap_dac_read_search", "slug": "cap_dac_read_search", "category": "notes" }
             ]
           }
         ]
@@ -250,7 +252,16 @@
           { "id": "enum4linux", "title": "Enum4linux", "slug": "enum4linux", "category": "notes" },
           { "id": "wpscan", "title": "Wpscan", "slug": "wpscan", "category": "notes" },
           { "id": "rpc-client", "title": "RPC Client", "slug": "rpc-client", "category": "notes" },
-          { "id": "crackmapexec", "title": "CrackMapExec", "slug": "crackmapexec", "category": "notes" }
+          { "id": "crackmapexec", "title": "CrackMapExec", "slug": "crackmapexec", "category": "notes" },
+          {
+            "id": "databases",
+            "title": "Enumerating Databases",
+            "slug": "Databases",
+            "category": "notes",
+            "children": [
+              { "id": "mongodb", "title": "MongoDB", "slug": "mongodb", "category": "notes" }
+            ]
+          }
         ]
       },
       {
@@ -278,6 +289,7 @@
           { "id": "timer", "title": "Timer Exploit", "slug": "timer", "category": "notes" },
           { "id": "hidden-services", "title": "SS TULNP", "slug": "hidden-services", "category": "notes" },
           { "id": "docker-group", "title": "Docker Groups", "slug": "docker-group", "category": "notes" },
+          { "id": "shellshock", "title": "ShellShock", "slug": "shellshock", "category": "notes" },
           {
             "id": "parent-sudo",
             "title": "Sudo",
