@@ -159,8 +159,19 @@ const renderItem = (item: SidebarItemType, level = 0) => {
               ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20" 
               : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white"}`}
         >
-          <FiHash className={collapsed ? "" : "mr-2"} />
+        <FiHash className={collapsed ? "" : "mr-2"} />
           {!collapsed && "Ports Tools Identifier"}
+        </Link>
+
+                <Link
+          to="/generate-report" // Is path ka route aapko App.tsx mein banana hoga
+          className={`flex items-center px-3 py-2 mb-4 rounded-md text-sm font-bold transition-all duration-200 border border-dashed border-blue-500/30
+            ${location.pathname === "/generate-report" 
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20" 
+              : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-white"}`}
+        >
+          <FiHash className={collapsed ? "" : "mr-2"} />
+          {!collapsed && "Generate Report"}
         </Link>
 
         {/* Wordlist Navigator Button */}

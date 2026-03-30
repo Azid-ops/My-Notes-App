@@ -8,6 +8,7 @@ import WordlistPage from "./components/wordlist-identifier";
 import ShellGenerator from "./components/shell-generator";
 import ReconNotes from "./components/reconNotes"; 
 import PortMasterList from "./components/ports";
+import FullCPTSReport from "./components/generate-report";
 
 export default function App() {
   const [notesOpen, setNotesOpen] = useState(false);
@@ -29,6 +30,7 @@ export default function App() {
     <Route path="/shells" element={<ShellGenerator />} />
     <Route path="/notes/:slug" element={<NotePageWrapper />} />
     <Route path="/portsandtools" element={<PortMasterList />} />
+    <Route path="/generate-report" element={<FullCPTSReport />} />
   </Routes>
 
   {notesOpen && (
