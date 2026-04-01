@@ -11549,5 +11549,74 @@
         ]
       }
     ]
+  },
+  {
+    "id": 55,
+    "slug": "cputils",
+    "title": "CPUTILS",
+    "isLab": false,
+    "category": "notes",
+    "blocksFile": "./blocks/Binaries-Exploitation/cp-utils.json",
+    "goodbyeMessage": "Good luck, and happy hacking 🚀",
+    "blocks": [
+      {
+        "type": "section_heading",
+        "id": "cputils-usage-intro",
+        "text": "Phase 1: Reading Protected Files via cputils"
+      },
+      {
+        "type": "order_block",
+        "id": "cputils-logic",
+        "text": "Kyunki <highlight>cputils</highlight> ke paas SUID bit hai, ye root ki tarah files ko read aur copy kar sakta hai. Agar humein kisi aisi file ko access karna hai jo hamara user read nahi kar sakta (jaise root files), toh hum <highlight>cputils</highlight> ko use karke usay apni current directory mein copy kar sakte hain."
+      },
+      {
+        "type": "section_heading",
+        "id": "cputils-discovery",
+        "text": "Step 1: Identifying the Restricted File"
+      },
+      {
+        "type": "order_block",
+        "id": "permission-check",
+        "text": "Maan lo humein <highlight>/root/root.txt</highlight> read karni hai, lekin as a normal user <highlight>abc</highlight>, humein 'Permission Denied' mil raha hai."
+      },
+      {
+        "type": "code_block",
+        "id": "test-permission",
+        "language": "bash",
+        "code": "# Trying to read a root file as user 'abc'\ncat /root/root.txt"
+      },
+      {
+        "type": "output_block",
+        "id": "cat-output",
+        "language": "text",
+        "code": "cat: /root/root.txt: Permission denied"
+      },
+      {
+        "type": "section_heading",
+        "id": "cputils-bypass",
+        "text": "Step 2: Copying with SUID Power"
+      },
+      {
+        "type": "order_block",
+        "id": "copy-logic",
+        "text": "Ab hum <highlight>cputils</highlight> use karenge. Ye binary root ke context mein chalti hai, isliye ye file ko utha kar hamari current directory (<highlight>.</highlight>) mein la sakti hai jahan humara full control hai."
+      },
+      {
+        "type": "code_block",
+        "id": "execute-cputils",
+        "language": "bash",
+        "code": "# Copying the protected file to our current location\ncputils /root/root.txt .\n\n# Now reading the copied file\ncat root.txt"
+      },
+      {
+        "type": "explanation",
+        "id": "cputils-usage-summary",
+        "title": "Why this works?",
+        "items": [
+          "SUID Bit: Binary runs with the owner's (root) permissions.",
+          "Bypassing DAC: Standard Linux permissions (Read/Write) are ignored because the binary is acting as root.",
+          "Current Directory: By copying to '.', we become the owner of the NEW copy of the file."
+        ]
+      }
+    ]
   }
 ]

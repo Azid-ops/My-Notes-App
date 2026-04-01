@@ -1,11 +1,38 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
-  Document, Page, Text, View, StyleSheet, PDFDownloadLink 
+  Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image 
 } from '@react-pdf/renderer';
-import ReactMarkdown from 'react-markdown'; // Run: npm install react-markdown
+import ReactMarkdown from 'react-markdown';
 
-// Color Mapping for Severity
-const SEV_COLORS = {
+// --- TYPES ---
+type Severity = 'Critical' | 'High' | 'Medium' | 'Low' | 'Info';
+
+interface Section {
+  id: string;
+  title: string;
+  content: string;
+  cve: string;
+  cvss: string;
+  type: 'finding' | 'info';
+  severity: Severity;
+  imageUrl?: string;
+}
+
+interface ReportMeta {
+  reportName: string;
+  target: string;
+}
+
+interface Stats {
+  Critical: number;
+  High: number;
+  Medium: number;
+  Low: number;
+  Info: number;
+}
+
+// --- CONSTANTS ---
+const SEV_COLORS: Record<Severity, string> = {
   Critical: '#ff4d4d',
   High: '#ff8c00',
   Medium: '#ffcc00',
@@ -13,46 +40,53 @@ const SEV_COLORS = {
   Info: '#646cff'
 };
 
-// --- DARK THEME PDF STYLES ---
+const getSeverityFromScore = (score: string): Severity => {
+  const s = parseFloat(score);
+  if (isNaN(s)) return 'Info';
+  if (s >= 9.0) return 'Critical';
+  if (s >= 7.0) return 'High';
+  if (s >= 4.0) return 'Medium';
+  if (s > 0) return 'Low';
+  return 'Info';
+};
+
+// --- PDF STYLES ---
 const pdfStyles = StyleSheet.create({
   page: { padding: 40, backgroundColor: '#050505', fontFamily: 'Helvetica', color: '#eeeeee' },
-  header: { borderBottom: '2 solid #646cff', paddingBottom: 15, marginBottom: 25 },
+  header: { borderBottomWidth: 2, borderBottomColor: '#646cff', paddingBottom: 15, marginBottom: 25 },
   title: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
   subTitle: { fontSize: 9, color: '#888', marginTop: 6, textTransform: 'uppercase' },
-  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#646cff', marginTop: 25, marginBottom: 12, borderLeft: '3 solid #646cff', paddingLeft: 8 },
-  table: { display: 'flex', flexDirection: 'row', backgroundColor: '#0a0a0a', border: '1 solid #222', borderRadius: 4, marginBottom: 25 },
-  tableCol: { flex: 1, padding: 12, borderRight: '1 solid #222', alignItems: 'center' },
+  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#646cff', marginTop: 25, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: '#646cff', paddingLeft: 8 },
+  table: { display: 'flex', flexDirection: 'row', backgroundColor: '#0a0a0a', borderWidth: 1, borderColor: '#222', borderRadius: 4, marginBottom: 25 },
+  tableCol: { flex: 1, padding: 12, borderRightWidth: 1, borderRightColor: '#222', alignItems: 'center' },
   tableLabel: { fontSize: 7, color: '#666', marginBottom: 5 },
   tableValue: { fontSize: 16, fontWeight: 'bold', color: '#ffffff' },
-  findingBox: { borderBottom: '1 solid #1a1a1a', paddingBottom: 20, marginBottom: 20 },
+  findingBox: { borderBottomWidth: 1, borderBottomColor: '#1a1a1a', paddingBottom: 20, marginBottom: 20 },
   findingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   findingTitle: { fontSize: 13, fontWeight: 'bold' },
   findingMeta: { fontSize: 9, color: '#666' },
-  content: { fontSize: 10, lineHeight: 1.6, color: '#bbbbbb' }
+  paragraph: { fontSize: 10, lineHeight: 1.6, color: '#bbbbbb', textAlign: 'left', marginBottom: 10 },
+  codeInline: { fontFamily: 'Courier', color: '#646cff', backgroundColor: '#1a1a1a', paddingHorizontal: 2, borderRadius: 2 },
+  boldText: { fontWeight: 'bold', color: '#ffffff' },
+  italicText: { fontStyle: 'italic', color: '#dddddd' },
+  evidenceImg: { width: '100%', marginTop: 10, borderRadius: 4 }
 });
 
-const ReportPDF = ({ meta, sections, stats }: any) => {
-  // Helper to parse basic markdown (bold, italic, code) into React-PDF components
+const ReportPDF = ({ meta, sections, stats }: { meta: ReportMeta, sections: Section[], stats: Stats }) => {
   const renderFormattedText = (text: string) => {
-    // Convert bullets first
-    const bulletedText = text.replace(/^- /gm, '• ');
-    
-    // Split text by markdown delimiters (bold: **, italic: *, code: `)
-    // This regex captures the delimiters so we can identify them in the array
+    const bulletedText = text ? text.replace(/^- /gm, '• ') : '';
     const parts = bulletedText.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
 
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <Text key={i} style={{ fontWeight: 'bold', color: '#ffffff' }}>{part.slice(2, -2)}</Text>;
-      }
-      if (part.startsWith('*') && part.endsWith('*')) {
-        return <Text key={i} style={{ fontStyle: 'italic', color: '#dddddd' }}>{part.slice(1, -1)}</Text>;
-      }
-      if (part.startsWith('`') && part.endsWith('`')) {
-        return <Text key={i} style={{ fontFamily: 'Courier', color: '#646cff', backgroundColor: '#1a1a1a' }}>{part.slice(1, -1)}</Text>;
-      }
-      return part;
-    });
+    return (
+      <Text style={pdfStyles.paragraph}>
+        {parts.map((part, i) => {
+          if (part.startsWith('**') && part.endsWith('**')) return <Text key={i} style={pdfStyles.boldText}>{part.slice(2, -2)}</Text>;
+          if (part.startsWith('*') && part.endsWith('*')) return <Text key={i} style={pdfStyles.italicText}>{part.slice(1, -1)}</Text>;
+          if (part.startsWith('`') && part.endsWith('`')) return <Text key={i} style={pdfStyles.codeInline}>{" "}{part.slice(1, -1)}{" "}</Text>;
+          return <Text key={i}>{part}</Text>;
+        })}
+      </Text>
+    );
   };
 
   return (
@@ -63,26 +97,27 @@ const ReportPDF = ({ meta, sections, stats }: any) => {
           <Text style={pdfStyles.subTitle}>TARGET: {meta.target} | CLASSIFICATION: CONFIDENTIAL</Text>
         </View>
 
-        <Text style={pdfStyles.sectionTitle}>EXECUTIVE RISK PROFILE</Text>
-        <View style={pdfStyles.table}>
-          {Object.entries(stats).map(([label, value]: any) => (
-            <View key={label} style={pdfStyles.tableCol}>
-              <Text style={pdfStyles.tableLabel}>{label.toUpperCase()}</Text>
-              <Text style={[pdfStyles.tableValue, { color: SEV_COLORS[label as keyof typeof SEV_COLORS] }]}>{value}</Text>
-            </View>
-          ))}
+        <View wrap={false}>
+          <Text style={pdfStyles.sectionTitle}>EXECUTIVE RISK PROFILE</Text>
+          <View style={pdfStyles.table}>
+            {(Object.entries(stats) as [Severity, number][]).map(([label, value]) => (
+              <View key={label} style={pdfStyles.tableCol}>
+                <Text style={pdfStyles.tableLabel}>{label.toUpperCase()}</Text>
+                <Text style={[pdfStyles.tableValue, { color: SEV_COLORS[label] || '#ffffff' }]}>{value}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <Text style={pdfStyles.sectionTitle}>REPORT SECTIONS</Text>
-        {sections.map((s: any) => (
-          <View key={s.id} style={pdfStyles.findingBox} wrap={false}>
+        {sections.map((s) => (
+          <View key={s.id} style={pdfStyles.findingBox} wrap={true}>
             <View style={pdfStyles.findingHeader}>
-              <Text style={[pdfStyles.findingTitle, { color: SEV_COLORS[s.severity as keyof typeof SEV_COLORS] || '#646cff' }]}>{s.title}</Text>
+              <Text style={[pdfStyles.findingTitle, { color: SEV_COLORS[s.severity] || '#646cff' }]}>{s.title}</Text>
               {s.type !== 'info' && <Text style={pdfStyles.findingMeta}>CVSS: {s.cvss} | {s.cve}</Text>}
             </View>
-            <Text style={pdfStyles.content}>
-              {renderFormattedText(s.content)}
-            </Text>
+            {renderFormattedText(s.content)}
+            {s.imageUrl && <Image src={s.imageUrl} style={pdfStyles.evidenceImg} />}
           </View>
         ))}
       </Page>
@@ -90,42 +125,56 @@ const ReportPDF = ({ meta, sections, stats }: any) => {
   );
 };
 
-interface FindingSection {
-  id: string; title: string; content: string; cve: string; cvss: string;
-  type: 'finding' | 'info';
-  severity: string;
-}
-
-const FullCPTSReport: React.FC = () => {
-  const [reportMeta, setReportMeta] = useState(() => {
+const FullCPTSReport = () => {
+  const [reportMeta, setReportMeta] = useState<ReportMeta>(() => {
     const saved = localStorage.getItem('cpts_v_pure_meta');
-    return saved ? JSON.parse(saved) : { reportName: 'INTERNAL PENETRATION TEST', target: '10.129.x.x' };
+    return saved ? JSON.parse(saved) : { reportName: 'JOKER CTF REPORT', target: '10.10.x.x' };
   });
 
-  const [sections, setSections] = useState<FindingSection[]>(() => {
+  const [sections, setSections] = useState<Section[]>(() => {
     const saved = localStorage.getItem('cpts_v_pure_sections');
     return saved ? JSON.parse(saved) : [
-      { id: '1', title: 'Executive Summary', content: '...', cve: 'N/A', cvss: '0.0', type: 'info', severity: 'Info' }
+      { id: '1', title: 'Executive Summary', content: 'Infiltration of the Joker machine via multiple vulnerabilities.', cve: 'N/A', cvss: '0.0', type: 'info', severity: 'Info', imageUrl: '' }
     ];
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem('cpts_v_pure_sections', JSON.stringify(sections));
     localStorage.setItem('cpts_v_pure_meta', JSON.stringify(reportMeta));
   }, [sections, reportMeta]);
 
-  const stats = useMemo(() => {
-    const counts = { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 };
+  const stats = useMemo<Stats>(() => {
+    const counts: Stats = { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 };
     sections.forEach(s => {
       if (s.type === 'info') return;
-      const sev = s.severity as keyof typeof counts;
-      if (counts[sev] !== undefined) counts[sev]++;
+      if (counts[s.severity] !== undefined) counts[s.severity]++;
     });
     return counts;
   }, [sections]);
 
-  const updateSection = (id: string, field: keyof FindingSection, value: any) => {
-    setSections(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  const updateSection = (id: string, field: keyof Section, value: string) => {
+    setSections(prev => prev.map(s => s.id === id ? { ...s, [field]: value, severity: field === 'cvss' ? getSeverityFromScore(value) : s.severity } : s));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && activeSectionId) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateSection(activeSectionId, 'imageUrl', reader.result as string);
+        setActiveSectionId(null);
+        e.target.value = '';
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerUpload = (id: string) => {
+    setActiveSectionId(id);
+    fileInputRef.current?.click();
   };
 
   const moveSection = (index: number, direction: 'up' | 'down') => {
@@ -139,10 +188,6 @@ const FullCPTSReport: React.FC = () => {
   const addFormat = (id: string, currentContent: string, format: 'bold' | 'italic' | 'list' | 'code') => {
     const tags = { bold: '****', italic: '**', list: '\n- ', code: '``' };
     updateSection(id, 'content', currentContent + tags[format]);
-  };
-
-  const generateCVE = (id: string) => {
-    updateSection(id, 'cve', `CVE-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
   };
 
   return (
@@ -165,38 +210,36 @@ const FullCPTSReport: React.FC = () => {
         .format-bar { display: flex; gap: 10px; margin-bottom: 5px; }
         .format-btn { background: none; border: none; color: #555; cursor: pointer; font-size: 10px; font-weight: bold; }
         .format-btn:hover { color: #646cff; }
-        textarea { width: 100%; height: 140px; background: #050505; color: #ccc; border: 1px solid #222; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; line-height: 1.5; resize: none; box-sizing: border-box; }
+        textarea { width: 100%; height: 120px; background: #050505; color: #ccc; border: 1px solid #222; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; line-height: 1.5; resize: none; box-sizing: border-box; }
         .btn-primary { background: #646cff; color: white; padding: 10px 18px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-weight: bold; font-size: 12px; }
         .btn-tool { background: #222; color: #aaa; border: 1px solid #333; padding: 4px 8px; border-radius: 3px; font-size: 10px; cursor: pointer; }
         .btn-move { background: #222; color: #646cff; border: 1px solid #333; padding: 4px 8px; border-radius: 3px; font-size: 10px; cursor: pointer; }
         .btn-toggle { background: #333; color: #fff; border: 1px solid #444; padding: 4px 10px; border-radius: 20px; font-size: 9px; cursor: pointer; text-transform: uppercase; }
         .btn-toggle.active { background: #646cff; border-color: #646cff; }
         .sev-select { background: #000; color: #fff; border: 1px solid #333; font-size: 10px; padding: 2px 5px; border-radius: 3px; cursor: pointer; outline: none; }
-        
-        /* Fixed Markdown Preview Styling */
         .md-preview code { background: #1a1a1a; color: #646cff; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
-        .md-preview ul, .md-preview ol { 
-          padding-left: 25px; 
-          margin: 10px 0; 
-          list-style-type: disc !important; 
-        }
-        .md-preview li { 
-          display: list-item !important; 
-          margin-bottom: 5px; 
-          color: #bbbbbb;
-        }
-        .md-preview p { margin: 5px 0; }
-        .md-preview strong { color: #ffffff; }
-        .md-preview em { color: #eeeeee; }
+        .preview-img { width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid #333; }
+        .btn-upload { background: #1a1a1a; color: #646cff; border: 1px solid #646cff; padding: 8px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 10px; font-weight: bold; width: 100%; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-upload:hover { background: #646cff; color: white; }
+        .img-status { font-size: 9px; color: #00cc66; margin-top: 5px; display: block; text-align: center; font-weight: bold; }
       `}</style>
+
+      <input type="file" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} accept="image/*" />
 
       <header className="no-print-header">
         <div style={{ display: 'flex', gap: '10px' }}>
           <input style={{background:'#111', color:'#fff', border:'1px solid #333', padding:'8px'}} value={reportMeta.reportName} onChange={e => setReportMeta({ ...reportMeta, reportName: e.target.value })} />
           <input style={{background:'#111', color:'#fff', border:'1px solid #333', padding:'8px'}} value={reportMeta.target} onChange={e => setReportMeta({ ...reportMeta, target: e.target.value })} />
         </div>
-        <PDFDownloadLink document={<ReportPDF meta={reportMeta} sections={sections} stats={stats} />} fileName="Report.pdf" className="btn-primary">
-          {({ loading }) => (loading ? 'BUILDING...' : 'DOWNLOAD PDF')}
+        
+        {/* Dynamic Key forces re-generation of PDF when data changes */}
+        <PDFDownloadLink 
+          key={`${sections.length}-${sections.map(s => s.id).join('-')}-${reportMeta.reportName}`}
+          document={<ReportPDF meta={reportMeta} sections={sections} stats={stats} />} 
+          fileName={`${reportMeta.reportName}.pdf`} 
+          className="btn-primary"
+        >
+          {({ loading }) => (loading ? 'RE-BUILDING...' : 'DOWNLOAD PDF')}
         </PDFDownloadLink>
       </header>
 
@@ -205,11 +248,11 @@ const FullCPTSReport: React.FC = () => {
           {sections.map((s, index) => (
             <div key={s.id} className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <input value={s.title} onChange={e => updateSection(s.id, 'title', e.target.value)} style={{ background: 'none', border: 'none', color: SEV_COLORS[s.severity as keyof typeof SEV_COLORS] || '#646cff', fontWeight: 'bold', fontSize: '1rem', outline: 'none', flex: 1 }} />
+                <input value={s.title} onChange={e => updateSection(s.id, 'title', e.target.value)} style={{ background: 'none', border: 'none', color: SEV_COLORS[s.severity] || '#646cff', fontWeight: 'bold', fontSize: '1rem', outline: 'none', flex: 1 }} />
                 {s.type !== 'info' && (
                   <div style={{ display: 'flex', gap: '5px' }}>
                     <input placeholder="CVE" value={s.cve} onChange={e => updateSection(s.id, 'cve', e.target.value)} style={{ background: '#000', border: '1px solid #222', color: '#888', width: '90px', fontSize: '10px' }} />
-                    <input placeholder="0.0" value={s.cvss} onChange={e => updateSection(s.id, 'cvss', e.target.value)} style={{ background: '#000', border: '1px solid #222', color: '#fff', width: '35px', textAlign: 'center' }} />
+                    <input placeholder="CVSS" value={s.cvss} onChange={e => updateSection(s.id, 'cvss', e.target.value)} style={{ background: '#000', border: '1px solid #222', color: '#fff', width: '35px', textAlign: 'center' }} />
                   </div>
                 )}
               </div>
@@ -223,16 +266,19 @@ const FullCPTSReport: React.FC = () => {
 
               <textarea value={s.content} onChange={e => updateSection(s.id, 'content', e.target.value)} />
               
+              <button className="btn-upload" onClick={() => triggerUpload(s.id)}>
+                 {s.imageUrl ? 'Change Screenshot' : '+ Upload Evidence'}
+              </button>
+              
               <div className="card-tools">
                 <div style={{display:'flex', gap:'5px', alignItems:'center'}}>
                   <button className={`btn-toggle ${s.type === 'finding' ? 'active' : ''}`} onClick={() => updateSection(s.id, 'type', 'finding')}>Finding</button>
-                  <button className={`btn-toggle ${s.type === 'info' ? 'active' : ''}`} onClick={() => updateSection(s.id, 'type', 'info')}>Info/Summary</button>
-                  <select className="sev-select" value={s.severity} onChange={e => updateSection(s.id, 'severity', e.target.value)}>
-                    {Object.keys(SEV_COLORS).map(k => <option key={k} value={k}>{k}</option>)}
+                  <button className={`btn-toggle ${s.type === 'info' ? 'active' : ''}`} onClick={() => updateSection(s.id, 'type', 'info')}>Info</button>
+                  <select className="sev-select" value={s.severity} onChange={e => updateSection(s.id, 'severity', e.target.value as Severity)}>
+                    {(Object.keys(SEV_COLORS) as Severity[]).map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
                 </div>
                 <div style={{display:'flex', gap:'5px'}}>
-                  {s.type !== 'info' && <button className="btn-tool" onClick={() => generateCVE(s.id)}>GEN CVE</button>}
                   <button className="btn-move" onClick={() => moveSection(index, 'up')} disabled={index === 0}>▲</button>
                   <button className="btn-move" onClick={() => moveSection(index, 'down')} disabled={index === sections.length - 1}>▼</button>
                   <button className="btn-tool" style={{ color: '#ff4d4d' }} onClick={() => setSections(sections.filter(x => x.id !== s.id))}>DEL</button>
@@ -240,7 +286,7 @@ const FullCPTSReport: React.FC = () => {
               </div>
             </div>
           ))}
-          <button style={{width:'100%', padding:'12px', background:'#111', color:'#646cff', border:'1px dashed #444', cursor:'pointer'}} onClick={() => setSections([...sections, { id: Date.now().toString(), title: 'New Finding', content: '', cve: 'N/A', cvss: '5.0', type: 'finding', severity: 'Medium' }])}>+ ADD SECTION</button>
+          <button style={{width:'100%', padding:'12px', background:'#111', color:'#646cff', border:'1px dashed #444', cursor:'pointer'}} onClick={() => setSections([...sections, { id: Date.now().toString(), title: 'New Entry', content: '', cve: 'N/A', cvss: '5.0', type: 'finding', severity: 'Medium', imageUrl: '' }])}>+ ADD SECTION</button>
         </div>
         
         <div className="preview-pane">
@@ -248,21 +294,22 @@ const FullCPTSReport: React.FC = () => {
              <div className="preview-header"><div style={{fontSize:'26px', fontWeight:'bold'}}>{reportMeta.reportName}</div></div>
              <div className="preview-section-title">EXECUTIVE RISK PROFILE</div>
              <div className="preview-table">
-                {Object.entries(stats).map(([label, value]: any) => (
+                {(Object.entries(stats) as [Severity, number][]).map(([label, value]) => (
                   <div key={label} className="preview-table-col">
                     <span className="preview-table-label">{label}</span>
-                    <span className="preview-table-value" style={{color: SEV_COLORS[label as keyof typeof SEV_COLORS]}}>{value}</span>
+                    <span className="preview-table-value" style={{color: SEV_COLORS[label]}}>{value}</span>
                   </div>
                 ))}
              </div>
              {sections.map(s => (
               <div key={s.id + '_v'} style={{borderBottom:'1px solid #1a1a1a', paddingBottom:'20px', marginBottom:'20px'}}>
-                <div style={{fontWeight:'bold', color: SEV_COLORS[s.severity as keyof typeof SEV_COLORS], marginBottom: '10px'}}>{s.title}</div>
+                <div style={{fontWeight:'bold', color: SEV_COLORS[s.severity], marginBottom: '10px'}}>{s.title}</div>
                 <div className="md-preview" style={{fontSize:'10px', color:'#bbbbbb'}}>
                   <ReactMarkdown>{s.content}</ReactMarkdown>
                 </div>
+                {s.imageUrl && <img src={s.imageUrl} className="preview-img" alt="evidence" />}
               </div>
-            ))}
+             ))}
           </div>
         </div>
       </div>

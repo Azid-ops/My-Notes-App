@@ -208,6 +208,7 @@
           { "id": "find", "title": "Find", "slug": "find", "category": "notes" },
           { "id": "checker", "title": "Checker", "slug": "checker", "category": "notes" },
           { "id": "exiftool", "title": "ExifTool", "slug": "exiftool", "category": "notes" },
+          { "id": "cputils", "title": "CPUTILS", "slug": "cputils", "category": "notes" },
           {
             "id": "get-cap-all",
             "title": "GetCap",
